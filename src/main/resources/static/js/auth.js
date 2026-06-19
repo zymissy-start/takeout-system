@@ -32,18 +32,35 @@ document.addEventListener("DOMContentLoaded", function () {
                 return;
             }
 
-            if (Number(user.roleType) !== 1) {
-                showMessage("当前阶段只开放顾客端，请使用普通用户账号登录", "error");
-                return;
-            }
-
             localStorage.setItem("loginUser", JSON.stringify(user));
 
             if (user.token) {
                 localStorage.setItem("token", user.token);
             }
 
-            location.href = "/customer/index.html";
+            const roleType = Number(user.roleType);
+
+            if (roleType === 1) {
+                location.href = "/customer/index.html";
+                return;
+            }
+
+            if (roleType === 2) {
+                location.href = "/merchant/index.html";
+                return;
+            }
+
+            if (roleType === 3) {
+                location.href = "/rider/index.html";
+                return;
+            }
+
+            if (roleType === 4) {
+                location.href = "/admin/index.html";
+                return;
+            }
+
+            showMessage("未知用户角色，无法跳转", "error");
         }).catch(function (error) {
             showMessage(error, "error");
         });

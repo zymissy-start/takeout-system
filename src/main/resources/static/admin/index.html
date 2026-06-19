@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>管理员端 - 外卖点餐系统</title>
+  <link rel="stylesheet" href="../css/common.css">
+  <link rel="stylesheet" href="../css/manage.css">
+</head>
+<body>
+<div id="messageBox" class="message-box"></div>
+
+<header class="manage-header">
+  <div class="manage-brand">
+    <div class="manage-logo">管</div>
+    <div>
+      <h1>外卖点餐系统</h1>
+      <p>管理员端</p>
+    </div>
+  </div>
+
+  <div class="manage-user">
+    <span id="adminUserInfo">未登录</span>
+    <button class="outline-btn" onclick="logout()">退出登录</button>
+  </div>
+</header>
+
+<main class="manage-layout">
+  <aside class="manage-menu">
+    <button class="active" data-page="dashboard">平台概览</button>
+    <button data-page="users">用户管理</button>
+    <button data-page="products">商品管理</button>
+    <button data-page="orders">订单管理</button>
+  </aside>
+
+  <section class="manage-content">
+    <section id="dashboardPage" class="manage-section active">
+      <div class="page-head">
+        <div>
+          <h2>平台概览</h2>
+          <p>查看用户、商品、订单、交易额等总体数据。</p>
+        </div>
+        <button class="primary-btn" id="refreshAdminStatsBtn">刷新</button>
+      </div>
+
+      <div id="adminStats" class="card-grid"></div>
+    </section>
+
+    <section id="usersPage" class="manage-section">
+      <div class="page-head">
+        <div>
+          <h2>用户管理</h2>
+          <p>查看并启用 / 禁用平台账号。</p>
+        </div>
+        <button class="primary-btn" id="refreshUsersBtn">刷新用户</button>
+      </div>
+
+      <div class="table-card">
+        <table class="data-table">
+          <thead>
+          <tr>
+            <th>ID</th>
+            <th>账号</th>
+            <th>姓名</th>
+            <th>角色</th>
+            <th>状态</th>
+            <th>操作</th>
+          </tr>
+          </thead>
+          <tbody id="userTbody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="productsPage" class="manage-section">
+      <div class="page-head">
+        <div>
+          <h2>商品管理</h2>
+          <p>查看所有商家的商品，并可进行上下架管理。</p>
+        </div>
+        <button class="primary-btn" id="refreshProductsBtn">刷新商品</button>
+      </div>
+
+      <div class="table-card">
+        <table class="data-table">
+          <thead>
+          <tr>
+            <th>ID</th>
+            <th>商品</th>
+            <th>商家ID</th>
+            <th>分类</th>
+            <th>价格</th>
+            <th>状态</th>
+            <th>操作</th>
+          </tr>
+          </thead>
+          <tbody id="adminProductTbody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="ordersPage" class="manage-section">
+      <div class="page-head">
+        <div>
+          <h2>订单管理</h2>
+          <p>查看平台所有订单和状态流转。</p>
+        </div>
+        <button class="primary-btn" id="refreshAdminOrdersBtn">刷新订单</button>
+      </div>
+
+      <div id="adminOrderList" class="order-card-list"></div>
+    </section>
+  </section>
+</main>
+
+<script src="../js/api.js"></script>
+<script src="../js/admin.js"></script>
+</body>
+</html>
