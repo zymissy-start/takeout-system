@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>顾客端 - 外卖点餐系统</title>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/customer.css">
+</head>
+<body>
+<div id="messageBox" class="message-box"></div>
+
+<header class="customer-header">
+    <div class="header-left">
+        <div class="logo">食</div>
+        <div>
+            <h1>外卖点餐系统</h1>
+            <p>顾客端</p>
+        </div>
+    </div>
+
+    <div class="header-right">
+        <span id="userInfo">未登录</span>
+        <button class="outline-btn" onclick="logout()">退出登录</button>
+    </div>
+</header>
+
+<main class="customer-layout">
+    <aside class="side-menu">
+        <button class="menu-item active" data-page="products">点餐首页</button>
+        <button class="menu-item" data-page="cart">我的点餐车</button>
+        <button class="menu-item" data-page="orders">我的订单</button>
+    </aside>
+
+    <section class="content">
+        <section id="productsPage" class="page-section active">
+            <div class="page-title-row">
+                <div>
+                    <h2>点餐首页</h2>
+                    <p>选择商品后加入点餐车，再统一提交订单。</p>
+                </div>
+
+                <div class="search-box">
+                    <input id="keywordInput" type="text" placeholder="搜索商品名称">
+                    <button class="primary-btn" id="searchBtn">搜索</button>
+                </div>
+            </div>
+
+            <div id="categoryTabs" class="category-tabs"></div>
+
+            <div id="productList" class="product-grid"></div>
+        </section>
+
+        <section id="cartPage" class="page-section">
+            <div class="page-title-row">
+                <div>
+                    <h2>我的点餐车</h2>
+                    <p>确认商品数量、地址和备注后提交订单。</p>
+                </div>
+            </div>
+
+            <div class="cart-layout">
+                <div>
+                    <div id="cartList" class="cart-list"></div>
+                </div>
+
+                <div class="order-panel">
+                    <h3>订单信息</h3>
+
+                    <div class="form-item">
+                        <label>收货地址</label>
+                        <input id="addressInput" type="text" placeholder="请输入收货地址">
+                    </div>
+
+                    <div class="form-item">
+                        <label>订单备注</label>
+                        <textarea id="remarkInput" placeholder="口味、餐具数量等，可不填"></textarea>
+                    </div>
+
+                    <div class="total-line">
+                        <span>合计</span>
+                        <strong id="cartTotal">￥0.00</strong>
+                    </div>
+
+                    <button class="primary-btn full-btn" id="submitOrderBtn">提交订单</button>
+                </div>
+            </div>
+        </section>
+
+        <section id="ordersPage" class="page-section">
+            <div class="page-title-row">
+                <div>
+                    <h2>我的订单</h2>
+                    <p>查看订单状态、骑手信息和配送进度。</p>
+                </div>
+
+                <button class="primary-btn" id="refreshOrdersBtn">刷新订单</button>
+            </div>
+
+            <div id="orderList" class="order-list"></div>
+        </section>
+    </section>
+</main>
+
+<script src="../js/api.js"></script>
+<script src="../js/customer.js"></script>
+</body>
+</html>
