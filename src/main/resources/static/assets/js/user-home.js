@@ -86,21 +86,35 @@
       categoryId: App.getField(c, ['categoryId', 'category_id'], ''),
       categoryName: App.getField(c, ['categoryName', 'category_name', 'name'], '分类')
     })));
-    box.innerHTML = all.map(c => `<button data-id="${c.categoryId}" class="${String(state.categoryId) === String(c.categoryId) ? 'active' : ''}">${App.escapeHtml(c.categoryName)}</button>`).join('');
+    box.innerHTML = all.map(c => {
+      const isActive = String(state.categoryId || '') === String(c.categoryId || '');
+      return `<button type="button" data-id="${c.categoryId}" class="${isActive ? 'active' : ''}" aria-pressed="${isActive}">${App.escapeHtml(c.categoryName)}</button>`;
+    }).join('');
     box.querySelectorAll('button').forEach(btn => {
       btn.addEventListener('click', () => {
-        state.categoryId = btn.dataset.id;
+        state.categoryId = btn.dataset.id || '';
         state.selectedMerchantId = null;
+        updateCategoryActive();
         loadProducts(true);
       });
+    });
+    updateCategoryActive();
+  }
+
+  function updateCategoryActive() {
+    App.$all('#categoryTabs button').forEach(btn => {
+      const isActive = String(state.categoryId || '') === String(btn.dataset.id || '');
+      btn.classList.toggle('active', isActive);
+      btn.setAttribute('aria-pressed', String(isActive));
     });
   }
 
   function selectCategoryByName(name) {
     const tab = Array.from(App.$('#categoryTabs').querySelectorAll('button')).find(btn => btn.textContent.includes(name));
     if (tab) {
-      state.categoryId = tab.dataset.id;
+      state.categoryId = tab.dataset.id || '';
       state.selectedMerchantId = null;
+      updateCategoryActive();
       loadProducts(true);
     } else {
       state.keyword = name;
