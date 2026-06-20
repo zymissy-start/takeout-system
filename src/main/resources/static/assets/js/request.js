@@ -361,30 +361,31 @@
     if (token) opt.headers.Authorization = token.startsWith('Bearer ') ? token : `Bearer ${token}`;
     if (opt.body && typeof opt.body !== 'string') opt.body = JSON.stringify(opt.body);
 
+    let resp;
     try {
-      const resp = await fetch(API_BASE + url, opt);
-      if (resp.status === 401 || resp.status === 403) {
-        clearAuthCache();
-        requireLogin('登录已过期或没有权限，请重新登录。', { redirect: true, auto: false, closable: true });
-        throw new Error('未登录或无权限');
-      }
-
-      const text = await resp.text();
-      let json = null;
-      try { json = text ? JSON.parse(text) : {}; } catch (e) { json = text; }
-
-      if (!resp.ok) {
-        const mock = mockResponse(url, opt);
-        if (mock !== undefined) return mock;
-        throw new Error((json && (json.message || json.msg)) || `请求失败：${resp.status}`);
-      }
-      return normalizeResult(json);
+      resp = await fetch(API_BASE + url, opt);
     } catch (err) {
-      if (String(err && err.message).includes('未登录或无权限')) throw err;
       const mock = mockResponse(url, opt);
       if (mock !== undefined) return mock;
       throw err;
     }
+
+    if (resp.status === 401 || resp.status === 403) {
+      clearAuthCache();
+      requireLogin('登录已过期或没有权限，请重新登录。', { redirect: true, auto: false, closable: true });
+      throw new Error('未登录或无权限');
+    }
+
+    const text = await resp.text();
+    let json;
+    try { json = text ? JSON.parse(text) : {}; } catch (e) { json = text; }
+
+    if (!resp.ok) {
+      const mock = mockResponse(url, opt);
+      if (mock !== undefined) return mock;
+      throw new Error((json && (json.message || json.msg)) || `请求失败：${resp.status}`);
+    }
+    return normalizeResult(json);
   }
 
   async function loadCurrentUser() {

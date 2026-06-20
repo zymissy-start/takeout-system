@@ -19,6 +19,7 @@
     </div>
     <div class="search-box">
       <span>🔎</span>
+      <label for="keywordInput" class="sr-only">搜索关键词</label>
       <input id="keywordInput" type="search" placeholder="搜索汉堡、奶茶、跑腿代购" />
       <button id="searchBtn">搜索</button>
     </div>
@@ -47,6 +48,7 @@
           <h2>附近商家</h2>
           <p>先选商家，再查看该商家的商品</p>
         </div>
+        <label for="sortSelect" class="sr-only">商家排序方式</label>
         <select id="sortSelect" class="select">
           <option value="recommend">智能排序</option>
           <option value="sales">销量最高</option>
@@ -89,9 +91,9 @@
         <h3>确认订单</h3>
         <button id="closeCheckoutBtn" class="icon-btn">×</button>
       </div>
-      <label class="field-label">收货地址</label>
+      <label for="addressSelect" class="field-label">收货地址</label>
       <select id="addressSelect" class="input"></select>
-      <label class="field-label">备注</label>
+      <label for="remarkInput" class="field-label">备注</label>
       <textarea id="remarkInput" class="input textarea" placeholder="例如：少辣、放宿舍楼下、电话联系"></textarea>
       <div class="price-row"><span>商品金额</span><b id="modalGoodsAmount">￥0.00</b></div>
       <div class="price-row"><span>配送费</span><b id="modalDeliveryFee">￥0.00</b></div>
