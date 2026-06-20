@@ -1,6 +1,6 @@
 (function () {
   const API_BASE = ''; // 同域部署：SpringBoot 静态资源和接口在同一服务下，无需改动。
-  const LOGIN_URL = '/login.html'; // 登录页由其他同学实现；如果路径不同，只改这里。
+  const LOGIN_URL = '/login.html'; // 登录页路径。
   const USE_MOCK_WHEN_BACKEND_UNAVAILABLE = true; // 后端未完成时用于前端演示。后端完成后可改为 false。
 
   const mockCategories = [
@@ -77,6 +77,66 @@
     }
   ];
 
+  const MOCK_USERS_KEY = 'takeout_mock_users_v1';
+
+  function defaultMockUsers() {
+    return [
+      { userId: 2, username: 'zhangsan', password: '123456', realName: '张三', phone: '13800000000', roleType: 1, creditScore: 10 },
+      { userId: 10, username: 'lisi', password: '123456', realName: '李四', phone: '13900000000', roleType: 1, creditScore: 8 }
+    ];
+  }
+
+  function readMockUsers() {
+    try {
+      const saved = JSON.parse(localStorage.getItem(MOCK_USERS_KEY) || '[]');
+      if (Array.isArray(saved) && saved.length) return saved;
+    } catch (e) {}
+    const users = defaultMockUsers();
+    localStorage.setItem(MOCK_USERS_KEY, JSON.stringify(users));
+    return users;
+  }
+
+  function writeMockUsers(users) {
+    localStorage.setItem(MOCK_USERS_KEY, JSON.stringify(users || []));
+  }
+
+  function publicUser(user) {
+    if (!user) return {};
+    const clone = Object.assign({}, user);
+    delete clone.password;
+    return clone;
+  }
+
+  function createToken(user) {
+    return `mock-token-${user.userId || Date.now()}-${Date.now()}`;
+  }
+
+  function saveAuth(token, user) {
+    if (token) localStorage.setItem('token', token);
+    if (user) saveLocalUser(user);
+  }
+
+  function currentUserCartKey() {
+    const user = getLocalUser();
+    const uid = getField(user, ['userId', 'user_id', 'id', 'username'], '');
+    return uid ? `takeout_user_cart_v1_${uid}` : '';
+  }
+
+  function clearCartCache() {
+    const key = currentUserCartKey();
+    if (key) localStorage.removeItem(key);
+    localStorage.removeItem('takeout_user_cart_v1');
+    window.dispatchEvent(new Event('cart:change'));
+  }
+
+  function clearAuthCache() {
+    clearCartCache();
+    localStorage.removeItem('token');
+    localStorage.removeItem('Authorization');
+    localStorage.removeItem('currentUser');
+    localStorage.removeItem('userInfo');
+  }
+
   function $(selector) { return document.querySelector(selector); }
   function $all(selector) { return Array.from(document.querySelectorAll(selector)); }
 
@@ -96,11 +156,6 @@
 
   function isLoggedIn() {
     return Boolean(getToken());
-  }
-
-  function clearAuthCache() {
-    localStorage.removeItem('token');
-    localStorage.removeItem('Authorization');
   }
 
   function getLocalUser() {
@@ -128,7 +183,7 @@
 
   function isLoginPage() {
     const path = location.pathname.toLowerCase();
-    return path.endsWith('/login.html') || path.endsWith('/login') || path.includes('/login/');
+    return path.endsWith('/login.html') || path.endsWith('/login') || path.includes('/login/') || path.endsWith('/register.html');
   }
 
   function isProtectedPagePath(pathname) {
@@ -254,7 +309,7 @@
 
   function isPublicApi(url) {
     const path = String(url || '').split('?')[0];
-    return path === '/api/categories' || path === '/api/user/products' || path === '/api/products' || path === '/api/user/merchants';
+    return path === '/api/categories' || path === '/api/user/products' || path === '/api/products' || path === '/api/user/merchants' || path === '/api/auth/login' || path === '/api/auth/register' || path === '/api/login' || path === '/api/register';
   }
 
   function isAuthRequiredApi(url) {
@@ -271,6 +326,42 @@
     const u = new URL(normalized);
     const path = u.pathname;
     const method = String((options && options.method) || 'GET').toUpperCase();
+
+    if (method === 'POST' && (path === '/api/auth/login' || path === '/api/login')) {
+      const body = parseBody(options);
+      const username = String(body.username || body.account || '').trim();
+      const password = String(body.password || '').trim();
+      const user = readMockUsers().find(item => String(item.username) === username && String(item.password) === password);
+      if (!user) throw new Error('账号或密码错误');
+      const safeUser = publicUser(user);
+      const token = createToken(user);
+      return { token, user: safeUser };
+    }
+
+    if (method === 'POST' && (path === '/api/auth/register' || path === '/api/register')) {
+      const body = parseBody(options);
+      const username = String(body.username || '').trim();
+      const password = String(body.password || '').trim();
+      const realName = String(body.realName || body.real_name || body.name || username || '').trim();
+      const phone = String(body.phone || '').trim();
+      if (!username || !password) throw new Error('请填写账号和密码');
+      const users = readMockUsers();
+      if (users.some(item => String(item.username) === username)) throw new Error('账号已存在');
+      const user = {
+        userId: Date.now(),
+        username,
+        password,
+        realName: realName || username,
+        phone,
+        roleType: 1,
+        creditScore: 10
+      };
+      users.push(user);
+      writeMockUsers(users);
+      const safeUser = publicUser(user);
+      const token = createToken(user);
+      return { token, user: safeUser };
+    }
 
     if (method === 'GET' && path === '/api/categories') return mockCategories.slice();
 
@@ -301,7 +392,7 @@
 
     if (method === 'GET' && path === '/api/user/me') {
       const local = getLocalUser();
-      return Object.keys(local || {}).length ? local : { userId: 2, username: 'zhangsan', realName: '张三', phone: '13800000000', creditScore: 10 };
+      return Object.keys(local || {}).length ? local : publicUser(readMockUsers()[0]);
     }
 
     if (method === 'GET' && path === '/api/user/stats') return { couponCount: 2, orderCount: mockOrders.length };
@@ -439,7 +530,7 @@
   });
 
   window.App = {
-    $, $all, request, toast, getToken, isLoggedIn, requireLogin, loginRedirectUrl,
+    $, $all, request, toast, getToken, isLoggedIn, requireLogin, loginRedirectUrl, saveAuth, clearAuthCache, clearCartCache,
     getLocalUser, saveLocalUser, loadCurrentUser, formatMoney, getField, escapeHtml,
     mock: { categories: mockCategories, merchants: mockMerchants, products: mockProducts, addresses: mockAddresses, orders: mockOrders }
   };

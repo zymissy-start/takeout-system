@@ -1,17 +1,54 @@
 (function () {
-  const CART_KEY = 'takeout_user_cart_v1';
+  const LEGACY_CART_KEY = 'takeout_user_cart_v1';
+
+  function getUserCartKey() {
+    if (!App.isLoggedIn()) return '';
+    const user = App.getLocalUser();
+    const uid = App.getField(user, ['userId', 'user_id', 'id', 'username'], '');
+    return uid ? `${LEGACY_CART_KEY}_${uid}` : '';
+  }
+
+  function readJson(key) {
+    try { return JSON.parse(localStorage.getItem(key) || '[]'); } catch (e) { return []; }
+  }
+
+  function writeJson(key, value) {
+    localStorage.setItem(key, JSON.stringify(value || []));
+  }
 
   function readCart() {
-    try { return JSON.parse(localStorage.getItem(CART_KEY) || '[]'); } catch (e) { return []; }
+    const key = getUserCartKey();
+    if (!key) return [];
+
+    let cart = readJson(key);
+    const legacyCart = readJson(LEGACY_CART_KEY);
+
+    if (!cart.length && legacyCart.length) {
+      cart = legacyCart;
+      writeJson(key, cart);
+      localStorage.removeItem(LEGACY_CART_KEY);
+    }
+
+    return cart;
   }
+
   function writeCart(cart) {
-    localStorage.setItem(CART_KEY, JSON.stringify(cart || []));
+    const key = getUserCartKey();
+    if (!key) {
+      window.dispatchEvent(new Event('cart:change'));
+      return;
+    }
+    writeJson(key, cart || []);
+    localStorage.removeItem(LEGACY_CART_KEY);
     window.dispatchEvent(new Event('cart:change'));
   }
+
   function getProductId(product) { return Number(App.getField(product, ['productId', 'product_id', 'id'], 0)); }
   function getMerchantId(product) { return Number(App.getField(product, ['merchantId', 'merchant_id'], 0)); }
 
   function add(product, count) {
+    if (!App.requireLogin('请先登录，登录后才能加入购物车。', { redirect: true, auto: false, closable: true })) return readCart();
+
     const cart = readCart();
     const productId = getProductId(product);
     if (!productId) throw new Error('商品ID缺失');
@@ -48,7 +85,13 @@
     return next;
   }
 
-  function clear() { writeCart([]); }
+  function clear() {
+    const key = getUserCartKey();
+    if (key) localStorage.removeItem(key);
+    localStorage.removeItem(LEGACY_CART_KEY);
+    window.dispatchEvent(new Event('cart:change'));
+  }
+
   function count() { return readCart().reduce((sum, item) => sum + Number(item.quantity || 0), 0); }
   function goodsAmount() { return readCart().reduce((sum, item) => sum + Number(item.price || 0) * Number(item.quantity || 0), 0); }
 

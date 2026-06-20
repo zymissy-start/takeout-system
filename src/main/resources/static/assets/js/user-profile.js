@@ -153,10 +153,7 @@
       return;
     }
     if (!confirm('确认退出登录吗？')) return;
-    localStorage.removeItem('token');
-    localStorage.removeItem('Authorization');
-    localStorage.removeItem('currentUser');
-    localStorage.removeItem('userInfo');
+    App.clearAuthCache();
     location.href = '/login.html';
   }
 })();
