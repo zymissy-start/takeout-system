@@ -1,6 +1,7 @@
 package com.example.takeoutsystem.controller.merchant;
 
 import com.example.takeoutsystem.common.Result;
+import com.example.takeoutsystem.entity.MerchantOrderDetailVO;
 import com.example.takeoutsystem.entity.MerchantOrderVO;
 import com.example.takeoutsystem.entity.SysUser;
 import com.example.takeoutsystem.service.MerchantOrderService;
@@ -20,8 +21,8 @@ public class MerchantOrderController {
     }
 
     @GetMapping("/orders")
-    public Result<List<MerchantOrderVO>> listOrders(Integer size, HttpSession session) {
-        SysUser merchant = (SysUser) session.getAttribute("loginMerchant");
+    public Result<List<MerchantOrderVO>> listRecentOrders(Integer size, HttpSession session) {
+        SysUser merchant = getLoginMerchant(session);
 
         if (merchant == null) {
             return Result.fail("商家未登录");
@@ -33,9 +34,41 @@ public class MerchantOrderController {
         return Result.success("获取商家订单成功", orders);
     }
 
+    @GetMapping("/orders/list")
+    public Result<List<MerchantOrderVO>> listOrders(Integer status, HttpSession session) {
+        SysUser merchant = getLoginMerchant(session);
+
+        if (merchant == null) {
+            return Result.fail("商家未登录");
+        }
+
+        List<MerchantOrderVO> orders =
+                merchantOrderService.listOrders(merchant.getUserId(), status);
+
+        return Result.success("获取订单列表成功", orders);
+    }
+
+    @GetMapping("/orders/detail")
+    public Result<MerchantOrderDetailVO> detail(Integer orderId, HttpSession session) {
+        SysUser merchant = getLoginMerchant(session);
+
+        if (merchant == null) {
+            return Result.fail("商家未登录");
+        }
+
+        MerchantOrderDetailVO detail =
+                merchantOrderService.getOrderDetail(merchant.getUserId(), orderId);
+
+        if (detail == null) {
+            return Result.fail("订单不存在或不属于当前商家");
+        }
+
+        return Result.success("获取订单详情成功", detail);
+    }
+
     @PostMapping("/order/accept")
     public Result<Void> acceptOrder(Integer orderId, HttpSession session) {
-        SysUser merchant = (SysUser) session.getAttribute("loginMerchant");
+        SysUser merchant = getLoginMerchant(session);
 
         if (merchant == null) {
             return Result.fail("商家未登录");
@@ -52,7 +85,7 @@ public class MerchantOrderController {
 
     @PostMapping("/order/finish-cooking")
     public Result<Void> finishCooking(Integer orderId, HttpSession session) {
-        SysUser merchant = (SysUser) session.getAttribute("loginMerchant");
+        SysUser merchant = getLoginMerchant(session);
 
         if (merchant == null) {
             return Result.fail("商家未登录");
@@ -69,7 +102,7 @@ public class MerchantOrderController {
 
     @PostMapping("/order/call-rider")
     public Result<Void> callRider(Integer orderId, HttpSession session) {
-        SysUser merchant = (SysUser) session.getAttribute("loginMerchant");
+        SysUser merchant = getLoginMerchant(session);
 
         if (merchant == null) {
             return Result.fail("商家未登录");
@@ -82,5 +115,9 @@ public class MerchantOrderController {
         }
 
         return Result.success("召唤骑手成功");
+    }
+
+    private SysUser getLoginMerchant(HttpSession session) {
+        return (SysUser) session.getAttribute("loginMerchant");
     }
 }

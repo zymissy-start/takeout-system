@@ -248,8 +248,12 @@
             return;
         }
 
+        if (action === 'orders') {
+            location.href = '/merchant/orders.html';
+            return;
+        }
+
         const map = {
-            orders: '订单管理页面下一步开发：/merchant/orders.html',
             shop: '店铺信息页面下一步开发：/merchant/shop.html',
             print: '打印订单功能将在订单详情中使用 window.print() 实现'
         };

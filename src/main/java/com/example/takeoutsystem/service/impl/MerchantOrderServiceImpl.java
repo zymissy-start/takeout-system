@@ -1,5 +1,7 @@
 package com.example.takeoutsystem.service.impl;
 
+import com.example.takeoutsystem.entity.MerchantOrderDetailVO;
+import com.example.takeoutsystem.entity.MerchantOrderItemVO;
 import com.example.takeoutsystem.entity.MerchantOrderVO;
 import com.example.takeoutsystem.mapper.MerchantOrderMapper;
 import com.example.takeoutsystem.service.MerchantOrderService;
@@ -27,6 +29,37 @@ public class MerchantOrderServiceImpl implements MerchantOrderService {
         }
 
         return merchantOrderMapper.listRecentOrders(merchantId, size);
+    }
+
+    @Override
+    public List<MerchantOrderVO> listOrders(Integer merchantId, Integer status) {
+        if (status != null && status < 0) {
+            status = null;
+        }
+
+        if (status != null && status > 4) {
+            status = null;
+        }
+
+        return merchantOrderMapper.listOrders(merchantId, status);
+    }
+
+    @Override
+    public MerchantOrderDetailVO getOrderDetail(Integer merchantId, Integer orderId) {
+        if (orderId == null) {
+            return null;
+        }
+
+        MerchantOrderDetailVO detail = merchantOrderMapper.getOrderDetail(merchantId, orderId);
+
+        if (detail == null) {
+            return null;
+        }
+
+        List<MerchantOrderItemVO> items = merchantOrderMapper.listOrderItems(orderId);
+        detail.setItems(items);
+
+        return detail;
     }
 
     @Override
