@@ -243,8 +243,12 @@
     function handleQuickAction(event) {
         const action = event.currentTarget.dataset.action;
 
+        if (action === 'foods') {
+            location.href = '/merchant/foods.html';
+            return;
+        }
+
         const map = {
-            foods: '菜品管理页面下一步开发：/merchant/foods.html',
             orders: '订单管理页面下一步开发：/merchant/orders.html',
             shop: '店铺信息页面下一步开发：/merchant/shop.html',
             print: '打印订单功能将在订单详情中使用 window.print() 实现'
