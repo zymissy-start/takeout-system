@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>菜品管理 - 饭点优选商家端</title>
+    <link rel="stylesheet" href="/merchant/css/merchant.css">
+</head>
+<body>
+
+<header class="merchant-header compact-header">
+    <div class="header-inner">
+        <div class="header-top">
+            <div class="header-title">
+                <a class="avatar" href="/merchant/dashboard.html">‹</a>
+                <div>
+                    <h1>菜品管理</h1>
+                    <p id="merchantSub">新增、编辑、上架或下架店内菜品</p>
+                </div>
+            </div>
+
+            <button id="logoutBtn" class="logout-btn">退出登录</button>
+        </div>
+    </div>
+</header>
+
+<main class="merchant-shell compact-shell">
+    <section class="section-card">
+        <div class="section-title">
+            <div>
+                <h2>店内菜品</h2>
+                <p>管理当前商家账号名下的商品信息</p>
+            </div>
+            <button id="addFoodBtn" class="ghost-btn main">新增菜品</button>
+        </div>
+
+        <div class="food-toolbar">
+            <input id="keywordInput" class="input" type="text" placeholder="搜索菜品名称或描述">
+
+            <select id="categoryFilter" class="input">
+                <option value="">全部分类</option>
+            </select>
+
+            <select id="statusFilter" class="input">
+                <option value="">全部状态</option>
+                <option value="1">上架中</option>
+                <option value="0">已下架</option>
+            </select>
+
+            <button id="searchBtn" class="primary-btn inline-btn">查询</button>
+        </div>
+
+        <div id="foodList" class="manage-food-list">
+            <div class="empty-state">正在加载菜品...</div>
+        </div>
+    </section>
+</main>
+
+<div id="foodModalMask" class="modal-mask hidden">
+    <section class="modal merchant-modal">
+        <div class="modal-title">
+            <h3 id="foodModalTitle">新增菜品</h3>
+            <button id="closeFoodModalBtn" class="icon-btn" type="button">×</button>
+        </div>
+
+        <input id="productIdInput" type="hidden">
+
+        <label class="field-label" for="foodNameInput">菜品名称</label>
+        <input id="foodNameInput" class="input" type="text" placeholder="例如：经典双层芝士汉堡">
+
+        <label class="field-label" for="foodCategoryInput">菜品分类</label>
+        <select id="foodCategoryInput" class="input">
+            <option value="">请选择分类</option>
+        </select>
+
+        <label class="field-label" for="foodPriceInput">价格</label>
+        <input id="foodPriceInput" class="input" type="number" min="0" step="0.01" placeholder="例如：25.00">
+
+        <label class="field-label" for="foodImageInput">图片路径</label>
+        <input id="foodImageInput" class="input" type="text" placeholder="/images/burger1.jpg">
+
+        <label class="field-label" for="foodDescInput">描述</label>
+        <textarea id="foodDescInput" class="input textarea" placeholder="请输入菜品描述"></textarea>
+
+        <button id="saveFoodBtn" class="primary-btn" type="button">保存菜品</button>
+    </section>
+</div>
+
+<script src="/merchant/js/merchant-common.js"></script>
+<script src="/merchant/js/merchant-foods.js"></script>
+</body>
+</html>

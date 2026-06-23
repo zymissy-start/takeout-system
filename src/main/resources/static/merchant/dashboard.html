@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>商家后台 - 饭点优选</title>
+    <link rel="stylesheet" href="/merchant/css/merchant.css">
+</head>
+<body>
+
+<header class="merchant-header">
+    <div class="header-inner">
+        <div class="header-top">
+            <div class="header-title">
+                <span id="merchantAvatar" class="avatar">商</span>
+                <div>
+                    <h1 id="merchantName">商家后台</h1>
+                    <p id="merchantSub">正在加载商家信息...</p>
+                </div>
+            </div>
+
+            <button id="logoutBtn" class="logout-btn">退出登录</button>
+        </div>
+
+        <section class="hero-panel">
+            <div>
+                <span class="badge">今日工作台</span>
+                <h2>及时接单，提升出餐效率</h2>
+                <p>
+                    用户下单后会进入商家端，商家确认接单后设置预计出餐时间，
+                    出餐完成后即可召唤骑手配送。
+                </p>
+            </div>
+            <div class="hero-icon">🍔</div>
+        </section>
+    </div>
+</header>
+
+<main class="merchant-shell">
+    <section class="quick-grid">
+        <article class="quick-card">
+            <span>📦</span>
+            <b id="waitAcceptCount">0</b>
+            <p>待接单</p>
+        </article>
+
+        <article class="quick-card">
+            <span>🔥</span>
+            <b id="cookingCount">0</b>
+            <p>制作中</p>
+        </article>
+
+        <article class="quick-card">
+            <span>🛵</span>
+            <b id="waitRiderCount">0</b>
+            <p>待骑手接单</p>
+        </article>
+
+        <article class="quick-card">
+            <span>✅</span>
+            <b id="finishedCount">0</b>
+            <p>已完成</p>
+        </article>
+    </section>
+
+    <section class="content-grid">
+        <article class="section-card">
+            <div class="section-title">
+                <div>
+                    <h2>订单处理</h2>
+                    <p>确认订单、设置出餐时间、召唤骑手</p>
+                </div>
+                <button class="ghost-btn main" id="refreshBtn">刷新</button>
+            </div>
+
+            <div id="orderPreviewList" class="order-list">
+                <div class="empty-state">正在加载订单...</div>
+            </div>
+        </article>
+
+        <aside>
+            <article class="section-card">
+                <div class="section-title">
+                    <div>
+                        <h2>快捷功能</h2>
+                        <p>商家端常用操作</p>
+                    </div>
+                </div>
+
+                <div class="action-list">
+                    <button class="action-card" data-action="foods">
+                        <div>
+                            <strong>菜品管理</strong>
+                            <span>新增、修改、上下架商品</span>
+                        </div>
+                        <span>›</span>
+                    </button>
+
+                    <button class="action-card" data-action="orders">
+                        <div>
+                            <strong>订单管理</strong>
+                            <span>查看全部订单状态</span>
+                        </div>
+                        <span>›</span>
+                    </button>
+
+                    <button class="action-card" data-action="shop">
+                        <div>
+                            <strong>店铺信息</strong>
+                            <span>维护公告、地址、电话</span>
+                        </div>
+                        <span>›</span>
+                    </button>
+
+                    <button class="action-card" data-action="print">
+                        <div>
+                            <strong>打印订单</strong>
+                            <span>打印待处理订单小票</span>
+                        </div>
+                        <span>›</span>
+                    </button>
+                </div>
+            </article>
+
+            <article class="section-card" style="margin-top:14px;">
+                <div class="section-title">
+                    <div>
+                        <h2>热卖商品</h2>
+                        <p>根据销量和推荐度展示</p>
+                    </div>
+                </div>
+
+                <div id="productPreviewList" class="product-list">
+                    <div class="empty-state">暂无商品数据</div>
+                </div>
+            </article>
+        </aside>
+    </section>
+</main>
+
+<script src="/merchant/js/merchant-common.js"></script>
+<script src="/merchant/js/merchant-dashboard.js"></script>
+</body>
+</html>

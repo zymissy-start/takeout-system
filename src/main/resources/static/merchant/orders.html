@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>订单管理 - 饭点优选商家端</title>
+    <link rel="stylesheet" href="/merchant/css/merchant.css">
+</head>
+<body>
+
+<header class="merchant-header compact-header">
+    <div class="header-inner">
+        <div class="header-top">
+            <div class="header-title">
+                <a class="avatar" href="/merchant/dashboard.html">‹</a>
+                <div>
+                    <h1>订单管理</h1>
+                    <p>查看订单详情，处理接单、出餐和骑手配送流程</p>
+                </div>
+            </div>
+
+            <button id="logoutBtn" class="logout-btn">退出登录</button>
+        </div>
+    </div>
+</header>
+
+<main class="merchant-shell compact-shell">
+    <section class="section-card">
+        <div class="section-title">
+            <div>
+                <h2>全部订单</h2>
+                <p>按订单状态筛选并处理订单</p>
+            </div>
+            <button id="refreshBtn" class="ghost-btn main">刷新</button>
+        </div>
+
+        <div id="orderTabs" class="merchant-tabs">
+            <button class="active" data-status="">全部</button>
+            <button data-status="0">待接单</button>
+            <button data-status="1">制作中</button>
+            <button data-status="2">待骑手接单</button>
+            <button data-status="3">配送中</button>
+            <button data-status="4">已完成</button>
+        </div>
+
+        <div id="orderList" class="order-list">
+            <div class="empty-state">正在加载订单...</div>
+        </div>
+    </section>
+</main>
+
+<div id="orderDetailMask" class="modal-mask hidden">
+    <section class="modal merchant-order-modal">
+        <div class="modal-title">
+            <h3>订单详情</h3>
+            <button id="closeDetailBtn" class="icon-btn" type="button">×</button>
+        </div>
+
+        <div id="orderDetailContent" class="order-detail-content">
+            正在加载订单详情...
+        </div>
+    </section>
+</div>
+
+<script src="/merchant/js/merchant-common.js"></script>
+<script src="/merchant/js/merchant-orders.js"></script>
+</body>
+</html>

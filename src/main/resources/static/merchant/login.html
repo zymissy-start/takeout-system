@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>商家登录 - 饭点优选</title>
+    <link rel="stylesheet" href="/merchant/css/merchant.css">
+</head>
+<body>
+
+<main class="auth-page">
+    <section class="auth-shell">
+        <article class="auth-brand-card">
+            <div class="brand-row">
+                <span class="brand-logo">商</span>
+                <strong>饭点优选商家端</strong>
+            </div>
+
+            <h1>管理订单，及时出餐</h1>
+            <p>
+                登录后可以查看用户订单、确认接单、设置预计出餐时间、召唤骑手，并维护店内商品信息。
+            </p>
+
+            <div class="demo-account">
+                <span>演示商家账号</span>
+                <b>burger_king / 123456</b>
+            </div>
+        </article>
+
+        <article class="auth-form-card">
+            <span class="badge">商户入口</span>
+            <h2>商家账号登录</h2>
+            <p>请输入商家账号和密码，登录后进入商户后台。</p>
+
+            <form id="merchantLoginForm">
+                <label class="field-label" for="usernameInput">账号</label>
+                <input id="usernameInput" class="input" type="text" value="burger_king" placeholder="请输入商家账号">
+
+                <label class="field-label" for="passwordInput">密码</label>
+                <div class="input-wrap">
+                    <input id="passwordInput" class="input" type="password" value="123456" placeholder="请输入密码">
+                    <button class="password-toggle" type="button" id="togglePasswordBtn">显示</button>
+                </div>
+
+                <button id="loginSubmitBtn" class="primary-btn" type="submit">登录商家后台</button>
+
+                <div id="authMessage" class="auth-message"></div>
+            </form>
+
+            <div class="auth-links">
+                <a href="/login.html">返回用户登录</a>
+                <a href="/user/index.html">先去首页看看</a>
+            </div>
+        </article>
+    </section>
+</main>
+
+<script src="/merchant/js/merchant-common.js"></script>
+<script src="/merchant/js/merchant-login.js"></script>
+</body>
+</html>
