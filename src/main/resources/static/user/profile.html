@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>饭点优选 - 个人中心</title>
+  <link rel="stylesheet" href="/assets/css/user.css" />
+</head>
+<body class="soft-bg">
+  <header class="profile-hero">
+    <div class="profile-line">
+      <span id="profileAvatar" class="avatar xl">我</span>
+      <div>
+        <h1 id="profileName">用户</h1>
+        <p id="profilePhone">登录信息加载中...</p>
+      </div>
+    </div>
+    <div class="profile-stats">
+      <div><b id="creditScore">0</b><span>信誉积分</span></div>
+      <div><b id="couponCount">0</b><span>优惠券</span></div>
+      <div><b id="orderCount">0</b><span>订单数</span></div>
+    </div>
+  </header>
+
+  <main class="page-shell pb-90 profile-main">
+    <section class="section-card">
+      <div class="section-title compact">
+        <h2>收货地址</h2>
+        <button id="addAddressBtn" class="ghost-btn">新增</button>
+      </div>
+      <div id="addressList" class="address-list"></div>
+    </section>
+
+    <section class="section-card">
+      <div class="section-title compact"><h2>我的服务</h2></div>
+      <div class="service-list">
+        <a href="/user/order.html">📦 我的订单 <span>›</span></a>
+        <button id="favoriteBtn">⭐ 我的收藏 <span>›</span></button>
+        <button id="couponBtn">🎁 优惠券 <span>›</span></button>
+        <button id="logoutBtn" class="danger-line">退出登录 <span>›</span></button>
+      </div>
+    </section>
+  </main>
+
+  <div id="addressMask" class="modal-mask hidden">
+    <div class="modal">
+      <div class="modal-title">
+        <h3 id="addressModalTitle">新增地址</h3>
+        <button id="closeAddressBtn" class="icon-btn">×</button>
+      </div>
+      <label for="receiverNameInput" class="sr-only">收货人姓名</label>
+      <input id="receiverNameInput" class="input" placeholder="收货人姓名" />
+      <label for="receiverPhoneInput" class="sr-only">手机号</label>
+      <input id="receiverPhoneInput" class="input" placeholder="手机号" />
+      <label for="addressTextInput" class="sr-only">详细地址</label>
+      <input id="addressTextInput" class="input" placeholder="详细地址，如：西苑校区 6 号宿舍楼" />
+      <label for="defaultAddressInput" class="checkbox-line"><input id="defaultAddressInput" type="checkbox" /> 设为默认地址</label>
+      <button id="saveAddressBtn" class="primary-btn full">保存地址</button>
+    </div>
+  </div>
+
+  <nav class="bottom-nav">
+    <a href="/user/index.html">首页</a>
+    <a href="/user/order.html">订单</a>
+    <a class="active" href="/user/profile.html">我的</a>
+  </nav>
+
+  <div id="toast" class="toast hidden"></div>
+  <script src="/assets/js/request.js"></script>
+  <script src="/assets/js/user-profile.js"></script>
+</body>
+</html>

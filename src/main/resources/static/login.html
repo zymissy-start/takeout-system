@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>饭点优选 - 登录</title>
+  <link rel="stylesheet" href="/assets/css/user.css" />
+</head>
+<body class="soft-bg auth-page">
+  <main class="auth-shell">
+    <section class="auth-hero" aria-label="登录说明">
+      <a class="auth-brand" href="/user/index.html">
+        <span>饭</span>
+        <b>饭点优选</b>
+      </a>
+      <h1>登录后继续下单</h1>
+      <p>未登录可以浏览商家和商品；登录后可加入购物车、提交订单和管理个人信息。</p>
+      <div class="auth-demo-box">
+        <span>演示账号</span>
+        <b>zhangsan / 123456</b>
+      </div>
+    </section>
+
+    <section class="auth-card" aria-labelledby="loginTitle">
+      <p class="badge">欢迎回来</p>
+      <h2 id="loginTitle">账号登录</h2>
+      <p id="authTip" class="auth-subtitle">请输入账号和密码，登录后会返回原页面。</p>
+
+      <form id="loginForm" class="auth-form">
+        <label for="usernameInput" class="field-label">账号</label>
+        <input id="usernameInput" class="input" type="text" autocomplete="username" placeholder="请输入账号" />
+
+        <label for="passwordInput" class="field-label">密码</label>
+        <div class="password-field">
+          <input id="passwordInput" class="input" type="password" autocomplete="current-password" placeholder="请输入密码" />
+          <button type="button" data-toggle-password="passwordInput">显示</button>
+        </div>
+
+        <div id="authMessage" class="auth-message hidden" role="status"></div>
+
+        <button id="loginSubmitBtn" class="primary-btn full" type="submit">登录</button>
+      </form>
+
+      <div class="auth-links">
+        <a href="/user/index.html">先去浏览</a>
+        <a id="registerLink" href="/register.html">还没有账号？去注册</a>
+      </div>
+    </section>
+  </main>
+
+  <div id="toast" class="toast hidden"></div>
+  <script src="/assets/js/request.js"></script>
+  <script src="/assets/js/auth.js"></script>
+</body>
+</html>

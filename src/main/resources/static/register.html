@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>饭点优选 - 注册</title>
+  <link rel="stylesheet" href="/assets/css/user.css" />
+</head>
+<body class="soft-bg auth-page">
+  <main class="auth-shell">
+    <section class="auth-hero" aria-label="注册说明">
+      <a class="auth-brand" href="/user/index.html">
+        <span>饭</span>
+        <b>饭点优选</b>
+      </a>
+      <h1>创建账号，开始点单</h1>
+      <p>注册后会自动登录，用于演示下单、订单查询、个人中心和地址管理流程。</p>
+      <div class="auth-demo-box">
+        <span>注册说明</span>
+        <b>后端未完成时会使用本地 mock 用户</b>
+      </div>
+    </section>
+
+    <section class="auth-card" aria-labelledby="registerTitle">
+      <p class="badge">新用户</p>
+      <h2 id="registerTitle">注册账号</h2>
+      <p id="authTip" class="auth-subtitle">请填写基本信息，账号注册后会直接进入原页面。</p>
+
+      <form id="registerForm" class="auth-form">
+        <label for="realNameInput" class="field-label">姓名</label>
+        <input id="realNameInput" class="input" type="text" autocomplete="name" placeholder="请输入姓名" />
+
+        <label for="phoneInput" class="field-label">手机号</label>
+        <input id="phoneInput" class="input" type="tel" autocomplete="tel" placeholder="请输入手机号，可不填" />
+
+        <label for="usernameInput" class="field-label">账号</label>
+        <input id="usernameInput" class="input" type="text" autocomplete="username" placeholder="至少 3 个字符" />
+
+        <label for="passwordInput" class="field-label">密码</label>
+        <div class="password-field">
+          <input id="passwordInput" class="input" type="password" autocomplete="new-password" placeholder="至少 6 位" />
+          <button type="button" data-toggle-password="passwordInput">显示</button>
+        </div>
+
+        <label for="confirmPasswordInput" class="field-label">确认密码</label>
+        <div class="password-field">
+          <input id="confirmPasswordInput" class="input" type="password" autocomplete="new-password" placeholder="请再次输入密码" />
+          <button type="button" data-toggle-password="confirmPasswordInput">显示</button>
+        </div>
+
+        <div id="authMessage" class="auth-message hidden" role="status"></div>
+
+        <button id="registerSubmitBtn" class="primary-btn full" type="submit">注册并登录</button>
+      </form>
+
+      <div class="auth-links">
+        <a href="/user/index.html">先去浏览</a>
+        <a href="/login.html">已有账号？去登录</a>
+      </div>
+    </section>
+  </main>
+
+  <div id="toast" class="toast hidden"></div>
+  <script src="/assets/js/request.js"></script>
+  <script src="/assets/js/auth.js"></script>
+</body>
+</html>
