@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.takeoutsystem.mapper.UserLevelMapper">
+    <select id="selectCurrentLevel" resultType="com.example.takeoutsystem.entity.UserLevelVO">
+        SELECT l.level_id AS levelId,
+               l.level_name AS levelName,
+               l.min_growth AS minGrowth,
+               l.max_growth AS maxGrowth,
+               COALESCE(u.growth_value, 0) AS growthValue,
+               l.delivery_discount_rate AS deliveryDiscountRate,
+               l.remind_cooldown_seconds AS remindCooldownSeconds,
+               l.priority_flag AS priorityFlag,
+               l.description
+        FROM sys_user u
+        LEFT JOIN user_level l ON u.level_id = l.level_id
+        WHERE u.user_id = #{userId}
+    </select>
+
+    <select id="selectLevelByGrowth" resultType="com.example.takeoutsystem.entity.UserLevelVO">
+        SELECT level_id AS levelId, level_name AS levelName, min_growth AS minGrowth, max_growth AS maxGrowth,
+               delivery_discount_rate AS deliveryDiscountRate, remind_cooldown_seconds AS remindCooldownSeconds,
+               priority_flag AS priorityFlag, description
+        FROM user_level
+        WHERE #{growthValue} BETWEEN min_growth AND max_growth
+        ORDER BY level_id DESC
+        LIMIT 1
+    </select>
+
+    <select id="selectNextLevel" resultType="com.example.takeoutsystem.entity.UserLevelVO">
+        SELECT level_id AS levelId, level_name AS levelName, min_growth AS minGrowth, max_growth AS maxGrowth,
+               delivery_discount_rate AS deliveryDiscountRate, remind_cooldown_seconds AS remindCooldownSeconds,
+               priority_flag AS priorityFlag, description
+        FROM user_level
+        WHERE min_growth &gt; #{growthValue}
+        ORDER BY min_growth ASC
+        LIMIT 1
+    </select>
+
+    <update id="updateUserLevel">
+        UPDATE sys_user
+        SET level_id = #{levelId}, growth_value = #{growthValue}
+        WHERE user_id = #{userId}
+    </update>
+
+    <insert id="insertGrowthLog">
+        INSERT INTO user_growth_log(user_id, order_id, change_value, reason)
+        VALUES(#{userId}, #{orderId}, #{changeValue}, #{reason})
+    </insert>
+
+    <select id="countGrowthLog" resultType="int">
+        SELECT COUNT(1)
+        FROM user_growth_log
+        WHERE user_id = #{userId}
+          AND order_id = #{orderId}
+          AND reason = #{reason}
+    </select>
+</mapper>

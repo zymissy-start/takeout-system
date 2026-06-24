@@ -1,42 +1,24 @@
 (function () {
-  const state = { addresses: [], editingId: null };
+  const state = { addresses: [], editingId: null, picked: null };
   document.addEventListener('DOMContentLoaded', init);
+  window.addEventListener('message', handleMapMessage);
+  window.addEventListener('storage', handleStoragePick);
 
   async function init() {
     bindEvents();
-    if (!App.isLoggedIn()) {
-      renderGuestProfile();
-      App.requireLogin('请先登录，登录后才能查看个人中心。', { redirect: true, auto: false, closable: true });
-      return;
-    }
-    await Promise.all([loadProfile(), loadAddresses(), loadStats()]);
-  }
-
-  function renderGuestProfile() {
-    App.$('#profileAvatar').textContent = '登';
-    App.$('#profileName').textContent = '请先登录';
-    App.$('#profilePhone').textContent = '登录后查看收货地址、订单和优惠信息';
-    App.$('#creditScore').textContent = 0;
-    App.$('#couponCount').textContent = 0;
-    App.$('#orderCount').textContent = 0;
-    App.$('#logoutBtn').innerHTML = '去登录 <span>›</span>';
-    App.$('#addressList').innerHTML = `
-      <div class="login-required-card compact">
-        <div class="login-required-icon">👤</div>
-        <h2>登录后管理个人信息</h2>
-        <p>收货地址、订单、收藏和优惠券都需要登录后使用。</p>
-        <button id="profileLoginBtn" class="primary-btn">去登录</button>
-      </div>`;
-    App.$('#profileLoginBtn').addEventListener('click', () => { location.href = App.loginRedirectUrl(); });
+    await Promise.all([loadProfile(), loadAddresses(), loadStats(), loadLevel()]);
+    applyLocalPickedLocation();
   }
 
   function bindEvents() {
-    App.$('#addAddressBtn').addEventListener('click', () => { if (!App.requireLogin('请先登录，登录后才能新增收货地址。', { redirect: true, auto: false, closable: true })) return; openAddressModal(); });
+    App.$('#addAddressBtn').addEventListener('click', () => openAddressModal());
     App.$('#closeAddressBtn').addEventListener('click', closeAddressModal);
     App.$('#saveAddressBtn').addEventListener('click', saveAddress);
+    App.$('#geoLocationBtn').addEventListener('click', locateByBrowser);
+    App.$('#mapPickBtn').addEventListener('click', openMapPicker);
     App.$('#logoutBtn').addEventListener('click', logout);
-    App.$('#favoriteBtn').addEventListener('click', () => { if (!App.requireLogin('请先登录，登录后才能查看收藏。', { redirect: true, auto: false, closable: true })) return; App.toast('收藏页接口预留：/api/user/favorites'); });
-    App.$('#couponBtn').addEventListener('click', () => { if (!App.requireLogin('请先登录，登录后才能查看优惠券。', { redirect: true, auto: false, closable: true })) return; App.toast('优惠券接口预留：/api/user/coupons'); });
+    App.$('#favoriteBtn').addEventListener('click', () => App.toast('收藏页接口预留：/api/user/favorites'));
+    App.$('#couponBtn').addEventListener('click', () => App.toast('优惠券接口预留：/api/user/coupons'));
   }
 
   async function loadProfile() {
@@ -46,6 +28,28 @@
     App.$('#profileAvatar').textContent = String(name).slice(0, 1);
     App.$('#profilePhone').textContent = App.getField(user, ['phone'], '未绑定手机号');
     App.$('#creditScore').textContent = App.getField(user, ['creditScore', 'credit_score'], 0);
+    const levelName = App.getField(user, ['levelName', 'level_name'], 'Lv1 普通用户');
+    App.$('#profileLevelBadge').textContent = levelName;
+  }
+
+  async function loadLevel() {
+    try {
+      const level = await App.request('/api/user/level');
+      const levelName = App.getField(level, ['levelName', 'level_name'], 'Lv1 普通用户');
+      const progress = Number(App.getField(level, ['progressPercent', 'progress_percent'], 0));
+      const rate = Number(App.getField(level, ['deliveryDiscountRate', 'delivery_discount_rate'], 1));
+      const cooldown = App.getField(level, ['remindCooldownSeconds', 'remind_cooldown_seconds'], 180);
+      const nextNeed = App.getField(level, ['nextNeedGrowth', 'next_need_growth'], 0);
+      App.$('#profileLevelBadge').textContent = levelName;
+      App.$('#levelNameText').textContent = levelName;
+      App.$('#levelProgressBar').style.width = Math.max(0, Math.min(100, progress)) + '%';
+      App.$('#levelDesc').textContent = App.getField(level, ['description'], '完成订单、评价订单可提升成长值');
+      App.$('#deliveryDiscountText').textContent = rate >= 1 ? '无折扣' : `${Math.round(rate * 100)}折`;
+      App.$('#remindCooldownText').textContent = `${cooldown}秒`;
+      App.$('#nextNeedText').textContent = Number(nextNeed) <= 0 ? '已满级' : `${nextNeed}成长值`;
+    } catch (e) {
+      App.$('#levelDesc').textContent = '等级信息加载失败，请检查 /api/user/level';
+    }
   }
 
   async function loadStats() {
@@ -53,6 +57,7 @@
       const stats = await App.request('/api/user/stats');
       App.$('#couponCount').textContent = App.getField(stats, ['couponCount', 'coupon_count'], 0);
       App.$('#orderCount').textContent = App.getField(stats, ['orderCount', 'order_count'], 0);
+      App.$('#creditScore').textContent = App.getField(stats, ['creditScore', 'credit_score'], App.$('#creditScore').textContent || 0);
     } catch (e) {
       App.$('#couponCount').textContent = 0;
       App.$('#orderCount').textContent = 0;
@@ -72,7 +77,7 @@
   function renderAddresses() {
     const box = App.$('#addressList');
     if (!state.addresses.length) {
-      box.innerHTML = `<div class="empty-state">暂无地址，请先新增收货地址</div>`;
+      box.innerHTML = `<div class="empty-state">暂无地址，请先新增收货地址。建议使用真实定位或地图选点保存经纬度。</div>`;
       return;
     }
     box.innerHTML = state.addresses.map(addr => {
@@ -80,10 +85,13 @@
       const name = App.getField(addr, ['receiverName', 'receiver_name'], '收货人');
       const phone = App.getField(addr, ['receiverPhone', 'receiver_phone'], '');
       const detail = App.getField(addr, ['addressDetail', 'address_detail', 'address'], '');
+      const lat = App.getField(addr, ['latitude'], '');
+      const lng = App.getField(addr, ['longitude'], '');
       const isDefault = Number(App.getField(addr, ['isDefault', 'is_default'], 0)) === 1;
       return `<article class="address-card" data-id="${id}">
         <div class="top"><span>${App.escapeHtml(name)} ${App.escapeHtml(phone)}</span>${isDefault ? '<span class="default-tag">默认</span>' : ''}</div>
         <p>${App.escapeHtml(detail)}</p>
+        <p class="muted small">坐标：${lat && lng ? `${lat}, ${lng}` : '未定位'}</p>
         <div class="actions">
           ${isDefault ? '' : `<button data-action="default" data-id="${id}">设默认</button>`}
           <button data-action="edit" data-id="${id}">编辑</button>
@@ -100,20 +108,81 @@
     App.$('#receiverNameInput').value = addr ? App.getField(addr, ['receiverName', 'receiver_name'], '') : '';
     App.$('#receiverPhoneInput').value = addr ? App.getField(addr, ['receiverPhone', 'receiver_phone'], '') : '';
     App.$('#addressTextInput').value = addr ? App.getField(addr, ['addressDetail', 'address_detail', 'address'], '') : '';
+    App.$('#latitudeInput').value = addr ? App.getField(addr, ['latitude'], '') : '';
+    App.$('#longitudeInput').value = addr ? App.getField(addr, ['longitude'], '') : '';
     App.$('#defaultAddressInput').checked = addr ? Number(App.getField(addr, ['isDefault', 'is_default'], 0)) === 1 : false;
+    updateCoordText();
     App.$('#addressMask').classList.remove('hidden');
   }
 
   function closeAddressModal() { App.$('#addressMask').classList.add('hidden'); }
+
+  async function locateByBrowser() {
+    if (!navigator.geolocation) return App.toast('浏览器不支持真实定位');
+    App.toast('正在请求定位权限...');
+    navigator.geolocation.getCurrentPosition(pos => {
+      App.$('#latitudeInput').value = Number(pos.coords.latitude).toFixed(6);
+      App.$('#longitudeInput').value = Number(pos.coords.longitude).toFixed(6);
+      if (!App.$('#addressTextInput').value.trim()) {
+        App.$('#addressTextInput').value = '当前位置，请补充详细地址';
+      }
+      updateCoordText();
+      App.toast('定位成功，请补充详细地址');
+    }, () => {
+      App.toast('定位失败：请允许浏览器定位权限，或使用地图选点');
+    }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 30000 });
+  }
+
+  function openMapPicker() {
+    const lat = App.$('#latitudeInput').value || '';
+    const lng = App.$('#longitudeInput').value || '';
+    const url = `/user/map-picker.html?lat=${encodeURIComponent(lat)}&lng=${encodeURIComponent(lng)}`;
+    window.open(url, 'mapPicker', 'width=900,height=680');
+    App.toast('请在地图窗口选择位置后点确定');
+  }
+
+  function handleMapMessage(event) {
+    if (event.origin !== location.origin) return;
+    if (!event.data || event.data.type !== 'USER_MAP_PICKED') return;
+    applyPickedLocation(event.data.payload);
+  }
+
+  function handleStoragePick(event) {
+    if (event.key === 'pickedLocation') applyLocalPickedLocation();
+  }
+
+  function applyLocalPickedLocation() {
+    try {
+      const picked = JSON.parse(localStorage.getItem('pickedLocation') || 'null');
+      if (picked && picked.latitude && picked.longitude && !App.$('#addressMask').classList.contains('hidden')) applyPickedLocation(picked);
+    } catch (e) {}
+  }
+
+  function applyPickedLocation(picked) {
+    state.picked = picked;
+    App.$('#latitudeInput').value = picked.latitude || '';
+    App.$('#longitudeInput').value = picked.longitude || '';
+    if (picked.addressDetail) App.$('#addressTextInput').value = picked.addressDetail;
+    updateCoordText();
+    App.toast('地图位置已填入');
+  }
+
+  function updateCoordText() {
+    App.$('#latText').textContent = App.$('#latitudeInput').value || '未选择';
+    App.$('#lngText').textContent = App.$('#longitudeInput').value || '未选择';
+  }
 
   async function saveAddress() {
     const body = {
       receiverName: App.$('#receiverNameInput').value.trim(),
       receiverPhone: App.$('#receiverPhoneInput').value.trim(),
       addressDetail: App.$('#addressTextInput').value.trim(),
+      latitude: App.$('#latitudeInput').value ? Number(App.$('#latitudeInput').value) : null,
+      longitude: App.$('#longitudeInput').value ? Number(App.$('#longitudeInput').value) : null,
       isDefault: App.$('#defaultAddressInput').checked ? 1 : 0
     };
     if (!body.receiverName || !body.receiverPhone || !body.addressDetail) return App.toast('请完整填写地址');
+    if (!body.latitude || !body.longitude) return App.toast('请先真实定位或地图选点，保存经纬度');
     try {
       if (state.editingId) {
         await App.request(`/api/user/addresses/${state.editingId}`, { method: 'PUT', body });
@@ -122,6 +191,7 @@
       }
       App.toast('保存成功');
       closeAddressModal();
+      localStorage.removeItem('pickedLocation');
       loadAddresses();
     } catch (e) { App.toast(e.message || '保存失败'); }
   }
@@ -148,12 +218,11 @@
   }
 
   function logout() {
-    if (!App.isLoggedIn()) {
-      location.href = App.loginRedirectUrl();
-      return;
-    }
     if (!confirm('确认退出登录吗？')) return;
-    App.clearAuthCache();
+    localStorage.removeItem('token');
+    localStorage.removeItem('Authorization');
+    localStorage.removeItem('currentUser');
+    localStorage.removeItem('userInfo');
     location.href = '/login.html';
   }
 })();

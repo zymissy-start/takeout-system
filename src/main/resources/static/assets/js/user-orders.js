@@ -5,26 +5,9 @@
 
   async function init() {
     bindEvents();
-    if (!App.isLoggedIn()) {
-      renderLoginRequired();
-      App.requireLogin('请先登录，登录后才能查看订单。', { redirect: true, auto: false, closable: true });
-      return;
-    }
     await loadOrders();
     const urlOrderId = new URLSearchParams(location.search).get('orderId');
     if (urlOrderId) openDetail(urlOrderId);
-  }
-
-  function renderLoginRequired() {
-    App.$('#orderTabs').classList.add('hidden');
-    App.$('#orderList').innerHTML = `
-      <div class="login-required-card">
-        <div class="login-required-icon">📦</div>
-        <h2>登录后查看订单</h2>
-        <p>订单记录、配送进度和售后操作需要登录后才能查看。</p>
-        <button id="orderLoginBtn" class="primary-btn">去登录</button>
-      </div>`;
-    App.$('#orderLoginBtn').addEventListener('click', () => { location.href = App.loginRedirectUrl(); });
   }
 
   function bindEvents() {
@@ -79,7 +62,7 @@
     }
     box.innerHTML = state.orders.map(order => {
       const id = App.getField(order, ['orderId', 'order_id', 'id'], '');
-      const merchantName = App.getField(order, ['merchantName', 'merchant_name', 'storeName'], '附近商家');
+      const merchantName = App.getField(order, ['merchantName', 'merchant_name', 'storeName'], '校园商家');
       const status = App.getField(order, ['status'], 0);
       const itemsText = renderItemsText(order);
       const total = App.getField(order, ['payAmount', 'pay_amount', 'totalPrice', 'total_price'], 0);
@@ -137,22 +120,27 @@
     const status = App.getField(order, ['status'], 0);
     const total = App.getField(order, ['payAmount', 'pay_amount', 'totalPrice', 'total_price'], 0);
     const items = App.getField(order, ['items', 'orderItems'], []);
-    const times = [
-      ['下单成功', App.getField(order, ['orderTime', 'order_time'], '')],
-      ['商家接单', App.getField(order, ['merchantConfirmTime', 'merchant_confirm_time'], '')],
-      ['出餐完成', App.getField(order, ['kitchenFinishTime', 'kitchen_finish_time'], '')],
-      ['骑手配送', App.getField(order, ['estimatedArrivalTime', 'estimated_arrival_time'], '')],
-      ['订单完成', App.getField(order, ['finishTime', 'finish_time'], '')]
-    ].filter(x => x[1]);
+    const logs = App.getField(order, ['statusLogs', 'status_logs'], []);
+    const reminders = App.getField(order, ['reminders'], []);
+    const times = Array.isArray(logs) && logs.length
+      ? logs.map(log => [App.getField(log, ['statusText','status_text'], '订单状态更新'), App.getField(log, ['createTime','create_time'], ''), App.getField(log, ['remark'], '')])
+      : [
+        ['下单成功', App.getField(order, ['orderTime', 'order_time'], '')],
+        ['商家接单', App.getField(order, ['merchantConfirmTime', 'merchant_confirm_time'], '')],
+        ['出餐完成', App.getField(order, ['kitchenFinishTime', 'kitchen_finish_time'], '')],
+        ['骑手配送', App.getField(order, ['estimatedArrivalTime', 'estimated_arrival_time'], '')],
+        ['订单完成', App.getField(order, ['finishTime', 'finish_time'], '')]
+      ].filter(x => x[1]);
     App.$('#orderDetail').innerHTML = `
       <div class="order-line"><b>订单状态</b><span class="status-pill ${pillClass(status)}">${statusText(status)}</span></div>
-      <div class="timeline">${times.map(t => `<div><b>${App.escapeHtml(t[0])}</b><span>${App.escapeHtml(t[1])}</span></div>`).join('') || '<div><b>等待商家处理</b><span>订单已提交</span></div>'}</div>
+      <div class="timeline">${times.map(t => `<div><b>${App.escapeHtml(t[0])}</b><span>${App.escapeHtml(t[1] || '')}</span>${t[2] ? `<p class="muted small">${App.escapeHtml(t[2])}</p>` : ''}</div>`).join('') || '<div><b>等待商家处理</b><span>订单已提交</span></div>'}</div>
       <div class="section-title compact"><h2>商品明细</h2></div>
       ${(Array.isArray(items) ? items : []).map(item => `
         <div class="order-line"><span>${App.escapeHtml(App.getField(item, ['productName','product_name','name'], '商品'))} × ${App.getField(item, ['quantity'], 1)}</span><b>${App.formatMoney(Number(App.getField(item, ['price'], 0)) * Number(App.getField(item, ['quantity'], 1)))}</b></div>
       `).join('') || '<p class="muted">暂无商品明细，需后端返回 items 字段。</p>'}
       <div class="price-row total"><span>合计</span><b>${App.formatMoney(total)}</b></div>
-      <p class="muted small">收货地址：${App.escapeHtml(App.getField(order, ['address'], ''))}</p>
+      ${Array.isArray(reminders) && reminders.length ? `<div class="reminder-list"><b>催单记录</b>${reminders.map(r => `<p>${App.escapeHtml(App.getField(r, ['content'], '已催单'))}<span>${App.escapeHtml(App.getField(r, ['status'], 'UNREAD'))}</span></p>`).join('')}</div>` : ''}
+      <p class="muted small">收货地址：${App.escapeHtml(App.getField(order, ['receiverAddress','receiver_address','address'], ''))}</p>
       <p class="muted small">备注：${App.escapeHtml(App.getField(order, ['remark'], '无'))}</p>`;
   }
 
@@ -167,8 +155,8 @@
 
   async function urgeOrder(orderId) {
     try {
-      await App.request(`/api/user/orders/${orderId}/urge`, { method: 'PUT' });
-      App.toast('已提醒商家/骑手');
+      const data = await App.request(`/api/user/orders/${orderId}/urge`, { method: 'PUT' });
+      App.toast(App.getField(data || {}, ['message'], '已提醒商家/骑手'));
       loadOrders();
     } catch (e) { App.toast(e.message || '催单失败'); }
   }
