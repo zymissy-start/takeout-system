@@ -124,12 +124,8 @@
             const address = RiderApp.getField(order, ['address'], '');
             const total = RiderApp.getField(order, ['totalPrice', 'total_price'], 0);
             const wait = RiderApp.getField(order, ['waitMinutes', 'wait_minutes'], 0);
-<<<<<<< HEAD
-            const urged = Number(RiderApp.getField(order, ['isUrged', 'is_urged'], 0)) === 1;
-=======
             const status = Number(RiderApp.getField(order, ['status'], 0));
             const urged = [2, 3].includes(status) && Number(RiderApp.getField(order, ['isUrged', 'is_urged'], 0)) === 1;
->>>>>>> origin/feature-user-rider-merchant
             const distance = computeRouteDistance(order);
 
             return `
@@ -270,23 +266,14 @@
         const flashDot = RiderApp.$('#growthFlashDot');
         const kingDot = RiderApp.$('#growthKingDot');
 
-<<<<<<< HEAD
-        const progress = Math.min(1, finishedCount / 10);
-=======
         const progress = Math.min(1, finishedCount / 15);
->>>>>>> origin/feature-user-rider-merchant
         const length = 760;
 
         activePath.style.strokeDasharray = length;
         activePath.style.strokeDashoffset = length * (1 - progress);
 
-<<<<<<< HEAD
-        flashDot.classList.toggle('active', finishedCount >= 5);
-        kingDot.classList.toggle('active', finishedCount >= 10);
-=======
         flashDot.classList.toggle('active', finishedCount >= 10);
         kingDot.classList.toggle('active', finishedCount >= 15);
->>>>>>> origin/feature-user-rider-merchant
 
         RiderApp.$('#moduleContent').innerHTML = `
       <article class="rapp-order-card">
@@ -402,20 +389,12 @@
         let levelBonusText = '暂无等级加成';
         let desc = '当前为成长骑手，系统主要推荐距离近、路线清晰的订单。';
 
-<<<<<<< HEAD
-        if (finishedCount >= 10) {
-=======
         if (finishedCount >= 15) {
->>>>>>> origin/feature-user-rider-merchant
             title = '单王骑手';
             speedBonus = 1.2;
             levelBonusText = '-1.2 分钟 / 公里';
             desc = '今日已达成单王骑手，拥有最高速度修正和更高等级奖励。';
-<<<<<<< HEAD
-        } else if (finishedCount >= 5) {
-=======
         } else if (finishedCount >= 10) {
->>>>>>> origin/feature-user-rider-merchant
             title = '闪电侠骑手';
             speedBonus = 0.7;
             levelBonusText = '-0.7 分钟 / 公里';
@@ -471,13 +450,8 @@
                 return distanceA - distanceB;
             }
 
-<<<<<<< HEAD
-            const urgedA = Number(RiderApp.getField(a, ['isUrged', 'is_urged'], 0));
-            const urgedB = Number(RiderApp.getField(b, ['isUrged', 'is_urged'], 0));
-=======
             const urgedA = [2, 3].includes(Number(RiderApp.getField(a, ['status'], 0))) ? Number(RiderApp.getField(a, ['isUrged', 'is_urged'], 0)) : 0;
             const urgedB = [2, 3].includes(Number(RiderApp.getField(b, ['status'], 0))) ? Number(RiderApp.getField(b, ['isUrged', 'is_urged'], 0)) : 0;
->>>>>>> origin/feature-user-rider-merchant
 
             if (urgedA !== urgedB) {
                 return urgedB - urgedA;

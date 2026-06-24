@@ -10,8 +10,6 @@ public class MerchantOrderVO {
     private BigDecimal totalPrice;
     private String orderTime;
     private String summary;
-<<<<<<< HEAD
-=======
     private Integer isUrged;
     private Integer reminderCount;
     private String latestReminderTime;
@@ -19,7 +17,6 @@ public class MerchantOrderVO {
     private String riderUrgeTime;
     private Integer requiredRiderLevel;
     private String requiredRiderTitle;
->>>>>>> origin/feature-user-rider-merchant
 
     public Integer getOrderId() {
         return orderId;
@@ -68,8 +65,6 @@ public class MerchantOrderVO {
     public void setSummary(String summary) {
         this.summary = summary;
     }
-<<<<<<< HEAD
-=======
 
     public Integer getIsUrged() {
         return isUrged;
@@ -127,5 +122,4 @@ public class MerchantOrderVO {
         this.requiredRiderTitle = requiredRiderTitle;
     }
 
->>>>>>> origin/feature-user-rider-merchant
 }

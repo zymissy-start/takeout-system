@@ -30,12 +30,6 @@ public interface RiderDashboardMapper {
 
     @Select("""
             SELECT COUNT(*)
-<<<<<<< HEAD
-            FROM delivery_order
-            WHERE status = 2
-            """)
-    Integer countAvailableOrders();
-=======
             FROM delivery_order o
             WHERE o.status = 2
               AND IFNULL(o.required_rider_level, 0) <= COALESCE((
@@ -46,7 +40,6 @@ public interface RiderDashboardMapper {
               ), 0)
             """)
     Integer countAvailableOrders(@Param("riderUserId") Integer riderUserId);
->>>>>>> origin/feature-user-rider-merchant
 
     @Select("""
             SELECT IFNULL(SUM(tip_amount), 0)
@@ -69,9 +62,6 @@ public interface RiderDashboardMapper {
             WHERE user_id = #{riderUserId}
             """)
     BigDecimal getAvgSpeed(@Param("riderUserId") Integer riderUserId);
-<<<<<<< HEAD
-}
-=======
 
 
     @Select("""
@@ -95,4 +85,3 @@ public interface RiderDashboardMapper {
             """)
     Integer getTotalFinishedCount(@Param("riderUserId") Integer riderUserId);
 }
->>>>>>> origin/feature-user-rider-merchant

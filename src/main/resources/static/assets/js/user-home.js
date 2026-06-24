@@ -1,22 +1,15 @@
 (function () {
   const state = {
-<<<<<<< HEAD
-    page: 1,
-=======
     mode: 'merchants',
     selectedMerchant: null,
     merchantPage: 1,
     productPage: 1,
->>>>>>> origin/feature-user-rider-merchant
     size: 12,
     keyword: '',
     categoryId: '',
     sort: 'recommend',
     hasMore: false,
-<<<<<<< HEAD
-=======
     merchants: [],
->>>>>>> origin/feature-user-rider-merchant
     products: [],
     addresses: [],
     deliveryFee: 3.00,
@@ -24,10 +17,7 @@
   };
 
   const foodEmoji = ['🍔', '🍗', '🍜', '🥤', '🍱', '🍕', '🥟', '🧋'];
-<<<<<<< HEAD
-=======
   const storeEmoji = ['🏪', '🍔', '🍱', '🥤', '🍜', '🧋', '🥟', '🍕'];
->>>>>>> origin/feature-user-rider-merchant
 
   document.addEventListener('DOMContentLoaded', init);
   window.addEventListener('cart:change', renderCart);
@@ -36,24 +26,13 @@
     bindEvents();
     await initUser();
     await Promise.all([loadLevel(), loadCategories(), loadAddresses()]);
-<<<<<<< HEAD
-    await loadProducts(true);
-=======
     await loadMerchants(true);
->>>>>>> origin/feature-user-rider-merchant
     renderCart();
   }
 
   function bindEvents() {
     App.$('#searchBtn').addEventListener('click', () => {
       state.keyword = App.$('#keywordInput').value.trim();
-<<<<<<< HEAD
-      loadProducts(true);
-    });
-    App.$('#keywordInput').addEventListener('keydown', e => { if (e.key === 'Enter') App.$('#searchBtn').click(); });
-    App.$('#sortSelect').addEventListener('change', e => { state.sort = e.target.value; loadProducts(true); });
-    App.$('#loadMoreBtn').addEventListener('click', () => loadProducts(false));
-=======
       if (state.mode === 'products') loadProducts(true);
       else loadMerchants(true);
     });
@@ -64,7 +43,6 @@
       else loadMerchants(true);
     });
     App.$('#loadMoreBtn').addEventListener('click', () => state.mode === 'products' ? loadProducts(false) : loadMerchants(false));
->>>>>>> origin/feature-user-rider-merchant
     App.$('#clearCartBtn').addEventListener('click', () => { Cart.clear(); App.toast('购物车已清空'); });
     App.$('#checkoutBtn').addEventListener('click', openCheckout);
     App.$('#closeCheckoutBtn').addEventListener('click', closeCheckout);
@@ -86,11 +64,7 @@
       App.$('#levelBadge').textContent = levelName.replace('普通用户', '').trim();
       const rate = Number(App.getField(level, ['deliveryDiscountRate', 'delivery_discount_rate'], 1));
       const cooldown = App.getField(level, ['remindCooldownSeconds', 'remind_cooldown_seconds'], 180);
-<<<<<<< HEAD
-      App.$('#levelTip').textContent = rate < 1 ? `当前${levelName}：配送费${Math.round(rate * 100)}折，催单冷却${cooldown}秒。` : `当前${levelName}：完成订单和评价可提升等级。`;
-=======
       App.$('#levelTip').textContent = rate < 1 ? `当前${levelName}：配送费${Math.round(rate * 100)}折，高等级用户会匹配高等级骑手。` : `当前${levelName}：完成订单可提升用户权益，10单后优先匹配闪电侠骑手，15单后优先匹配单王配送骑手。`;
->>>>>>> origin/feature-user-rider-merchant
     } catch (e) {
       App.$('#levelBadge').textContent = 'Lv1';
     }
@@ -108,57 +82,21 @@
 
   function renderCategories(categories) {
     const box = App.$('#categoryTabs');
-<<<<<<< HEAD
-    const all = [{ categoryId: '', categoryName: '全部' }].concat(categories.map(c => ({
-=======
     const all = [{ categoryId: '', categoryName: '全部商店' }].concat(categories.map(c => ({
->>>>>>> origin/feature-user-rider-merchant
       categoryId: App.getField(c, ['categoryId', 'category_id'], ''),
       categoryName: App.getField(c, ['categoryName', 'category_name', 'name'], '分类')
     })));
     box.innerHTML = all.map(c => `<button data-id="${c.categoryId}" class="${String(state.categoryId) === String(c.categoryId) ? 'active' : ''}">${App.escapeHtml(c.categoryName)}</button>`).join('');
-<<<<<<< HEAD
-    box.querySelectorAll('button').forEach(btn => btn.addEventListener('click', () => { state.categoryId = btn.dataset.id; loadProducts(true); }));
-=======
     box.querySelectorAll('button').forEach(btn => btn.addEventListener('click', () => {
       state.categoryId = btn.dataset.id;
       state.selectedMerchant = null;
       state.mode = 'merchants';
       loadMerchants(true);
     }));
->>>>>>> origin/feature-user-rider-merchant
   }
 
   function selectCategoryByName(name) {
     const tab = Array.from(App.$('#categoryTabs').querySelectorAll('button')).find(btn => btn.textContent.includes(name));
-<<<<<<< HEAD
-    if (tab) {
-      state.categoryId = tab.dataset.id;
-      loadProducts(true);
-    } else {
-      state.keyword = name;
-      App.$('#keywordInput').value = name;
-      loadProducts(true);
-    }
-  }
-
-  async function loadProducts(reset) {
-    if (reset) {
-      state.page = 1;
-      state.products = [];
-      App.$('#productList').innerHTML = `<div class="empty-state">正在加载商品...</div>`;
-    }
-    const params = new URLSearchParams({ page: state.page, size: state.size, sort: state.sort });
-    if (state.keyword) params.set('keyword', state.keyword);
-    if (state.categoryId) params.set('categoryId', state.categoryId);
-    try {
-      const data = await App.request(`/api/user/products?${params.toString()}`);
-      const rows = Array.isArray(data) ? data : (data.records || data.list || data.rows || []);
-      state.hasMore = Array.isArray(data) ? rows.length >= state.size : Boolean(data.hasMore || (data.total && state.page * state.size < data.total));
-      state.products = reset ? rows : state.products.concat(rows);
-      renderProducts();
-      state.page += 1;
-=======
     state.selectedMerchant = null;
     state.mode = 'merchants';
     if (tab) {
@@ -274,7 +212,6 @@
       state.products = reset ? rows : state.products.concat(rows);
       renderProducts();
       state.productPage += 1;
->>>>>>> origin/feature-user-rider-merchant
     } catch (e) {
       App.$('#productList').innerHTML = `<div class="empty-state">${App.escapeHtml(e.message || '商品加载失败，请检查后端接口')}</div>`;
       App.$('#loadMoreBtn').classList.add('hidden');
@@ -283,14 +220,6 @@
 
   function renderProducts() {
     const box = App.$('#productList');
-<<<<<<< HEAD
-    if (!state.products.length) {
-      box.innerHTML = `<div class="empty-state">没有找到商品，换个关键词试试</div>`;
-      App.$('#loadMoreBtn').classList.add('hidden');
-      return;
-    }
-    box.innerHTML = state.products.map((p, index) => {
-=======
     const merchantName = state.selectedMerchant ? App.getField(state.selectedMerchant, ['storeName', 'store_name', 'merchantName'], '商店') : '商店';
     const backBar = `<div class="store-back-bar"><button id="backStoreBtn" class="ghost-btn">← 返回商店列表</button><b>${App.escapeHtml(merchantName)}</b></div>`;
     if (!state.products.length) {
@@ -300,43 +229,27 @@
       return;
     }
     box.innerHTML = backBar + state.products.map((p, index) => {
->>>>>>> origin/feature-user-rider-merchant
       const productId = App.getField(p, ['productId', 'product_id', 'id'], '');
       const name = App.getField(p, ['name', 'productName'], '未命名商品');
       const desc = App.getField(p, ['description', 'desc'], '商家暂未填写介绍');
       const price = App.getField(p, ['price'], 0);
       const image = App.getField(p, ['imageUrl', 'image_url'], '');
-<<<<<<< HEAD
-      const merchantName = App.getField(p, ['merchantName', 'merchant_name', 'storeName'], '校园商家');
-=======
->>>>>>> origin/feature-user-rider-merchant
       const sales = App.getField(p, ['monthlySales', 'monthly_sales', 'orderCount', 'order_count'], 0);
       const rating = App.getField(p, ['rating'], 4.8);
       const stock = App.getField(p, ['stock'], 0);
       const tag = App.getField(p, ['tag'], '');
       return `
-<<<<<<< HEAD
-        <article class="product-card" data-id="${productId}">
-=======
         <article class="product-card" data-id="${App.escapeHtml(productId)}">
->>>>>>> origin/feature-user-rider-merchant
           ${image ? `<img class="product-img" src="${App.escapeHtml(image)}" alt="${App.escapeHtml(name)}" onerror="this.outerHTML='<div class=&quot;product-placeholder&quot;>${foodEmoji[index % foodEmoji.length]}</div>'" />` : `<div class="product-placeholder">${foodEmoji[index % foodEmoji.length]}</div>`}
           <div class="product-info">
             <h3>${App.escapeHtml(name)} ${tag ? `<span class="tag-pill">${App.escapeHtml(tag)}</span>` : ''}</h3>
             <p>${App.escapeHtml(desc)}</p>
             <div class="product-meta"><span>${App.escapeHtml(merchantName)}</span><span>⭐ ${rating} 月售 ${sales}</span></div>
-<<<<<<< HEAD
-            <div class="price-line"><span class="price">${App.formatMoney(price)}</span><button class="add-btn" data-id="${productId}" ${Number(stock) <= 0 ? 'disabled' : ''}>${Number(stock) <= 0 ? '售罄' : '+'}</button></div>
-          </div>
-        </article>`;
-    }).join('');
-=======
             <div class="price-line"><span class="price">${App.formatMoney(price)}</span><button class="add-btn" data-id="${App.escapeHtml(productId)}" ${Number(stock) <= 0 ? 'disabled' : ''}>${Number(stock) <= 0 ? '售罄' : '+'}</button></div>
           </div>
         </article>`;
     }).join('');
     App.$('#backStoreBtn').addEventListener('click', () => { state.selectedMerchant = null; loadMerchants(true); });
->>>>>>> origin/feature-user-rider-merchant
     box.querySelectorAll('.add-btn').forEach(btn => btn.addEventListener('click', e => {
       const product = state.products.find(item => String(App.getField(item, ['productId', 'product_id', 'id'], '')) === String(e.currentTarget.dataset.id));
       try { Cart.add(product, 1); App.toast('已加入购物车'); } catch (err) { App.toast(err.message); }
@@ -380,13 +293,10 @@
     App.$('#cartTotal').textContent = App.formatMoney(Cart.goodsAmount());
   }
 
-<<<<<<< HEAD
-=======
   function cartMinOrderAmount(items) {
     return (items || []).reduce((max, item) => Math.max(max, Number(item.minOrderAmount || item.min_order_amount || 0)), 0);
   }
 
->>>>>>> origin/feature-user-rider-merchant
   function openCheckout() {
     const items = Cart.readCart();
     if (!items.length) return App.toast('请先选择商品');
@@ -404,31 +314,21 @@
       return `<option value="${id}" ${selected}>${App.escapeHtml(`${name} ${phone} ${address}（${suffix}）`)}</option>`;
     }).join('');
     const goods = Cart.goodsAmount();
-<<<<<<< HEAD
-=======
     const minOrderAmount = cartMinOrderAmount(items);
->>>>>>> origin/feature-user-rider-merchant
     const first = items[0];
     state.deliveryFee = Number(first.deliveryFee || first.delivery_fee || state.deliveryFee || 3);
     const rate = state.level ? Number(App.getField(state.level, ['deliveryDiscountRate', 'delivery_discount_rate'], 1)) : 1;
     const discount = Math.max(0, state.deliveryFee - state.deliveryFee * rate);
-<<<<<<< HEAD
-=======
     const shortfall = Math.max(0, minOrderAmount - goods);
->>>>>>> origin/feature-user-rider-merchant
     App.$('#modalGoodsAmount').textContent = App.formatMoney(goods);
     App.$('#modalDeliveryFee').textContent = App.formatMoney(state.deliveryFee);
     App.$('#modalDiscountAmount').textContent = '-' + App.formatMoney(discount);
     App.$('#modalPayAmount').textContent = App.formatMoney(goods + state.deliveryFee - discount);
-<<<<<<< HEAD
-    App.$('#checkoutLevelTip').textContent = state.level ? `当前${App.getField(state.level, ['levelName','level_name'], '等级')}享受配送费权益，最终金额以后端计算为准。` : '最终金额以后端事务计算为准。';
-=======
     App.$('#submitOrderBtn').disabled = shortfall > 0;
     const levelTip = state.level ? `当前${App.getField(state.level, ['levelName','level_name'], '等级')}享受配送费权益，高等级用户会匹配高等级骑手。` : '最终金额以后端事务计算为准。';
     App.$('#checkoutLevelTip').textContent = shortfall > 0
       ? `未达到商家起送价 ${App.formatMoney(minOrderAmount)}，还差 ${App.formatMoney(shortfall)} 才能提交订单。`
       : `${levelTip} 已达到起送价，最终金额以后端计算为准。`;
->>>>>>> origin/feature-user-rider-merchant
     App.$('#checkoutMask').classList.remove('hidden');
   }
 
@@ -442,14 +342,11 @@
     if (!address || !App.getField(address, ['latitude'], null) || !App.getField(address, ['longitude'], null)) {
       return App.toast('该地址未定位，请先到个人中心定位或地图选点');
     }
-<<<<<<< HEAD
-=======
     const minOrderAmount = cartMinOrderAmount(items);
     const goods = Cart.goodsAmount();
     if (goods < minOrderAmount) {
       return App.toast(`未达到商家起送价 ${App.formatMoney(minOrderAmount)}，还差 ${App.formatMoney(minOrderAmount - goods)}`);
     }
->>>>>>> origin/feature-user-rider-merchant
     const payload = {
       addressId: addressId ? Number(addressId) : null,
       remark: App.$('#remarkInput').value.trim(),

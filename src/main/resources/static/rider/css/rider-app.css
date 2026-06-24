@@ -818,9 +818,6 @@ body.mt-body {
     .mt-position-preview {
         grid-template-columns: 1fr;
     }
-<<<<<<< HEAD
-}
-=======
 }
 
 /* 骑手端催单高亮 */
@@ -1077,4 +1074,3 @@ body.mt-body {
     .mt-order-head { align-items: flex-start; }
     .order-hall-foot { align-items: center; }
 }
->>>>>>> origin/feature-user-rider-merchant

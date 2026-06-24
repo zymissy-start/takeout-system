@@ -54,8 +54,6 @@
     return '';
   }
 
-<<<<<<< HEAD
-=======
 
   function normalizeRiderTitle(title) {
     const value = String(title || '普通骑手').trim();
@@ -65,7 +63,6 @@
     return value.includes('骑手') ? value : `${value}骑手`;
   }
 
->>>>>>> origin/feature-user-rider-merchant
   function renderOrders() {
     const box = App.$('#orderList');
     if (!state.orders.length) {
@@ -74,19 +71,12 @@
     }
     box.innerHTML = state.orders.map(order => {
       const id = App.getField(order, ['orderId', 'order_id', 'id'], '');
-<<<<<<< HEAD
-      const merchantName = App.getField(order, ['merchantName', 'merchant_name', 'storeName'], '校园商家');
-=======
       const merchantName = App.getField(order, ['merchantName', 'merchant_name', 'storeName'], '商家');
->>>>>>> origin/feature-user-rider-merchant
       const status = App.getField(order, ['status'], 0);
       const itemsText = renderItemsText(order);
       const total = App.getField(order, ['payAmount', 'pay_amount', 'totalPrice', 'total_price'], 0);
       const time = App.getField(order, ['orderTime', 'order_time', 'createTime'], '');
-<<<<<<< HEAD
-=======
       const riderLevel = normalizeRiderTitle(App.getField(order, ['requiredRiderTitle', 'required_rider_title'], '普通骑手'));
->>>>>>> origin/feature-user-rider-merchant
       return `
         <article class="order-card" data-id="${id}">
           <div class="order-card-head">
@@ -95,21 +85,14 @@
           </div>
           <div class="order-items">${itemsText}</div>
           <div class="order-card-foot">
-<<<<<<< HEAD
-            <span class="muted small">${App.escapeHtml(time || '')}</span>
-=======
             <span class="muted small">${App.escapeHtml(time || '')} · ${App.escapeHtml(riderLevel)}匹配</span>
->>>>>>> origin/feature-user-rider-merchant
             <strong>${App.formatMoney(total)}</strong>
           </div>
           <div class="order-actions">
             <button data-action="detail" data-id="${id}">详情</button>
             ${Number(status) === 0 ? `<button data-action="cancel" data-id="${id}">取消订单</button>` : ''}
             ${[1,2,3].includes(Number(status)) ? `<button data-action="urge" data-id="${id}" class="main">催单</button>` : ''}
-<<<<<<< HEAD
-=======
             ${[3,4].includes(Number(status)) ? `<button data-action="tip" data-id="${id}">打赏骑手</button>` : ''}
->>>>>>> origin/feature-user-rider-merchant
             ${Number(status) === 4 ? `<button data-action="comment" data-id="${id}">评价</button><button data-action="reorder" data-id="${id}" class="main">再来一单</button>` : ''}
           </div>
         </article>`;
@@ -131,10 +114,7 @@
     if (action === 'cancel') return cancelOrder(id);
     if (action === 'urge') return urgeOrder(id);
     if (action === 'reorder') return reorder(id);
-<<<<<<< HEAD
-=======
     if (action === 'tip') return tipOrder(id);
->>>>>>> origin/feature-user-rider-merchant
     if (action === 'comment') return commentOrder(id);
   }
 
@@ -172,10 +152,6 @@
       `).join('') || '<p class="muted">暂无商品明细，需后端返回 items 字段。</p>'}
       <div class="price-row total"><span>合计</span><b>${App.formatMoney(total)}</b></div>
       ${Array.isArray(reminders) && reminders.length ? `<div class="reminder-list"><b>催单记录</b>${reminders.map(r => `<p>${App.escapeHtml(App.getField(r, ['content'], '已催单'))}<span>${App.escapeHtml(App.getField(r, ['status'], 'UNREAD'))}</span></p>`).join('')}</div>` : ''}
-<<<<<<< HEAD
-      <p class="muted small">收货地址：${App.escapeHtml(App.getField(order, ['receiverAddress','receiver_address','address'], ''))}</p>
-      <p class="muted small">备注：${App.escapeHtml(App.getField(order, ['remark'], '无'))}</p>`;
-=======
       <p class="muted small">骑手匹配：${App.escapeHtml(normalizeRiderTitle(App.getField(order, ['requiredRiderTitle','required_rider_title'], '普通骑手')))}；已打赏：${App.formatMoney(App.getField(order, ['tipAmount','tip_amount'], 0))}</p>
       ${[3, 4].includes(Number(status)) ? `<div class="order-actions detail-actions"><button class="main" data-detail-tip="${App.escapeHtml(App.getField(order, ['orderId','order_id'], ''))}">打赏骑手</button></div>` : ''}
       <p class="muted small">收货地址：${App.escapeHtml(App.getField(order, ['receiverAddress','receiver_address','address'], ''))}</p>
@@ -185,7 +161,6 @@
     if (tipBtn) {
       tipBtn.addEventListener('click', () => openTipModal(tipBtn.dataset.detailTip));
     }
->>>>>>> origin/feature-user-rider-merchant
   }
 
   async function cancelOrder(orderId) {
@@ -205,8 +180,6 @@
     } catch (e) { App.toast(e.message || '催单失败'); }
   }
 
-<<<<<<< HEAD
-=======
   function tipOrder(orderId) {
     openTipModal(orderId);
   }
@@ -292,7 +265,6 @@
     }
   }
 
->>>>>>> origin/feature-user-rider-merchant
   async function reorder(orderId) {
     try {
       const order = await App.request(`/api/user/orders/${orderId}`);

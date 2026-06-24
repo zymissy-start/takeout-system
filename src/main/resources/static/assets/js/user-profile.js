@@ -1,9 +1,5 @@
 (function () {
-<<<<<<< HEAD
-  const state = { addresses: [], editingId: null, picked: null };
-=======
   const state = { addresses: [], editingId: null, picked: null, levelDetails: null };
->>>>>>> origin/feature-user-rider-merchant
   document.addEventListener('DOMContentLoaded', init);
   window.addEventListener('message', handleMapMessage);
   window.addEventListener('storage', handleStoragePick);
@@ -23,8 +19,6 @@
     App.$('#logoutBtn').addEventListener('click', logout);
     App.$('#favoriteBtn').addEventListener('click', () => App.toast('收藏页接口预留：/api/user/favorites'));
     App.$('#couponBtn').addEventListener('click', () => App.toast('优惠券接口预留：/api/user/coupons'));
-<<<<<<< HEAD
-=======
     App.$('#levelDetailBtn').addEventListener('click', openLevelDetail);
     App.$('#closeLevelDetailBtn').addEventListener('click', closeLevelDetail);
   }
@@ -92,7 +86,6 @@
       <div class="level-rule-grid">${riderRows}</div>
       <div class="level-note">${App.escapeHtml(App.getField(data, ['note'], '高等级用户会优先匹配高等级骑手。'))}</div>
     `;
->>>>>>> origin/feature-user-rider-merchant
   }
 
   async function loadProfile() {
@@ -117,12 +110,6 @@
       App.$('#profileLevelBadge').textContent = levelName;
       App.$('#levelNameText').textContent = levelName;
       App.$('#levelProgressBar').style.width = Math.max(0, Math.min(100, progress)) + '%';
-<<<<<<< HEAD
-      App.$('#levelDesc').textContent = App.getField(level, ['description'], '完成订单、评价订单可提升成长值');
-      App.$('#deliveryDiscountText').textContent = rate >= 1 ? '无折扣' : `${Math.round(rate * 100)}折`;
-      App.$('#remindCooldownText').textContent = `${cooldown}秒`;
-      App.$('#nextNeedText').textContent = Number(nextNeed) <= 0 ? '已满级' : `${nextNeed}成长值`;
-=======
       const orderTitle = App.getField(level, ['orderTitle', 'order_title'], '普通');
       const matchedRider = App.getField(level, ['matchedRiderTitle', 'matched_rider_title'], '普通骑手');
       const orderCount = App.getField(level, ['orderCount', 'order_count'], 0);
@@ -133,7 +120,6 @@
       App.$('#nextNeedText').textContent = nextNeedOrders !== null && Number(nextNeedOrders) > 0
         ? `${nextNeedOrders}单`
         : (Number(nextNeed) <= 0 ? '已满级' : `${nextNeed}成长值`);
->>>>>>> origin/feature-user-rider-merchant
     } catch (e) {
       App.$('#levelDesc').textContent = '等级信息加载失败，请检查 /api/user/level';
     }
