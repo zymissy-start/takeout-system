@@ -8,7 +8,17 @@ import org.apache.ibatis.annotations.*;
 
 import java.util.List;
 
+/**
+ * 商家商品 Mapper。
+ *
+ * 负责商品列表查询、分类查询、新增商品、修改商品、上下架商品等数据库操作。
+ */
 public interface MerchantProductMapper {
+    /**
+     * 查询商家首页热卖商品。
+     *
+     * order_count 表示累计点餐次数，按该字段倒序排列可以展示销量高的商品。
+     */
 
     @Select("""
             SELECT
@@ -25,7 +35,14 @@ public interface MerchantProductMapper {
             """)
     List<MerchantProductVO> listMerchantProducts(@Param("merchantId") Integer merchantId,
                                                  @Param("size") Integer size);
-
+    /**
+     * 查询菜品管理列表。
+     *
+     * 支持三个条件：
+     * 1. keyword：按商品名称或描述模糊搜索；
+     * 2. categoryId：按分类筛选；
+     * 3. status：按上架/下架状态筛选。
+     */
     @Select("""
             SELECT
                 p.product_id AS productId,
@@ -63,7 +80,7 @@ public interface MerchantProductMapper {
                                    @Param("keyword") String keyword,
                                    @Param("categoryId") Integer categoryId,
                                    @Param("status") Integer status);
-
+    /** 查询所有商品分类，用于前端下拉框。 */
     @Select("""
             SELECT
                 category_id AS categoryId,
@@ -72,7 +89,10 @@ public interface MerchantProductMapper {
             ORDER BY category_id ASC
             """)
     List<ProductCategory> listCategories();
-
+    /**
+     * 修改菜品状态。
+     * status = 1 表示上架，status = 0 表示下架。
+     */
     @Insert("""
             INSERT INTO product
             (
