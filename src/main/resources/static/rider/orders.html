@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>骑手订单大厅 - 饭点优选骑手端</title>
+    <link rel="stylesheet" href="/rider/css/rider-app.css">
+</head>
+<body class="mt-body">
+
+<div class="mt-shell">
+    <header class="mt-module-header orders">
+        <div class="mt-module-top">
+            <a class="mt-back" href="/rider/dashboard.html">‹</a>
+            <div>
+                <h1>骑手订单大厅</h1>
+                <p>商家出餐后的订单会进入这里；高等级订单只展示给对应等级骑手。</p>
+            </div>
+        </div>
+    </header>
+
+    <main class="mt-module-main">
+        <section class="mt-module-panel">
+            <div class="mt-module-title order-hall-title">
+                <div>
+                    <h2>配送订单</h2>
+                    <p>可接订单按等级、催单状态、等待时间和金额排序。</p>
+                </div>
+                <div class="mt-title-actions">
+                    <button id="refreshBtn" class="mt-refresh" type="button">刷新</button>
+                    <button id="logoutBtn" class="mt-refresh danger" type="button">退出</button>
+                </div>
+            </div>
+
+            <div class="mt-order-hint">
+                <b>接单条件：</b>
+                订单必须是 <span>待骑手接单</span>；商家只接单还不够，必须点击“出餐完成”。
+            </div>
+
+            <div id="orderTabs" class="mt-tabs">
+                <button class="active" type="button" data-type="available">可接订单</button>
+                <button type="button" data-type="delivering">我的配送</button>
+                <button type="button" data-type="finished">已完成</button>
+            </div>
+
+            <div id="orderList" class="mt-list order-hall-list">
+                <div class="mt-empty">正在加载订单...</div>
+            </div>
+        </section>
+    </main>
+
+    <nav class="mt-bottom">
+        <a href="/rider/dashboard.html"><span>🏠</span>首页</a>
+        <a href="/rider/recommend.html"><span>📍</span>推荐</a>
+        <a class="active" href="/rider/orders.html"><span>📦</span>订单</a>
+        <a href="/rider/current.html"><span>🛵</span>配送</a>
+    </nav>
+</div>
+
+<div id="detailMask" class="mt-modal-mask hidden">
+    <section class="mt-modal-card">
+        <div class="mt-modal-title">
+            <h3>订单详情</h3>
+            <button id="closeDetailBtn" class="mt-close-btn" type="button">×</button>
+        </div>
+        <div id="detailContent" class="mt-detail-content">正在加载订单详情...</div>
+    </section>
+</div>
+
+<script src="/rider/js/rider-common.js"></script>
+<script src="/rider/js/rider-orders.js"></script>
+</body>
+</html>

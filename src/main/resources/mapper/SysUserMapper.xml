@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.takeoutsystem.mapper.SysUserMapper">
+
+    <resultMap id="SysUserResultMap" type="com.example.takeoutsystem.entity.SysUser">
+        <id property="userId" column="user_id"/>
+        <result property="username" column="username"/>
+        <result property="password" column="password"/>
+        <result property="realName" column="real_name"/>
+        <result property="phone" column="phone"/>
+        <result property="roleType" column="role_type"/>
+        <result property="creditScore" column="credit_score"/>
+        <result property="status" column="status"/>
+        <result property="createTime" column="create_time"/>
+        <result property="levelId" column="level_id"/>
+        <result property="growthValue" column="growth_value"/>
+    </resultMap>
+
+    <select id="selectById" resultMap="SysUserResultMap">
+        SELECT *
+        FROM sys_user
+        WHERE user_id = #{userId}
+    </select>
+
+    <select id="selectByUsername" resultMap="SysUserResultMap">
+        SELECT *
+        FROM sys_user
+        WHERE username = #{username}
+        LIMIT 1
+    </select>
+
+    <select id="findMerchantByUsernameAndPassword" resultMap="SysUserResultMap">
+        SELECT *
+        FROM sys_user
+        WHERE username = #{username}
+          AND password = #{password}
+          AND role_type = 2
+          AND status = 1
+        LIMIT 1
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="userId">
+        INSERT INTO sys_user (
+        username,
+        password,
+        real_name,
+        phone,
+        role_type,
+        credit_score,
+        status,
+        create_time,
+        level_id,
+        growth_value
+        )
+        VALUES (
+        #{username},
+        #{password},
+        #{realName},
+        #{phone},
+        #{roleType},
+        #{creditScore},
+        #{status},
+        NOW(),
+        #{levelId},
+        #{growthValue}
+        )
+    </insert>
+
+    <update id="update">
+        UPDATE sys_user
+        SET
+        real_name = #{realName},
+        phone = #{phone},
+        role_type = #{roleType},
+        credit_score = #{creditScore},
+        status = #{status},
+        level_id = #{levelId},
+        growth_value = #{growthValue}
+        WHERE user_id = #{userId}
+    </update>
+
+</mapper>

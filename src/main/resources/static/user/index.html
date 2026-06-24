@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>智慧外卖 - 用户首页</title>
+  <link rel="stylesheet" href="/assets/css/user.css" />
+</head>
+<body>
+  <header class="app-header">
+    <div class="header-top">
+      <div>
+        <p class="muted small">当前位置</p>
+        <button id="addressBtn" class="address-btn">加载地址中...</button>
+      </div>
+      <a class="avatar-link" href="/user/profile.html" title="个人中心">
+        <span id="levelBadge" class="level-chip mini">Lv1</span>
+        <span id="userAvatar" class="avatar">我</span>
+      </a>
+    </div>
+    <div class="search-box">
+      <span>🔎</span>
+      <input id="keywordInput" type="search" placeholder="搜索商店、菜品、奶茶、跑腿" />
+      <button id="searchBtn">搜索</button>
+    </div>
+    <section class="hero-card">
+      <div>
+        <p class="badge">今日推荐</p>
+        <h1>精选美食 30 分钟送达</h1>
+        <p id="levelTip">定位到宿舍楼，下单更准确。</p>
+      </div>
+      <div class="hero-plate">🍔</div>
+    </section>
+  </header>
+
+  <main class="page-shell pb-90">
+    <section class="quick-grid" aria-label="快捷入口">
+      <button class="quick-item" data-category-name="美食"><span>🍱</span><b>美食</b></button>
+      <button class="quick-item" data-category-name="饮品"><span>🥤</span><b>饮品</b></button>
+      <button class="quick-item" data-category-name="跑腿代购"><span>🛍️</span><b>跑腿</b></button>
+      <a class="quick-item" href="/user/order.html"><span>📦</span><b>订单</b></a>
+      <a class="quick-item" href="/user/profile.html"><span>📍</span><b>定位</b></a>
+    </section>
+
+    <section class="section-card">
+      <div class="section-title">
+        <div>
+          <h2 id="homeSectionTitle">优选商店</h2>
+          <p id="homeSectionSub">先选择商店，再查看该商店商品</p>
+        </div>
+        <select id="sortSelect" class="select">
+          <option value="recommend">综合排序</option>
+          <option value="sales">销量最高</option>
+          <option value="rating">评分最高</option>
+          <option value="distance">距离最近</option>
+          <option value="deliveryTime">配送最快</option>
+        </select>
+      </div>
+      <div id="categoryTabs" class="tabs"></div>
+      <div id="productList" class="product-list"></div>
+      <button id="loadMoreBtn" class="ghost-btn full hidden">加载更多</button>
+    </section>
+  </main>
+
+  <aside id="cartPanel" class="cart-panel" aria-label="购物车">
+    <div class="cart-header">
+      <b>购物车</b>
+      <button id="clearCartBtn" class="text-btn danger">清空</button>
+    </div>
+    <div id="cartItems" class="cart-items empty">购物车还是空的</div>
+    <div class="cart-footer">
+      <div>
+        <span class="muted small">合计</span>
+        <strong id="cartTotal">￥0.00</strong>
+      </div>
+      <button id="checkoutBtn" class="primary-btn">去结算</button>
+    </div>
+  </aside>
+
+  <div id="checkoutMask" class="modal-mask hidden">
+    <div class="modal">
+      <div class="modal-title">
+        <h3>确认订单</h3>
+        <button id="closeCheckoutBtn" class="icon-btn">×</button>
+      </div>
+      <label class="field-label">收货地址</label>
+      <select id="addressSelect" class="input"></select>
+      <p class="muted small">地址必须包含经纬度；没有定位时请先到"我的-收货地址"使用真实定位或地图选点。</p>
+      <label class="field-label">备注</label>
+      <textarea id="remarkInput" class="input textarea" placeholder="例如：少辣、放宿舍楼下、电话联系"></textarea>
+      <div class="price-row"><span>商品金额</span><b id="modalGoodsAmount">￥0.00</b></div>
+      <div class="price-row"><span>配送费</span><b id="modalDeliveryFee">￥0.00</b></div>
+      <div class="price-row"><span>等级减免</span><b id="modalDiscountAmount">￥0.00</b></div>
+      <div class="price-row total"><span>预估应付</span><b id="modalPayAmount">￥0.00</b></div>
+      <p id="checkoutLevelTip" class="privilege-note">实际金额以后端事务计算为准。</p>
+      <button id="submitOrderBtn" class="primary-btn full">提交订单</button>
+    </div>
+  </div>
+
+  <nav class="bottom-nav">
+    <a class="active" href="/user/index.html">首页</a>
+    <a href="/user/order.html">订单</a>
+    <a href="/user/profile.html">我的</a>
+  </nav>
+
+  <div id="toast" class="toast hidden"></div>
+  <script src="/assets/js/request.js"></script>
+  <script src="/assets/js/cart.js"></script>
+  <script src="/assets/js/user-home.js"></script>
+</body>
+</html>

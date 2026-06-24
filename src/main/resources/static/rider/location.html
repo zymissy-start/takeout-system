@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>位置中心 - 饭点优选骑手端</title>
+    <link rel="stylesheet" href="/rider/css/rider-app.css">
+</head>
+<body class="mt-body" data-rider-module="location">
+
+<div class="mt-shell">
+    <header class="mt-module-header location">
+        <div class="mt-module-top">
+            <a class="mt-back" href="/rider/dashboard.html">‹</a>
+            <div>
+                <h1>位置中心</h1>
+                <p>骑手、商家、用户位置分开展示，定位失败时自动使用模拟位置</p>
+            </div>
+        </div>
+    </header>
+
+    <main class="mt-module-main">
+        <section class="mt-module-panel">
+            <div class="mt-module-title">
+                <div>
+                    <h2>配送路线视图</h2>
+                    <p>不同身份用不同颜色区分</p>
+                </div>
+                <button id="refreshBtn" class="mt-refresh">刷新定位</button>
+            </div>
+
+            <div class="mt-map">
+                <div class="mt-map-grid"></div>
+                <div class="mt-map-route"></div>
+
+                <div class="mt-map-node rider">
+                    <span>骑</span>
+                    <b>骑手位置</b>
+                </div>
+
+                <div class="mt-map-node merchant">
+                    <span>商</span>
+                    <b>商家位置</b>
+                </div>
+
+                <div class="mt-map-node user">
+                    <span>客</span>
+                    <b>用户位置</b>
+                </div>
+            </div>
+
+            <div id="moduleContent" class="mt-info-grid"></div>
+        </section>
+    </main>
+
+    <nav class="mt-bottom">
+        <a href="/rider/dashboard.html"><span>🏠</span>首页</a>
+        <a href="/rider/recommend.html"><span>📍</span>推荐</a>
+        <a href="/rider/current.html"><span>🛵</span>配送</a>
+        <a href="/rider/growth.html"><span>⚡</span>成长</a>
+    </nav>
+</div>
+
+<script src="/rider/js/rider-common.js"></script>
+<script src="/rider/js/rider-modules-app.js"></script>
+</body>
+</html>

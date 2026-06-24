@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>智慧外卖 - 个人中心</title>
+  <link rel="stylesheet" href="/assets/css/user.css" />
+</head>
+<body class="soft-bg">
+  <header class="profile-hero">
+    <div class="profile-line">
+      <span id="profileAvatar" class="avatar xl">我</span>
+      <div>
+        <h1 id="profileName">用户</h1>
+        <p id="profilePhone">登录信息加载中...</p>
+        <span id="profileLevelBadge" class="level-chip">Lv1 普通用户</span>
+      </div>
+    </div>
+    <div class="profile-stats">
+      <div><b id="creditScore">0</b><span>信誉积分</span></div>
+      <div><b id="couponCount">0</b><span>优惠券</span></div>
+      <div><b id="orderCount">0</b><span>订单数</span></div>
+    </div>
+  </header>
+
+  <main class="page-shell pb-90 profile-main">
+    <section class="section-card level-card">
+      <div class="section-title compact">
+        <h2>我的等级权益</h2>
+        <span id="levelNameText" class="level-chip light">Lv1</span>
+      </div>
+      <div class="level-progress"><span id="levelProgressBar"></span></div>
+      <p id="levelDesc" class="muted small">正在加载等级权益...</p>
+      <div class="privilege-grid">
+        <div><b id="deliveryDiscountText">无折扣</b><span>配送费权益</span></div>
+        <div><b id="remindCooldownText">180秒</b><span>催单冷却</span></div>
+        <div><b id="nextNeedText">--</b><span>升级还差</span></div>
+      </div>
+      <div class="level-card-actions">
+        <button id="levelDetailBtn" class="ghost-btn" type="button">查看等级详情</button>
+      </div>
+    </section>
+
+    <section class="section-card">
+      <div class="section-title compact">
+        <h2>收货地址</h2>
+        <button id="addAddressBtn" class="ghost-btn">新增</button>
+      </div>
+      <div id="addressList" class="address-list"></div>
+    </section>
+
+    <section class="section-card">
+      <div class="section-title compact"><h2>我的服务</h2></div>
+      <div class="service-list">
+        <a href="/user/order.html">📦 我的订单 <span>›</span></a>
+        <button id="favoriteBtn">⭐ 我的收藏 <span>›</span></button>
+        <button id="couponBtn">🎁 优惠券 <span>›</span></button>
+        <button id="logoutBtn" class="danger-line">退出登录 <span>›</span></button>
+      </div>
+    </section>
+  </main>
+
+  <div id="addressMask" class="modal-mask hidden">
+    <div class="modal large">
+      <div class="modal-title">
+        <h3 id="addressModalTitle">新增地址</h3>
+        <button id="closeAddressBtn" class="icon-btn">×</button>
+      </div>
+      <input id="receiverNameInput" class="input" placeholder="收货人姓名" />
+      <input id="receiverPhoneInput" class="input" placeholder="手机号" />
+      <input id="addressTextInput" class="input" placeholder="详细地址，如：西苑校区 6 号宿舍楼" />
+      <div class="location-tools">
+        <button id="geoLocationBtn" class="ghost-btn" type="button">使用真实定位</button>
+        <button id="mapPickBtn" class="ghost-btn" type="button">地图选点</button>
+      </div>
+      <div class="coord-box">
+        <span>纬度 <b id="latText">未选择</b></span>
+        <span>经度 <b id="lngText">未选择</b></span>
+      </div>
+      <input id="latitudeInput" type="hidden" />
+      <input id="longitudeInput" type="hidden" />
+      <label class="checkbox-line"><input id="defaultAddressInput" type="checkbox" /> 设为默认地址</label>
+      <button id="saveAddressBtn" class="primary-btn full">保存地址</button>
+    </div>
+  </div>
+
+
+  <div id="levelDetailMask" class="modal-mask hidden">
+    <div class="modal large">
+      <div class="modal-title">
+        <h3>等级详情与骑手匹配</h3>
+        <button id="closeLevelDetailBtn" class="icon-btn" type="button">×</button>
+      </div>
+      <div id="levelDetailContent">
+        正在加载等级详情...
+      </div>
+    </div>
+  </div>
+
+  <nav class="bottom-nav">
+    <a href="/user/index.html">首页</a>
+    <a href="/user/order.html">订单</a>
+    <a class="active" href="/user/profile.html">我的</a>
+  </nav>
+
+  <div id="toast" class="toast hidden"></div>
+  <script src="/assets/js/request.js"></script>
+  <script src="/assets/js/user-profile.js"></script>
+</body>
+</html>

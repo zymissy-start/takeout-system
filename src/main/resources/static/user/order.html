@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>智慧外卖 - 我的订单</title>
+  <link rel="stylesheet" href="/assets/css/user.css" />
+</head>
+<body class="soft-bg">
+  <header class="sub-header">
+    <a href="/user/index.html" class="back-link">‹</a>
+    <h1>我的订单</h1>
+    <a href="/user/profile.html" class="sub-action">我的</a>
+  </header>
+
+  <main class="page-shell pb-90">
+    <div class="order-tabs" id="orderTabs">
+      <button class="active" data-status="all">全部</button>
+      <button data-status="0">待接单</button>
+      <button data-status="1,2,3">进行中</button>
+      <button data-status="4">已完成</button>
+      <button data-status="-1">已取消</button>
+    </div>
+    <section id="orderList" class="order-list"></section>
+  </main>
+
+  <div id="orderDetailMask" class="modal-mask hidden">
+    <div class="modal large">
+      <div class="modal-title">
+        <h3>订单详情</h3>
+        <button id="closeDetailBtn" class="icon-btn">×</button>
+      </div>
+      <div id="orderDetail"></div>
+    </div>
+  </div>
+
+  <nav class="bottom-nav">
+    <a href="/user/index.html">首页</a>
+    <a class="active" href="/user/order.html">订单</a>
+    <a href="/user/profile.html">我的</a>
+  </nav>
+
+  <div id="toast" class="toast hidden"></div>
+  <script src="/assets/js/request.js"></script>
+  <script src="/assets/js/cart.js"></script>
+  <script src="/assets/js/user-orders.js"></script>
+</body>
+</html>

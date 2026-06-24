@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.takeoutsystem.mapper.UserProfileMapper">
+    <select id="selectUserProfile" resultType="com.example.takeoutsystem.entity.UserProfileVO">
+        SELECT u.user_id AS userId,
+               u.username,
+               u.real_name AS realName,
+               u.phone,
+               u.role_type AS roleType,
+               u.credit_score AS creditScore,
+               u.level_id AS levelId,
+               COALESCE(l.level_name, 'Lv1 普通用户') AS levelName,
+               COALESCE(u.growth_value, 0) AS growthValue,
+               u.status
+        FROM sys_user u
+        LEFT JOIN user_level l ON u.level_id = l.level_id
+        WHERE u.user_id = #{userId}
+    </select>
+</mapper>
