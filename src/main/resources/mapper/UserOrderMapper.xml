@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.takeoutsystem.mapper.UserOrderMapper">
+
+    <insert id="insertOrder" parameterType="com.example.takeoutsystem.entity.UserOrder" useGeneratedKeys="true" keyProperty="orderId">
+        INSERT INTO delivery_order(order_no, user_id, merchant_id, rider_id, total_price, status,
+                                   address, remark, is_urged, address_id, receiver_name, receiver_phone,
+                                   receiver_address, receiver_latitude, receiver_longitude,
+                                   product_amount, delivery_fee, discount_amount, actual_amount, pay_status)
+        VALUES(#{orderNo}, #{userId}, #{merchantId}, #{riderId}, #{totalPrice}, #{status},
+               #{address}, #{remark}, #{isUrged}, #{addressId}, #{receiverName}, #{receiverPhone},
+               #{receiverAddress}, #{receiverLatitude}, #{receiverLongitude},
+               #{productAmount}, #{deliveryFee}, #{discountAmount}, #{actualAmount}, #{payStatus})
+    </insert>
+
+    <insert id="insertOrderItem" parameterType="com.example.takeoutsystem.entity.UserOrderItem" useGeneratedKeys="true" keyProperty="itemId">
+        INSERT INTO order_item(order_id, product_id, quantity, price, product_name, product_image, amount)
+        VALUES(#{orderId}, #{productId}, #{quantity}, #{price}, #{productName}, #{imageUrl}, #{subtotalAmount})
+    </insert>
+
+    <sql id="orderSelect">
+        SELECT
+            o.order_id AS orderId,
+            o.order_no AS orderNo,
+            o.user_id AS userId,
+            o.merchant_id AS merchantId,
+            COALESCE(mi.store_name, mu.real_name, mu.username) AS merchantName,
+            o.rider_id AS riderId,
+            o.rider_name AS riderName,
+            o.rider_phone AS riderPhone,
+            o.total_price AS totalPrice,
+            o.product_amount AS productAmount,
+            o.delivery_fee AS deliveryFee,
+            o.discount_amount AS discountAmount,
+            o.actual_amount AS actualAmount,
+            COALESCE(o.actual_amount, o.total_price) AS payAmount,
+            o.status AS status,
+            o.pay_status AS payStatus,
+            o.order_time AS orderTime,
+            o.merchant_confirm_time AS merchantConfirmTime,
+            o.kitchen_finish_time AS kitchenFinishTime,
+            o.estimated_arrival_time AS estimatedArrivalTime,
+            o.finish_time AS finishTime,
+            o.address AS address,
+            o.receiver_name AS receiverName,
+            o.receiver_phone AS receiverPhone,
+            o.receiver_address AS receiverAddress,
+            o.receiver_latitude AS receiverLatitude,
+            o.receiver_longitude AS receiverLongitude,
+            o.remark AS remark,
+            o.is_urged AS isUrged,
+            o.remind_count AS remindCount,
+            o.last_remind_time AS lastRemindTime
+        FROM delivery_order o
+        LEFT JOIN sys_user mu ON o.merchant_id = mu.user_id
+        LEFT JOIN merchant_info mi ON o.merchant_id = mi.merchant_id
+    </sql>
+
+    <select id="selectOrders" resultType="com.example.takeoutsystem.entity.UserOrderVO">
+        <include refid="orderSelect" />
+        WHERE o.user_id = #{userId}
+        <if test="status != null and status != ''">
+            AND FIND_IN_SET(o.status, #{status})
+        </if>
+        ORDER BY o.order_time DESC, o.order_id DESC
+    </select>
+
+    <select id="selectOrderById" resultType="com.example.takeoutsystem.entity.UserOrderVO">
+        <include refid="orderSelect" />
+        WHERE o.order_id = #{orderId} AND o.user_id = #{userId}
+    </select>
+
+    <select id="selectOrderItems" resultType="com.example.takeoutsystem.entity.UserOrderItemVO">
+        SELECT item_id AS itemId, order_id AS orderId, oi.product_id AS productId,
+               COALESCE(product_name, p.name) AS productName,
+               COALESCE(oi.product_image, p.image_url) AS imageUrl,
+               quantity, oi.price AS price,
+               COALESCE(amount, oi.price * quantity) AS subtotalAmount
+        FROM order_item oi
+        LEFT JOIN product p ON oi.product_id = p.product_id
+        WHERE oi.order_id = #{orderId}
+        ORDER BY item_id ASC
+    </select>
+
+    <update id="cancelOrder">
+        UPDATE delivery_order
+        SET status = -1,
+            cancel_time = CURRENT_TIMESTAMP,
+            cancel_reason = #{reason}
+        WHERE order_id = #{orderId}
+          AND user_id = #{userId}
+          AND status = 0
+    </update>
+
+    <update id="updateUrgeInfo">
+        UPDATE delivery_order
+        SET is_urged = 1,
+            remind_count = COALESCE(remind_count, 0) + 1,
+            last_remind_time = CURRENT_TIMESTAMP
+        WHERE order_id = #{orderId}
+    </update>
+
+    <select id="selectLastRemindTime" resultType="java.util.Date">
+        SELECT MAX(create_time)
+        FROM order_reminder
+        WHERE order_id = #{orderId} AND user_id = #{userId}
+    </select>
+
+    <insert id="insertStatusLog">
+        INSERT INTO order_status_log(order_id, status, status_text, operator_type, operator_id, remark)
+        VALUES(#{orderId}, #{status}, #{statusText}, #{operatorType}, #{operatorId}, #{remark})
+    </insert>
+
+    <select id="selectStatusLogs" resultType="com.example.takeoutsystem.entity.OrderStatusLogVO">
+        SELECT log_id AS logId, order_id AS orderId, status, status_text AS statusText,
+               operator_type AS operatorType, operator_id AS operatorId, remark, create_time AS createTime
+        FROM order_status_log
+        WHERE order_id = #{orderId}
+        ORDER BY create_time ASC, log_id ASC
+    </select>
+
+    <insert id="insertComment">
+        INSERT INTO product_review(order_id, user_id, merchant_id, score, content)
+        VALUES(#{orderId}, #{userId}, #{merchantId}, #{score}, #{content})
+    </insert>
+
+    <select id="countCommentByOrderId" resultType="int">
+        SELECT COUNT(1) FROM product_review WHERE order_id = #{orderId} AND user_id = #{userId}
+    </select>
+
+    <select id="countUserOrders" resultType="int">
+        SELECT COUNT(1) FROM delivery_order WHERE user_id = #{userId}
+    </select>
+
+    <select id="countUserCoupons" resultType="int">
+        SELECT COUNT(1) FROM user_coupon WHERE user_id = #{userId} AND status = 0
+    </select>
+
+    <select id="countUserReviews" resultType="int">
+        SELECT COUNT(1) FROM product_review WHERE user_id = #{userId}
+    </select>
+</mapper>
