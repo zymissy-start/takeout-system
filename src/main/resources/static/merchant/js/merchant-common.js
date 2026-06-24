@@ -1,4 +1,5 @@
 (function () {
+<<<<<<< HEAD
     // 本地缓存商家信息的 key，用于页面刷新后仍能显示商家基本信息。
     const MERCHANT_USER_KEY = 'takeout_merchant_user_v1';
     /** 简化版 DOM 查询方法。 */
@@ -13,6 +14,18 @@
      * HTML 转义方法。
      * 前端渲染用户输入或数据库内容时使用，避免特殊字符破坏页面结构。
      */
+=======
+    const MERCHANT_USER_KEY = 'takeout_merchant_user_v1';
+
+    function $(selector) {
+        return document.querySelector(selector);
+    }
+
+    function $all(selector) {
+        return Array.from(document.querySelectorAll(selector));
+    }
+
+>>>>>>> origin/feature-user-rider-merchant
     function escapeHtml(value) {
         return String(value ?? '')
             .replace(/&/g, '&amp;')
@@ -21,10 +34,14 @@
             .replace(/"/g, '&quot;')
             .replace(/'/g, '&#39;');
     }
+<<<<<<< HEAD
     /**
      * 兼容不同字段命名方式。
      * 例如后端可能返回 userId，也可能返回 user_id。
      */
+=======
+
+>>>>>>> origin/feature-user-rider-merchant
     function getField(obj, keys, defaultValue) {
         if (!obj) return defaultValue;
         for (const key of keys) {
@@ -34,7 +51,11 @@
         }
         return defaultValue;
     }
+<<<<<<< HEAD
     /** 保存商家信息到 localStorage。 */
+=======
+
+>>>>>>> origin/feature-user-rider-merchant
     function saveMerchant(user) {
         localStorage.setItem(MERCHANT_USER_KEY, JSON.stringify(user || {}));
     }
@@ -46,6 +67,7 @@
             return {};
         }
     }
+<<<<<<< HEAD
     /** 清除本地商家登录缓存。 */
     function clearMerchant() {
         localStorage.removeItem(MERCHANT_USER_KEY);
@@ -55,6 +77,12 @@
      * 后端 Result.success 会返回 success = true 和 data 字段，
      * 此处自动取出 data，简化页面 JS 的处理逻辑。
      */
+=======
+
+    function clearMerchant() {
+        localStorage.removeItem(MERCHANT_USER_KEY);
+    }
+>>>>>>> origin/feature-user-rider-merchant
 
     function normalizeResult(json) {
         if (!json || typeof json !== 'object') return json;
@@ -75,10 +103,13 @@
 
         return json;
     }
+<<<<<<< HEAD
     /**
      * 封装 Ajax 请求。
      * 使用 fetch 发送 GET/POST 请求，并统一携带 Session Cookie。
      */
+=======
+>>>>>>> origin/feature-user-rider-merchant
 
     async function request(url, options) {
         const opt = Object.assign({
@@ -92,7 +123,11 @@
             credentials: 'same-origin',
             headers: Object.assign({}, opt.headers)
         };
+<<<<<<< HEAD
 // POST 表单请求统一转为 x-www-form-urlencoded，方便 Spring MVC 接收参数。
+=======
+
+>>>>>>> origin/feature-user-rider-merchant
         if (opt.body) {
             fetchOptions.headers['Content-Type'] = 'application/x-www-form-urlencoded;charset=UTF-8';
             const form = new URLSearchParams();
@@ -134,10 +169,13 @@
             el.classList.add('hidden');
         }, 2200);
     }
+<<<<<<< HEAD
     /**
      * 页面权限控制。
      * 如果当前 Session 中没有登录商家，则跳转到登录页。
      */
+=======
+>>>>>>> origin/feature-user-rider-merchant
 
     function requireMerchantLogin() {
         return request('/merchant/current')

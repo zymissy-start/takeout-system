@@ -32,7 +32,11 @@ public class RiderOrderController {
             return Result.fail("骑手未登录");
         }
 
+<<<<<<< HEAD
         return Result.success("获取可接订单成功", riderOrderService.listAvailableOrders());
+=======
+        return Result.success("获取可接订单成功", riderOrderService.listAvailableOrders(rider.getUserId()));
+>>>>>>> origin/feature-user-rider-merchant
     }
 
     @GetMapping("/my")
@@ -69,6 +73,22 @@ public class RiderOrderController {
 
     @PostMapping("/accept")
     public Result<Void> accept(Integer orderId, HttpSession session) {
+<<<<<<< HEAD
+=======
+        return doAccept(orderId, session);
+    }
+
+    /**
+     * 兼容前端直接 POST /rider/orders/accept/{orderId} 的写法。
+     * 原接口 /rider/orders/accept 仍然保留，参数为 orderId。
+     */
+    @PostMapping("/accept/{orderId}")
+    public Result<Void> acceptByPath(@PathVariable Integer orderId, HttpSession session) {
+        return doAccept(orderId, session);
+    }
+
+    private Result<Void> doAccept(Integer orderId, HttpSession session) {
+>>>>>>> origin/feature-user-rider-merchant
         SysUser rider = getLoginRider(session);
 
         if (rider == null) {
@@ -78,7 +98,11 @@ public class RiderOrderController {
         boolean success = riderOrderService.acceptOrder(rider, orderId);
 
         if (!success) {
+<<<<<<< HEAD
             return Result.fail("接单失败，订单可能已被其他骑手接走");
+=======
+            return Result.fail("接单失败：订单可能已被接走、商家还未出餐，或当前骑手等级不足");
+>>>>>>> origin/feature-user-rider-merchant
         }
 
         return Result.success("接单成功，已进入配送中");
@@ -102,7 +126,11 @@ public class RiderOrderController {
             return Result.fail("骑手未登录");
         }
 
+<<<<<<< HEAD
         boolean success = riderOrderService.urgeMerchant(orderId);
+=======
+        boolean success = riderOrderService.urgeMerchant(rider.getUserId(), orderId);
+>>>>>>> origin/feature-user-rider-merchant
 
         if (!success) {
             return Result.fail("催促失败，订单可能已经出餐");
@@ -130,6 +158,18 @@ public class RiderOrderController {
 
     @PostMapping("/finish")
     public Result<Void> finish(Integer orderId, HttpSession session) {
+<<<<<<< HEAD
+=======
+        return doFinish(orderId, session);
+    }
+
+    @PostMapping("/finish/{orderId}")
+    public Result<Void> finishByPath(@PathVariable Integer orderId, HttpSession session) {
+        return doFinish(orderId, session);
+    }
+
+    private Result<Void> doFinish(Integer orderId, HttpSession session) {
+>>>>>>> origin/feature-user-rider-merchant
         SysUser rider = getLoginRider(session);
 
         if (rider == null) {

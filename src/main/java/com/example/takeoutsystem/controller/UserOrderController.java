@@ -8,6 +8,10 @@ import com.example.takeoutsystem.service.UserOrderService;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.servlet.http.HttpServletRequest;
+<<<<<<< HEAD
+=======
+import java.math.BigDecimal;
+>>>>>>> origin/feature-user-rider-merchant
 import java.util.Map;
 
 @RestController
@@ -48,6 +52,30 @@ public class UserOrderController {
         return UserApiResult.success(userOrderService.urge(UserContext.getCurrentUserId(request), orderId));
     }
 
+<<<<<<< HEAD
+=======
+    @PostMapping("/{orderId}/tip")
+    public UserApiResult<?> tip(HttpServletRequest request,
+                                @PathVariable Integer orderId,
+                                @RequestBody(required = false) Map<String, Object> body) {
+        Object value = body == null ? null : body.get("tipAmount");
+        if (value == null && body != null) {
+            value = body.get("amount");
+        }
+
+        BigDecimal tipAmount = null;
+        if (value != null) {
+            try {
+                tipAmount = new BigDecimal(String.valueOf(value));
+            } catch (NumberFormatException e) {
+                throw new IllegalArgumentException("打赏金额格式不正确");
+            }
+        }
+
+        return UserApiResult.success(userOrderService.tip(UserContext.getCurrentUserId(request), orderId, tipAmount));
+    }
+
+>>>>>>> origin/feature-user-rider-merchant
     @PostMapping("/{orderId}/comments")
     public UserApiResult<?> comment(HttpServletRequest request, @PathVariable Integer orderId, @RequestBody UserCommentForm form) {
         userOrderService.comment(UserContext.getCurrentUserId(request), orderId, form);

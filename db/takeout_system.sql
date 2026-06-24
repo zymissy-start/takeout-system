@@ -75,19 +75,37 @@ CREATE TABLE `delivery_order`  (
   `is_urged` tinyint(0) NULL DEFAULT 0 COMMENT '0-未催单, 1-已催单',
   `remind_count` int(0) NULL DEFAULT 0 COMMENT '催单次数',
   `last_remind_time` datetime(0) NULL DEFAULT NULL COMMENT '最后催单时间',
+<<<<<<< HEAD
+=======
+  `tip_amount` decimal(10, 2) NULL DEFAULT 0.00 COMMENT '用户给骑手打赏金额',
+  `required_rider_level` tinyint(0) NULL DEFAULT 0 COMMENT '订单要求骑手等级：0普通 1闪电侠 2单王配送',
+  `required_rider_title` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT '普通' COMMENT '订单要求骑手称号',
+  `rider_urge_count` int(0) NULL DEFAULT 0 COMMENT '骑手催商家次数',
+  `rider_urge_time` datetime(0) NULL DEFAULT NULL COMMENT '骑手最近催商家时间',
+>>>>>>> origin/feature-user-rider-merchant
   PRIMARY KEY (`order_id`) USING BTREE,
   UNIQUE INDEX `order_no`(`order_no`) USING BTREE,
   INDEX `idx_order_user_status_time`(`user_id`, `status`, `order_time`) USING BTREE,
   INDEX `idx_order_merchant_status_time`(`merchant_id`, `status`, `order_time`) USING BTREE,
   INDEX `idx_delivery_order_user_status`(`user_id`, `status`) USING BTREE,
+<<<<<<< HEAD
   INDEX `idx_delivery_order_rider_status`(`rider_id`, `status`) USING BTREE
+=======
+  INDEX `idx_delivery_order_rider_status`(`rider_id`, `status`) USING BTREE,
+  INDEX `idx_order_required_rider`(`status`, `required_rider_level`) USING BTREE
+>>>>>>> origin/feature-user-rider-merchant
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of delivery_order
 -- ----------------------------
+<<<<<<< HEAD
 INSERT INTO `delivery_order` VALUES (1, NULL, 2, 3, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 43.00, 0.00, 0.00, 0.00, 0.00, 0.00, -1, 0, '2026-06-21 22:38:37', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '西苑校区 6 号宿舍楼', 'no ice', 1, 0, NULL);
 INSERT INTO `delivery_order` VALUES (4, 'OD20260624145905849849', 2, 6, NULL, 2, '测试', '17554896666', '地图选点位置', 34.663712, 112.372509, 23.00, 20.00, 3.00, 0.00, 23.00, 0.00, -1, 1, '2026-06-24 14:59:05', NULL, NULL, NULL, NULL, NULL, '2026-06-24 14:59:12', '用户主动取消', NULL, NULL, '地图选点位置', '', 0, 0, NULL);
+=======
+INSERT INTO `delivery_order` VALUES (1, NULL, 2, 3, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 43.00, 0.00, 0.00, 0.00, 0.00, 0.00, -1, 0, '2026-06-21 22:38:37', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '西苑校区 6 号宿舍楼', 'no ice', 1, 0, NULL, 0.00, 0, '普通', 0, NULL);
+INSERT INTO `delivery_order` VALUES (4, 'OD20260624145905849849', 2, 6, NULL, 2, '测试', '17554896666', '地图选点位置', 34.663712, 112.372509, 23.00, 20.00, 3.00, 0.00, 23.00, 0.00, -1, 1, '2026-06-24 14:59:05', NULL, NULL, NULL, NULL, NULL, '2026-06-24 14:59:12', '用户主动取消', NULL, NULL, '地图选点位置', '', 0, 0, NULL, 0.00, 0, '普通', 0, NULL);
+>>>>>>> origin/feature-user-rider-merchant
 
 -- ----------------------------
 -- Table structure for merchant_info
@@ -169,7 +187,11 @@ CREATE TABLE `order_reminder`  (
   `reminder_id` int(0) NOT NULL AUTO_INCREMENT,
   `order_id` int(0) NOT NULL,
   `user_id` int(0) NOT NULL,
+<<<<<<< HEAD
   `target_type` tinyint(0) NOT NULL COMMENT '提醒对象类型 1商家 2骑手',
+=======
+  `target_type` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'MERCHANT/RIDER',
+>>>>>>> origin/feature-user-rider-merchant
   `target_id` int(0) NOT NULL COMMENT '提醒对象ID',
   `content` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT '提醒内容',
   `status` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT 'UNREAD' COMMENT 'UNREAD/READ/HANDLED',
@@ -305,6 +327,12 @@ CREATE TABLE `rider_info`  (
   `is_full_time` tinyint(0) NULL DEFAULT 0 COMMENT '0-兼职骑手, 1-全职骑手',
   `status` tinyint(0) NULL DEFAULT 0 COMMENT '0-空闲, 1-忙碌中',
   `avg_speed` decimal(3, 1) NULL DEFAULT NULL COMMENT '平均速度(分钟/公里)',
+<<<<<<< HEAD
+=======
+  `total_finished_count` int(0) NULL DEFAULT 0 COMMENT '累计完成配送单数',
+  `rider_level` tinyint(0) NULL DEFAULT 0 COMMENT '骑手等级：0普通 1闪电侠 2单王配送',
+  `rider_title` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT '普通骑手' COMMENT '骑手等级称号',
+>>>>>>> origin/feature-user-rider-merchant
   PRIMARY KEY (`rider_id`) USING BTREE,
   INDEX `user_id`(`user_id`) USING BTREE,
   CONSTRAINT `rider_info_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `sys_user` (`user_id`) ON DELETE RESTRICT ON UPDATE RESTRICT
@@ -313,8 +341,13 @@ CREATE TABLE `rider_info`  (
 -- ----------------------------
 -- Records of rider_info
 -- ----------------------------
+<<<<<<< HEAD
 INSERT INTO `rider_info` VALUES (1, 4, 1, 0, 10.5);
 INSERT INTO `rider_info` VALUES (2, 7, 1, 0, 9.8);
+=======
+INSERT INTO `rider_info` VALUES (1, 4, 1, 0, 10.5, 0, 0, '普通骑手');
+INSERT INTO `rider_info` VALUES (2, 7, 1, 0, 9.8, 10, 1, '闪电侠骑手');
+>>>>>>> origin/feature-user-rider-merchant
 
 -- ----------------------------
 -- Table structure for shopping_cart
@@ -488,4 +521,44 @@ INSERT INTO `user_level` VALUES (2, '白银用户', 100, 499, 0.95, 150, 0, '配
 INSERT INTO `user_level` VALUES (3, '黄金用户', 500, 999, 0.90, 120, 1, '配送费9折，商家端显示优先标识');
 INSERT INTO `user_level` VALUES (4, '黑金用户', 1000, NULL, 0.80, 90, 1, '配送费8折，优先提醒商家和骑手');
 
+<<<<<<< HEAD
+=======
+
+-- ----------------------------
+-- Merge patch: 商家/骑手/用户端接口对齐，支持打赏、骑手催单、高等级用户匹配高等级骑手
+-- ----------------------------
+ALTER TABLE `delivery_order`
+  ADD COLUMN `tip_amount` decimal(10, 2) NULL DEFAULT 0.00 COMMENT '用户给骑手的打赏金额' AFTER `actual_amount`,
+  ADD COLUMN `required_rider_level` tinyint(0) NULL DEFAULT 0 COMMENT '订单所需骑手等级：0普通 1闪电侠 2单王配送' AFTER `tip_amount`,
+  ADD COLUMN `required_rider_title` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT '普通' COMMENT '订单所需骑手等级名称' AFTER `required_rider_level`,
+  ADD COLUMN `rider_urge_count` int(0) NULL DEFAULT 0 COMMENT '骑手催商家出餐次数' AFTER `last_remind_time`,
+  ADD COLUMN `rider_urge_time` datetime(0) NULL DEFAULT NULL COMMENT '骑手最近催商家出餐时间' AFTER `rider_urge_count`;
+
+ALTER TABLE `order_reminder`
+  MODIFY COLUMN `target_type` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '提醒对象类型：MERCHANT/RIDER';
+
+ALTER TABLE `rider_info`
+  ADD COLUMN `rider_level` tinyint(0) NULL DEFAULT 0 COMMENT '骑手等级：0普通 1闪电侠 2单王骑手' AFTER `avg_speed`,
+  ADD COLUMN `rider_title` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT '普通骑手' COMMENT '骑手等级名称' AFTER `rider_level`,
+  ADD COLUMN `total_finished_count` int(0) NULL DEFAULT 0 COMMENT '累计完成配送单数' AFTER `rider_title`;
+
+UPDATE `rider_info`
+SET `total_finished_count` = 12,
+    `rider_level` = 1,
+    `rider_title` = '闪电侠骑手'
+WHERE `user_id` = 4;
+
+UPDATE `rider_info`
+SET `total_finished_count` = 16,
+    `rider_level` = 2,
+    `rider_title` = '单王骑手'
+WHERE `user_id` = 7;
+
+UPDATE `delivery_order`
+SET `tip_amount` = 0.00,
+    `required_rider_level` = 0,
+    `required_rider_title` = '普通',
+    `rider_urge_count` = 0;
+
+>>>>>>> origin/feature-user-rider-merchant
 SET FOREIGN_KEY_CHECKS = 1;

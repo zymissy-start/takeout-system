@@ -16,6 +16,12 @@ public class RiderInfo {
     private Integer isFullTime;
     private Integer status;
     private BigDecimal avgSpeed;
+<<<<<<< HEAD
+=======
+    private Integer riderLevel;
+    private String riderTitle;
+    private Integer totalFinishedCount;
+>>>>>>> origin/feature-user-rider-merchant
 
     public Integer getRiderId() {
         return riderId;
@@ -80,4 +86,31 @@ public class RiderInfo {
     public void setAvgSpeed(BigDecimal avgSpeed) {
         this.avgSpeed = avgSpeed;
     }
+<<<<<<< HEAD
+=======
+    public Integer getRiderLevel() {
+        return riderLevel;
+    }
+
+    public void setRiderLevel(Integer riderLevel) {
+        this.riderLevel = riderLevel;
+    }
+
+    public String getRiderTitle() {
+        return riderTitle;
+    }
+
+    public void setRiderTitle(String riderTitle) {
+        this.riderTitle = riderTitle;
+    }
+
+    public Integer getTotalFinishedCount() {
+        return totalFinishedCount;
+    }
+
+    public void setTotalFinishedCount(Integer totalFinishedCount) {
+        this.totalFinishedCount = totalFinishedCount;
+    }
+
+>>>>>>> origin/feature-user-rider-merchant
 }

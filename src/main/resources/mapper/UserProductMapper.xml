@@ -8,6 +8,77 @@
         ORDER BY category_id ASC
     </select>
 
+<<<<<<< HEAD
+=======
+
+    <sql id="merchantBaseSelect">
+        SELECT
+            su.user_id AS merchantId,
+            COALESCE(mi.store_name, su.real_name, su.username) AS storeName,
+            mi.store_logo AS storeLogo,
+            COALESCE(mi.store_notice, '欢迎光临本店') AS storeNotice,
+            COALESCE(mi.rating, 5.0) AS rating,
+            COALESCE(mi.monthly_sales, SUM(COALESCE(p.monthly_sales, p.order_count, 0)), 0) AS monthlySales,
+            COALESCE(mi.min_order_amount, 0.00) AS minOrderAmount,
+            COALESCE(mi.delivery_fee, 3.00) AS deliveryFee,
+            COALESCE(mi.delivery_time, 30) AS deliveryTime,
+            COALESCE(mi.distance_km, 1.00) AS distanceKm,
+            COALESCE(mi.status, 1) AS status,
+            COUNT(DISTINCT p.product_id) AS productCount,
+            MIN(p.price) AS lowestPrice,
+            GROUP_CONCAT(DISTINCT p.name ORDER BY COALESCE(p.monthly_sales, p.order_count, 0) DESC SEPARATOR '、') AS topProductNames
+        FROM sys_user su
+        LEFT JOIN merchant_info mi ON su.user_id = mi.merchant_id
+        INNER JOIN product p ON su.user_id = p.merchant_id AND p.status = 1
+        LEFT JOIN product_category c ON p.category_id = c.category_id
+    </sql>
+
+    <sql id="merchantWhere">
+        WHERE su.role_type = 2
+          AND COALESCE(mi.status, 1) = 1
+        <if test="keyword != null and keyword != ''">
+            AND (COALESCE(mi.store_name, su.real_name, su.username) LIKE CONCAT('%', #{keyword}, '%')
+              OR mi.store_notice LIKE CONCAT('%', #{keyword}, '%')
+              OR p.name LIKE CONCAT('%', #{keyword}, '%')
+              OR p.description LIKE CONCAT('%', #{keyword}, '%')
+              OR c.category_name LIKE CONCAT('%', #{keyword}, '%'))
+        </if>
+        <if test="categoryId != null">
+            AND p.category_id = #{categoryId}
+        </if>
+    </sql>
+
+    <select id="selectMerchants" resultType="com.example.takeoutsystem.entity.UserMerchantVO">
+        <include refid="merchantBaseSelect" />
+        <include refid="merchantWhere" />
+        GROUP BY su.user_id, su.real_name, su.username, mi.store_name, mi.store_logo, mi.store_notice,
+                 mi.rating, mi.monthly_sales, mi.min_order_amount, mi.delivery_fee, mi.delivery_time,
+                 mi.distance_km, mi.status
+        ORDER BY
+        <choose>
+            <when test="sort == 'sales'">monthlySales DESC, rating DESC, su.user_id DESC</when>
+            <when test="sort == 'rating'">rating DESC, monthlySales DESC, su.user_id DESC</when>
+            <when test="sort == 'distance'">distanceKm ASC, rating DESC, su.user_id DESC</when>
+            <when test="sort == 'deliveryTime'">deliveryTime ASC, rating DESC, su.user_id DESC</when>
+            <otherwise>rating DESC, monthlySales DESC, distanceKm ASC, su.user_id DESC</otherwise>
+        </choose>
+        LIMIT #{offset}, #{size}
+    </select>
+
+    <select id="countMerchants" resultType="int">
+        SELECT COUNT(1)
+        FROM (
+            SELECT su.user_id
+            FROM sys_user su
+            LEFT JOIN merchant_info mi ON su.user_id = mi.merchant_id
+            INNER JOIN product p ON su.user_id = p.merchant_id AND p.status = 1
+            LEFT JOIN product_category c ON p.category_id = c.category_id
+            <include refid="merchantWhere" />
+            GROUP BY su.user_id
+        ) t
+    </select>
+
+>>>>>>> origin/feature-user-rider-merchant
     <sql id="productBaseSelect">
         SELECT
             p.product_id AS productId,
@@ -44,6 +115,12 @@
         <if test="categoryId != null">
             AND p.category_id = #{categoryId}
         </if>
+<<<<<<< HEAD
+=======
+        <if test="merchantId != null">
+            AND p.merchant_id = #{merchantId}
+        </if>
+>>>>>>> origin/feature-user-rider-merchant
     </sql>
 
     <select id="selectProducts" resultType="com.example.takeoutsystem.entity.UserProductVO">

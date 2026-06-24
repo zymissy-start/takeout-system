@@ -32,6 +32,19 @@
         LIMIT 1
     </select>
 
+<<<<<<< HEAD
+=======
+    <select id="findMerchantByUsernameAndPassword" resultMap="SysUserResultMap">
+        SELECT *
+        FROM sys_user
+        WHERE username = #{username}
+          AND password = #{password}
+          AND role_type = 2
+          AND status = 1
+        LIMIT 1
+    </select>
+
+>>>>>>> origin/feature-user-rider-merchant
     <insert id="insert" useGeneratedKeys="true" keyProperty="userId">
         INSERT INTO sys_user (
         username,

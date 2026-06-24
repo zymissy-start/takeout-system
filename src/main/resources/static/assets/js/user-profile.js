@@ -1,5 +1,9 @@
 (function () {
+<<<<<<< HEAD
   const state = { addresses: [], editingId: null, picked: null };
+=======
+  const state = { addresses: [], editingId: null, picked: null, levelDetails: null };
+>>>>>>> origin/feature-user-rider-merchant
   document.addEventListener('DOMContentLoaded', init);
   window.addEventListener('message', handleMapMessage);
   window.addEventListener('storage', handleStoragePick);
@@ -19,6 +23,76 @@
     App.$('#logoutBtn').addEventListener('click', logout);
     App.$('#favoriteBtn').addEventListener('click', () => App.toast('收藏页接口预留：/api/user/favorites'));
     App.$('#couponBtn').addEventListener('click', () => App.toast('优惠券接口预留：/api/user/coupons'));
+<<<<<<< HEAD
+=======
+    App.$('#levelDetailBtn').addEventListener('click', openLevelDetail);
+    App.$('#closeLevelDetailBtn').addEventListener('click', closeLevelDetail);
+  }
+
+
+  async function openLevelDetail() {
+    const mask = App.$('#levelDetailMask');
+    const box = App.$('#levelDetailContent');
+    mask.classList.remove('hidden');
+    box.innerHTML = '正在加载等级详情...';
+    try {
+      state.levelDetails = await App.request('/api/user/level/details');
+      renderLevelDetail(state.levelDetails);
+    } catch (e) {
+      box.innerHTML = `<div class="empty-state">${App.escapeHtml(e.message || '等级详情加载失败')}</div>`;
+    }
+  }
+
+  function closeLevelDetail() {
+    App.$('#levelDetailMask').classList.add('hidden');
+  }
+
+  function renderLevelDetail(data) {
+    const box = App.$('#levelDetailContent');
+    const current = App.getField(data, ['current'], {});
+    const rules = App.getField(data, ['orderLevelRules', 'order_level_rules'], []);
+    const riderRules = App.getField(data, ['riderLevelRules', 'rider_level_rules'], []);
+    const orderCount = App.getField(current, ['orderCount', 'order_count'], 0);
+    const orderTitle = App.getField(current, ['orderTitle', 'order_title'], '普通');
+    const matched = App.getField(current, ['matchedRiderTitle', 'matched_rider_title'], '普通骑手');
+    const nextNeed = App.getField(current, ['nextNeedOrders', 'next_need_orders'], 0);
+    const currentLevel = Number(App.getField(current, ['orderLevel', 'order_level'], 0));
+
+    const ruleCards = Array.isArray(rules) ? rules.map(rule => {
+      const level = Number(App.getField(rule, ['level'], 0));
+      const privileges = App.getField(rule, ['privileges'], []);
+      const items = Array.isArray(privileges)
+        ? privileges.map(item => `<li>${App.escapeHtml(item)}</li>`).join('')
+        : '';
+      return `<article class="level-rule-card ${level === currentLevel ? 'active' : ''}">
+        <h4>${App.escapeHtml(App.getField(rule, ['title'], '等级'))}</h4>
+        <p>条件：${App.escapeHtml(App.getField(rule, ['range'], ''))}</p>
+        <p>匹配：${App.escapeHtml(App.getField(rule, ['matchedRider'], ''))}</p>
+        <ul>${items}</ul>
+      </article>`;
+    }).join('') : '';
+
+    const riderRows = Array.isArray(riderRules) ? riderRules.map(rule => `
+      <article class="level-rule-card">
+        <h4>${App.escapeHtml(App.getField(rule, ['title'], '骑手等级'))}</h4>
+        <p>条件：${App.escapeHtml(App.getField(rule, ['condition'], ''))}</p>
+        <p>可接：${App.escapeHtml(App.getField(rule, ['canTake'], ''))}</p>
+      </article>
+    `).join('') : '';
+
+    box.innerHTML = `
+      <div class="level-summary-box">
+        <b>当前用户等级：${App.escapeHtml(orderTitle)}</b>
+        <p class="muted">你已有 ${App.escapeHtml(orderCount)} 单有效点餐，当前订单会匹配：${App.escapeHtml(matched)}。</p>
+        <p class="muted">${Number(nextNeed) > 0 ? `距离下一等级还差 ${nextNeed} 单。` : '你已达到最高用户等级。'}</p>
+      </div>
+      <h4>用户等级</h4>
+      <div class="level-rule-grid">${ruleCards}</div>
+      <h4>骑手等级与接单范围</h4>
+      <div class="level-rule-grid">${riderRows}</div>
+      <div class="level-note">${App.escapeHtml(App.getField(data, ['note'], '高等级用户会优先匹配高等级骑手。'))}</div>
+    `;
+>>>>>>> origin/feature-user-rider-merchant
   }
 
   async function loadProfile() {
@@ -43,10 +117,23 @@
       App.$('#profileLevelBadge').textContent = levelName;
       App.$('#levelNameText').textContent = levelName;
       App.$('#levelProgressBar').style.width = Math.max(0, Math.min(100, progress)) + '%';
+<<<<<<< HEAD
       App.$('#levelDesc').textContent = App.getField(level, ['description'], '完成订单、评价订单可提升成长值');
       App.$('#deliveryDiscountText').textContent = rate >= 1 ? '无折扣' : `${Math.round(rate * 100)}折`;
       App.$('#remindCooldownText').textContent = `${cooldown}秒`;
       App.$('#nextNeedText').textContent = Number(nextNeed) <= 0 ? '已满级' : `${nextNeed}成长值`;
+=======
+      const orderTitle = App.getField(level, ['orderTitle', 'order_title'], '普通');
+      const matchedRider = App.getField(level, ['matchedRiderTitle', 'matched_rider_title'], '普通骑手');
+      const orderCount = App.getField(level, ['orderCount', 'order_count'], 0);
+      App.$('#levelDesc').textContent = `当前用户等级：${orderTitle}，有效点餐 ${orderCount} 单；下单后优先匹配：${matchedRider}。`;
+      App.$('#deliveryDiscountText').textContent = rate >= 1 ? '无折扣' : `${Math.round(rate * 100)}折`;
+      App.$('#remindCooldownText').textContent = `${cooldown}秒`;
+      const nextNeedOrders = App.getField(level, ['nextNeedOrders', 'next_need_orders'], null);
+      App.$('#nextNeedText').textContent = nextNeedOrders !== null && Number(nextNeedOrders) > 0
+        ? `${nextNeedOrders}单`
+        : (Number(nextNeed) <= 0 ? '已满级' : `${nextNeed}成长值`);
+>>>>>>> origin/feature-user-rider-merchant
     } catch (e) {
       App.$('#levelDesc').textContent = '等级信息加载失败，请检查 /api/user/level';
     }

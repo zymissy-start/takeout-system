@@ -13,6 +13,11 @@ public class SysUser {
     private Integer creditScore;
     private Integer status;
     private LocalDateTime createTime;
+<<<<<<< HEAD
+=======
+    private Integer levelId;
+    private Integer growthValue;
+>>>>>>> origin/feature-user-rider-merchant
 
     public Integer getUserId() {
         return userId;
@@ -85,4 +90,23 @@ public class SysUser {
     public void setCreateTime(LocalDateTime createTime) {
         this.createTime = createTime;
     }
+<<<<<<< HEAD
+=======
+
+    public Integer getLevelId() {
+        return levelId;
+    }
+
+    public void setLevelId(Integer levelId) {
+        this.levelId = levelId;
+    }
+
+    public Integer getGrowthValue() {
+        return growthValue;
+    }
+
+    public void setGrowthValue(Integer growthValue) {
+        this.growthValue = growthValue;
+    }
+>>>>>>> origin/feature-user-rider-merchant
 }

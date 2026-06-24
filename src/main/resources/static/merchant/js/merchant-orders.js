@@ -63,6 +63,26 @@
     function pillClass(status) {
         if (String(status) === '4') return 'done';
         if (String(status) === '3') return 'info';
+<<<<<<< HEAD
+=======
+        if (String(status) === '2') return 'warning';
+        return '';
+    }
+
+    function isUrgentOrder(order) {
+        const status = Number(MerchantApp.getField(order, ['status'], 0));
+        if (status === 4 || status === -1) return false;
+        return Number(MerchantApp.getField(order, ['reminderCount', 'reminder_count'], 0)) > 0
+            || Number(MerchantApp.getField(order, ['riderUrgeCount', 'rider_urge_count'], 0)) > 0;
+    }
+
+    function urgentText(order) {
+        const reminderCount = Number(MerchantApp.getField(order, ['reminderCount', 'reminder_count'], 0));
+        const riderUrgeCount = Number(MerchantApp.getField(order, ['riderUrgeCount', 'rider_urge_count'], 0));
+        const latest = MerchantApp.getField(order, ['latestReminderTime', 'latest_reminder_time', 'riderUrgeTime', 'rider_urge_time'], '刚刚');
+        if (riderUrgeCount > 0) return `骑手已催出餐 ${riderUrgeCount} 次 · ${latest}`;
+        if (reminderCount > 0) return `用户催单 ${reminderCount} 次 · ${latest}`;
+>>>>>>> origin/feature-user-rider-merchant
         return '';
     }
 
@@ -74,13 +94,23 @@
             return;
         }
 
+<<<<<<< HEAD
         box.innerHTML = state.orders.map(order => {
+=======
+        const urgentCount = state.orders.filter(isUrgentOrder).length;
+        const urgentBanner = urgentCount > 0
+            ? `<div class="merchant-urge-banner">⚠️ 当前列表有 ${urgentCount} 个催单订单，请优先处理。</div>`
+            : '';
+
+        box.innerHTML = urgentBanner + state.orders.map(order => {
+>>>>>>> origin/feature-user-rider-merchant
             const id = MerchantApp.getField(order, ['orderId', 'order_id', 'id'], '');
             const userName = MerchantApp.getField(order, ['userName', 'user_name'], '用户');
             const status = MerchantApp.getField(order, ['status'], 0);
             const summary = MerchantApp.getField(order, ['summary'], '暂无商品明细');
             const total = MerchantApp.getField(order, ['totalPrice', 'total_price', 'payAmount'], 0);
             const time = MerchantApp.getField(order, ['orderTime', 'order_time', 'createTime'], '');
+<<<<<<< HEAD
 
             return `
         <article class="order-card" data-id="${MerchantApp.escapeHtml(id)}">
@@ -89,21 +119,46 @@
             <span class="status-pill ${pillClass(status)}">${statusText(status)}</span>
           </div>
 
+=======
+            const requiredTitle = MerchantApp.getField(order, ['requiredRiderTitle', 'required_rider_title'], '普通');
+            const urgent = isUrgentOrder(order);
+            const urgentLine = urgent ? `<div class="order-urge-alert">🔔 ${MerchantApp.escapeHtml(urgentText(order))}</div>` : '';
+
+            return `
+        <article class="order-card ${urgent ? 'urgent-order' : ''}" data-id="${MerchantApp.escapeHtml(id)}">
+          <div class="order-card-head">
+            <b>订单 #${MerchantApp.escapeHtml(id)} · ${MerchantApp.escapeHtml(userName)}</b>
+            <span class="status-pill ${urgent ? 'urgent' : pillClass(status)}">${urgent ? '催单中' : statusText(status)}</span>
+          </div>
+
+          ${urgentLine}
+
+>>>>>>> origin/feature-user-rider-merchant
           <div class="order-items">
             ${MerchantApp.escapeHtml(summary)}
           </div>
 
           <div class="order-card-foot">
+<<<<<<< HEAD
             <span class="muted small">${MerchantApp.escapeHtml(time || '')}</span>
+=======
+            <span class="muted small">${MerchantApp.escapeHtml(time || '')} · ${MerchantApp.escapeHtml(requiredTitle)}订单</span>
+>>>>>>> origin/feature-user-rider-merchant
             <strong class="price">${MerchantApp.formatMoney(total)}</strong>
           </div>
 
           <div class="order-actions">
             <button data-action="detail" data-id="${MerchantApp.escapeHtml(id)}">详情</button>
+<<<<<<< HEAD
             <button data-action="print" data-id="${MerchantApp.escapeHtml(id)}">打印订单</button>
             ${Number(status) === 0 ? `<button class="main" data-action="accept" data-id="${MerchantApp.escapeHtml(id)}">确认接单</button>` : ''}
             ${Number(status) === 1 ? `<button class="main" data-action="finish" data-id="${MerchantApp.escapeHtml(id)}">出餐完成</button>` : ''}
             ${Number(status) === 2 ? `<button class="main" data-action="rider" data-id="${MerchantApp.escapeHtml(id)}">召唤骑手</button>` : ''}
+=======
+            ${Number(status) === 0 ? `<button class="main" data-action="accept" data-id="${MerchantApp.escapeHtml(id)}">确认接单</button>` : ''}
+            ${Number(status) === 1 ? `<button class="main" data-action="finish" data-id="${MerchantApp.escapeHtml(id)}">出餐完成</button>` : ''}
+            ${Number(status) === 2 ? `<button class="ghost" type="button" disabled>等待骑手接单</button>` : ''}
+>>>>>>> origin/feature-user-rider-merchant
           </div>
         </article>
       `;
@@ -123,11 +178,14 @@
             return;
         }
 
+<<<<<<< HEAD
         if (action === 'print') {
             printOrder(id);
             return;
         }
 
+=======
+>>>>>>> origin/feature-user-rider-merchant
         if (action === 'accept') {
             postOrderAction('/merchant/order/accept', id, '接单成功');
             return;
@@ -137,10 +195,13 @@
             postOrderAction('/merchant/order/finish-cooking', id, '出餐完成');
             return;
         }
+<<<<<<< HEAD
 
         if (action === 'rider') {
             postOrderAction('/merchant/order/call-rider', id, '召唤骑手成功');
         }
+=======
+>>>>>>> origin/feature-user-rider-merchant
     }
 
     async function openDetail(orderId) {
@@ -167,7 +228,10 @@
         const status = MerchantApp.getField(order, ['status'], 0);
         const total = MerchantApp.getField(order, ['totalPrice', 'total_price'], 0);
         const items = MerchantApp.getField(order, ['items'], []);
+<<<<<<< HEAD
         const orderId = MerchantApp.getField(order, ['orderId', 'order_id'], '');
+=======
+>>>>>>> origin/feature-user-rider-merchant
 
         const rows = Array.isArray(items) && items.length
             ? items.map(item => {
@@ -187,7 +251,11 @@
         box.innerHTML = `
       <div class="detail-row">
         <span>订单编号</span>
+<<<<<<< HEAD
         <b>#${MerchantApp.escapeHtml(orderId)}</b>
+=======
+        <b>#${MerchantApp.escapeHtml(MerchantApp.getField(order, ['orderId', 'order_id'], ''))}</b>
+>>>>>>> origin/feature-user-rider-merchant
       </div>
 
       <div class="detail-row">
@@ -195,6 +263,14 @@
         <span class="status-pill ${pillClass(status)}">${statusText(status)}</span>
       </div>
 
+<<<<<<< HEAD
+=======
+      ${Number(status) !== 4 && Number(status) !== -1 && Number(MerchantApp.getField(order, ['isUrged', 'is_urged'], 0)) === 1 ? `
+      <div class="order-urge-alert detail-alert">
+        🔔 催单提醒：该订单曾被用户或骑手催促，请优先处理。
+      </div>` : ''}
+
+>>>>>>> origin/feature-user-rider-merchant
       <div class="detail-row">
         <span>下单用户</span>
         <b>${MerchantApp.escapeHtml(MerchantApp.getField(order, ['userName', 'user_name'], '用户'))}</b>
@@ -225,6 +301,7 @@
       <p class="muted">出餐完成：${MerchantApp.escapeHtml(MerchantApp.getField(order, ['kitchenFinishTime', 'kitchen_finish_time'], '未出餐'))}</p>
       <p class="muted">预计送达：${MerchantApp.escapeHtml(MerchantApp.getField(order, ['estimatedArrivalTime', 'estimated_arrival_time'], '暂无'))}</p>
       <p class="muted">完成时间：${MerchantApp.escapeHtml(MerchantApp.getField(order, ['finishTime', 'finish_time'], '未完成'))}</p>
+<<<<<<< HEAD
 
       <div class="order-actions" style="margin-top:16px;">
         <button class="main" id="detailPrintBtn">打印订单</button>
@@ -232,6 +309,9 @@
     `;
 
         MerchantApp.$('#detailPrintBtn').addEventListener('click', () => printOrder(orderId));
+=======
+    `;
+>>>>>>> origin/feature-user-rider-merchant
     }
 
     async function postOrderAction(url, orderId, successMessage) {
@@ -248,6 +328,7 @@
         }
     }
 
+<<<<<<< HEAD
     async function printOrder(orderId) {
         try {
             const order = await MerchantApp.request(`/merchant/orders/print-data?orderId=${encodeURIComponent(orderId)}`);
@@ -323,6 +404,8 @@
         `;
     }
 
+=======
+>>>>>>> origin/feature-user-rider-merchant
     async function logout() {
         try {
             await MerchantApp.request('/merchant/logout', {

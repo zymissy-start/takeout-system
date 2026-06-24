@@ -1,4 +1,5 @@
 package com.example.takeoutsystem.common;
+<<<<<<< HEAD
 /**
  * 统一响应结果封装类。
  *
@@ -18,14 +19,24 @@ public class Result<T> {
     /** 返回给前端的提示信息 */
     private String message;
     /** 实际业务数据，例如商家信息、订单列表、菜品列表等 */
+=======
+
+public class Result<T> {
+
+    private Boolean success;
+    private String message;
+>>>>>>> origin/feature-user-rider-merchant
     private T data;
 
     public Result() {
     }
 
+<<<<<<< HEAD
     /**
      * 返回带数据的成功结果。
      */
+=======
+>>>>>>> origin/feature-user-rider-merchant
     public Result(Boolean success, String message, T data) {
         this.success = success;
         this.message = message;
@@ -36,18 +47,24 @@ public class Result<T> {
         return new Result<>(true, message, data);
     }
 
+<<<<<<< HEAD
     /**
      * 返回不带数据的成功结果。
      */
 
+=======
+>>>>>>> origin/feature-user-rider-merchant
     public static <T> Result<T> success(String message) {
         return new Result<>(true, message, null);
     }
 
+<<<<<<< HEAD
     /**
      * 返回失败结果。
      */
 
+=======
+>>>>>>> origin/feature-user-rider-merchant
     public static <T> Result<T> fail(String message) {
         return new Result<>(false, message, null);
     }

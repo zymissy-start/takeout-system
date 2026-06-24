@@ -8,6 +8,7 @@ import org.apache.ibatis.annotations.*;
 
 import java.util.List;
 
+<<<<<<< HEAD
 /**
  * 商家商品 Mapper。
  *
@@ -19,6 +20,9 @@ public interface MerchantProductMapper {
      *
      * order_count 表示累计点餐次数，按该字段倒序排列可以展示销量高的商品。
      */
+=======
+public interface MerchantProductMapper {
+>>>>>>> origin/feature-user-rider-merchant
 
     @Select("""
             SELECT
@@ -35,6 +39,7 @@ public interface MerchantProductMapper {
             """)
     List<MerchantProductVO> listMerchantProducts(@Param("merchantId") Integer merchantId,
                                                  @Param("size") Integer size);
+<<<<<<< HEAD
     /**
      * 查询菜品管理列表。
      *
@@ -43,6 +48,9 @@ public interface MerchantProductMapper {
      * 2. categoryId：按分类筛选；
      * 3. status：按上架/下架状态筛选。
      */
+=======
+
+>>>>>>> origin/feature-user-rider-merchant
     @Select("""
             SELECT
                 p.product_id AS productId,
@@ -80,7 +88,11 @@ public interface MerchantProductMapper {
                                    @Param("keyword") String keyword,
                                    @Param("categoryId") Integer categoryId,
                                    @Param("status") Integer status);
+<<<<<<< HEAD
     /** 查询所有商品分类，用于前端下拉框。 */
+=======
+
+>>>>>>> origin/feature-user-rider-merchant
     @Select("""
             SELECT
                 category_id AS categoryId,
@@ -89,10 +101,14 @@ public interface MerchantProductMapper {
             ORDER BY category_id ASC
             """)
     List<ProductCategory> listCategories();
+<<<<<<< HEAD
     /**
      * 修改菜品状态。
      * status = 1 表示上架，status = 0 表示下架。
      */
+=======
+
+>>>>>>> origin/feature-user-rider-merchant
     @Insert("""
             INSERT INTO product
             (

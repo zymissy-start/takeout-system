@@ -2,6 +2,10 @@ package com.example.takeoutsystem.service.impl;
 
 import com.example.takeoutsystem.entity.UserLevelVO;
 import com.example.takeoutsystem.mapper.UserLevelMapper;
+<<<<<<< HEAD
+=======
+import com.example.takeoutsystem.mapper.UserOrderMapper;
+>>>>>>> origin/feature-user-rider-merchant
 import com.example.takeoutsystem.service.UserLevelService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -11,9 +15,17 @@ import java.math.BigDecimal;
 @Service
 public class UserLevelServiceImpl implements UserLevelService {
     private final UserLevelMapper userLevelMapper;
+<<<<<<< HEAD
 
     public UserLevelServiceImpl(UserLevelMapper userLevelMapper) {
         this.userLevelMapper = userLevelMapper;
+=======
+    private final UserOrderMapper userOrderMapper;
+
+    public UserLevelServiceImpl(UserLevelMapper userLevelMapper, UserOrderMapper userOrderMapper) {
+        this.userLevelMapper = userLevelMapper;
+        this.userOrderMapper = userOrderMapper;
+>>>>>>> origin/feature-user-rider-merchant
     }
 
     @Override
@@ -45,6 +57,10 @@ public class UserLevelServiceImpl implements UserLevelService {
         int max = current.getMaxGrowth() == null ? Math.max(min + 1, growth) : current.getMaxGrowth();
         int percent = max <= min ? 100 : (int) Math.min(100, Math.max(0, ((growth - min) * 100.0 / (max - min + 1))));
         current.setProgressPercent(percent);
+<<<<<<< HEAD
+=======
+        applyOrderLevel(userId, current);
+>>>>>>> origin/feature-user-rider-merchant
         return current;
     }
 
@@ -69,6 +85,34 @@ public class UserLevelServiceImpl implements UserLevelService {
         updateGrowth(userId, orderId, 5, "ORDER_REVIEW");
     }
 
+<<<<<<< HEAD
+=======
+    private void applyOrderLevel(Integer userId, UserLevelVO current) {
+        Integer count = userOrderMapper.countUserOrders(userId);
+        int orderCount = count == null ? 0 : count;
+        current.setOrderCount(orderCount);
+        if (orderCount >= 15) {
+            current.setOrderLevel(2);
+            current.setOrderTitle("尊享用户");
+            current.setMatchedRiderTitle("单王配送骑手");
+            current.setNextOrderTitle("已达最高用户等级");
+            current.setNextNeedOrders(0);
+        } else if (orderCount >= 10) {
+            current.setOrderLevel(1);
+            current.setOrderTitle("优先用户");
+            current.setMatchedRiderTitle("闪电侠骑手");
+            current.setNextOrderTitle("尊享用户");
+            current.setNextNeedOrders(15 - orderCount);
+        } else {
+            current.setOrderLevel(0);
+            current.setOrderTitle("普通用户");
+            current.setMatchedRiderTitle("普通骑手");
+            current.setNextOrderTitle("优先用户");
+            current.setNextNeedOrders(10 - orderCount);
+        }
+    }
+
+>>>>>>> origin/feature-user-rider-merchant
     private void updateGrowth(Integer userId, Integer orderId, int change, String reason) {
         UserLevelVO current = getCurrentLevel(userId);
         int newGrowth = (current.getGrowthValue() == null ? 0 : current.getGrowthValue()) + change;
