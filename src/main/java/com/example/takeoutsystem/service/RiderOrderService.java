@@ -8,7 +8,7 @@ import java.util.List;
 
 public interface RiderOrderService {
 
-    List<RiderOrderVO> listAvailableOrders();
+    List<RiderOrderVO> listAvailableOrders(Integer riderUserId);
 
     List<RiderOrderVO> listMyOrders(Integer riderUserId, Integer status);
 
@@ -19,7 +19,7 @@ public interface RiderOrderService {
     boolean finishOrder(Integer riderUserId, Integer orderId);
     List<RiderOrderVO> listWaitCookingOrders();
 
-    boolean urgeMerchant(Integer orderId);
+    boolean urgeMerchant(Integer riderUserId, Integer orderId);
 
     boolean addTip(Integer riderUserId, Integer orderId, java.math.BigDecimal tipAmount);
 }

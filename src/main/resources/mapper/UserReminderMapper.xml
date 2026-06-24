@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.takeoutsystem.mapper.UserReminderMapper">
+    <insert id="insertReminder">
+        INSERT INTO order_reminder(order_id, user_id, target_type, target_id, content, status)
+        VALUES(#{orderId}, #{userId}, #{targetType}, #{targetId}, #{content}, 'UNREAD')
+    </insert>
+
+    <select id="selectByOrderId" resultType="com.example.takeoutsystem.entity.OrderReminderVO">
+        SELECT reminder_id AS reminderId, order_id AS orderId, user_id AS userId,
+               target_type AS targetType, target_id AS targetId, content, status,
+               create_time AS createTime, read_time AS readTime, handled_time AS handledTime
+        FROM order_reminder
+        WHERE order_id = #{orderId}
+        ORDER BY create_time DESC, reminder_id DESC
+    </select>
+</mapper>

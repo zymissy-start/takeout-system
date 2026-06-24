@@ -76,11 +76,11 @@
         let speedBonus = 0;
         let desc = '成长阶段系统会优先推荐距离更近、路线更清晰的订单。';
 
-        if (finishedCount >= 10) {
+        if (finishedCount >= 15) {
             title = '单王骑手';
             speedBonus = 1.2;
             desc = '今日已达到单王等级，拥有最高速度修正和更高等级奖励。';
-        } else if (finishedCount >= 5) {
+        } else if (finishedCount >= 10) {
             title = '闪电侠骑手';
             speedBonus = 0.7;
             desc = '今日已达到闪电侠等级，适合承接距离近、等待时间较长的订单。';

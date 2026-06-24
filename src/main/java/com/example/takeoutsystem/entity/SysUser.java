@@ -13,6 +13,8 @@ public class SysUser {
     private Integer creditScore;
     private Integer status;
     private LocalDateTime createTime;
+    private Integer levelId;
+    private Integer growthValue;
 
     public Integer getUserId() {
         return userId;
@@ -84,5 +86,21 @@ public class SysUser {
 
     public void setCreateTime(LocalDateTime createTime) {
         this.createTime = createTime;
+    }
+
+    public Integer getLevelId() {
+        return levelId;
+    }
+
+    public void setLevelId(Integer levelId) {
+        this.levelId = levelId;
+    }
+
+    public Integer getGrowthValue() {
+        return growthValue;
+    }
+
+    public void setGrowthValue(Integer growthValue) {
+        this.growthValue = growthValue;
     }
 }

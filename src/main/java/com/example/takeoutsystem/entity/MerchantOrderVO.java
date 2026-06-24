@@ -10,6 +10,13 @@ public class MerchantOrderVO {
     private BigDecimal totalPrice;
     private String orderTime;
     private String summary;
+    private Integer isUrged;
+    private Integer reminderCount;
+    private String latestReminderTime;
+    private Integer riderUrgeCount;
+    private String riderUrgeTime;
+    private Integer requiredRiderLevel;
+    private String requiredRiderTitle;
 
     public Integer getOrderId() {
         return orderId;
@@ -58,4 +65,61 @@ public class MerchantOrderVO {
     public void setSummary(String summary) {
         this.summary = summary;
     }
+
+    public Integer getIsUrged() {
+        return isUrged;
+    }
+
+    public void setIsUrged(Integer isUrged) {
+        this.isUrged = isUrged;
+    }
+
+    public Integer getReminderCount() {
+        return reminderCount;
+    }
+
+    public void setReminderCount(Integer reminderCount) {
+        this.reminderCount = reminderCount;
+    }
+
+    public String getLatestReminderTime() {
+        return latestReminderTime;
+    }
+
+    public void setLatestReminderTime(String latestReminderTime) {
+        this.latestReminderTime = latestReminderTime;
+    }
+
+    public Integer getRiderUrgeCount() {
+        return riderUrgeCount;
+    }
+
+    public void setRiderUrgeCount(Integer riderUrgeCount) {
+        this.riderUrgeCount = riderUrgeCount;
+    }
+
+    public String getRiderUrgeTime() {
+        return riderUrgeTime;
+    }
+
+    public void setRiderUrgeTime(String riderUrgeTime) {
+        this.riderUrgeTime = riderUrgeTime;
+    }
+
+    public Integer getRequiredRiderLevel() {
+        return requiredRiderLevel;
+    }
+
+    public void setRequiredRiderLevel(Integer requiredRiderLevel) {
+        this.requiredRiderLevel = requiredRiderLevel;
+    }
+
+    public String getRequiredRiderTitle() {
+        return requiredRiderTitle;
+    }
+
+    public void setRequiredRiderTitle(String requiredRiderTitle) {
+        this.requiredRiderTitle = requiredRiderTitle;
+    }
+
 }

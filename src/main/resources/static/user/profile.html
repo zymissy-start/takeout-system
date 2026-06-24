@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>饭点优选 - 个人中心</title>
+  <title>智慧外卖 - 个人中心</title>
   <link rel="stylesheet" href="/assets/css/user.css" />
 </head>
 <body class="soft-bg">
@@ -13,6 +13,7 @@
       <div>
         <h1 id="profileName">用户</h1>
         <p id="profilePhone">登录信息加载中...</p>
+        <span id="profileLevelBadge" class="level-chip">Lv1 普通用户</span>
       </div>
     </div>
     <div class="profile-stats">
@@ -23,6 +24,23 @@
   </header>
 
   <main class="page-shell pb-90 profile-main">
+    <section class="section-card level-card">
+      <div class="section-title compact">
+        <h2>我的等级权益</h2>
+        <span id="levelNameText" class="level-chip light">Lv1</span>
+      </div>
+      <div class="level-progress"><span id="levelProgressBar"></span></div>
+      <p id="levelDesc" class="muted small">正在加载等级权益...</p>
+      <div class="privilege-grid">
+        <div><b id="deliveryDiscountText">无折扣</b><span>配送费权益</span></div>
+        <div><b id="remindCooldownText">180秒</b><span>催单冷却</span></div>
+        <div><b id="nextNeedText">--</b><span>升级还差</span></div>
+      </div>
+      <div class="level-card-actions">
+        <button id="levelDetailBtn" class="ghost-btn" type="button">查看等级详情</button>
+      </div>
+    </section>
+
     <section class="section-card">
       <div class="section-title compact">
         <h2>收货地址</h2>
@@ -43,19 +61,39 @@
   </main>
 
   <div id="addressMask" class="modal-mask hidden">
-    <div class="modal">
+    <div class="modal large">
       <div class="modal-title">
         <h3 id="addressModalTitle">新增地址</h3>
         <button id="closeAddressBtn" class="icon-btn">×</button>
       </div>
-      <label for="receiverNameInput" class="sr-only">收货人姓名</label>
       <input id="receiverNameInput" class="input" placeholder="收货人姓名" />
-      <label for="receiverPhoneInput" class="sr-only">手机号</label>
       <input id="receiverPhoneInput" class="input" placeholder="手机号" />
-      <label for="addressTextInput" class="sr-only">详细地址</label>
       <input id="addressTextInput" class="input" placeholder="详细地址，如：西苑校区 6 号宿舍楼" />
-      <label for="defaultAddressInput" class="checkbox-line"><input id="defaultAddressInput" type="checkbox" /> 设为默认地址</label>
+      <div class="location-tools">
+        <button id="geoLocationBtn" class="ghost-btn" type="button">使用真实定位</button>
+        <button id="mapPickBtn" class="ghost-btn" type="button">地图选点</button>
+      </div>
+      <div class="coord-box">
+        <span>纬度 <b id="latText">未选择</b></span>
+        <span>经度 <b id="lngText">未选择</b></span>
+      </div>
+      <input id="latitudeInput" type="hidden" />
+      <input id="longitudeInput" type="hidden" />
+      <label class="checkbox-line"><input id="defaultAddressInput" type="checkbox" /> 设为默认地址</label>
       <button id="saveAddressBtn" class="primary-btn full">保存地址</button>
+    </div>
+  </div>
+
+
+  <div id="levelDetailMask" class="modal-mask hidden">
+    <div class="modal large">
+      <div class="modal-title">
+        <h3>等级详情与骑手匹配</h3>
+        <button id="closeLevelDetailBtn" class="icon-btn" type="button">×</button>
+      </div>
+      <div id="levelDetailContent">
+        正在加载等级详情...
+      </div>
     </div>
   </div>
 

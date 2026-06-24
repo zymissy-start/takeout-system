@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>饭点优选 - 首页</title>
+  <title>智慧外卖 - 用户首页</title>
   <link rel="stylesheet" href="/assets/css/user.css" />
 </head>
-<body class="soft-bg has-cart">
+<body>
   <header class="app-header">
     <div class="header-top">
       <div>
@@ -14,20 +14,20 @@
         <button id="addressBtn" class="address-btn">加载地址中...</button>
       </div>
       <a class="avatar-link" href="/user/profile.html" title="个人中心">
+        <span id="levelBadge" class="level-chip mini">Lv1</span>
         <span id="userAvatar" class="avatar">我</span>
       </a>
     </div>
     <div class="search-box">
       <span>🔎</span>
-      <label for="keywordInput" class="sr-only">搜索关键词</label>
-      <input id="keywordInput" type="search" placeholder="搜索汉堡、奶茶、跑腿代购" />
+      <input id="keywordInput" type="search" placeholder="搜索商店、菜品、奶茶、跑腿" />
       <button id="searchBtn">搜索</button>
     </div>
     <section class="hero-card">
       <div>
         <p class="badge">今日推荐</p>
-        <h1>附近好店，即刻浏览</h1>
-        <p>浏览不同商家与店内商品，登录后即可下单。</p>
+        <h1>精选美食 30 分钟送达</h1>
+        <p id="levelTip">定位到宿舍楼，下单更准确。</p>
       </div>
       <div class="hero-plate">🍔</div>
     </section>
@@ -39,32 +39,24 @@
       <button class="quick-item" data-category-name="饮品"><span>🥤</span><b>饮品</b></button>
       <button class="quick-item" data-category-name="跑腿代购"><span>🛍️</span><b>跑腿</b></button>
       <a class="quick-item" href="/user/order.html"><span>📦</span><b>订单</b></a>
-      <a class="quick-item" href="/user/profile.html"><span>🎁</span><b>优惠</b></a>
+      <a class="quick-item" href="/user/profile.html"><span>📍</span><b>定位</b></a>
     </section>
 
     <section class="section-card">
       <div class="section-title">
         <div>
-          <h2>附近商家</h2>
-          <p>先选商家，再查看该商家的商品</p>
+          <h2 id="homeSectionTitle">优选商店</h2>
+          <p id="homeSectionSub">先选择商店，再查看该商店商品</p>
         </div>
-        <label for="sortSelect" class="sr-only">商家排序方式</label>
         <select id="sortSelect" class="select">
-          <option value="recommend">智能排序</option>
+          <option value="recommend">综合排序</option>
           <option value="sales">销量最高</option>
-          <option value="priceAsc">价格从低到高</option>
-          <option value="priceDesc">价格从高到低</option>
+          <option value="rating">评分最高</option>
+          <option value="distance">距离最近</option>
+          <option value="deliveryTime">配送最快</option>
         </select>
       </div>
       <div id="categoryTabs" class="tabs"></div>
-      <div id="merchantList" class="merchant-list"></div>
-      <div class="merchant-product-head">
-        <div>
-          <h2 id="merchantProductTitle">店内商品</h2>
-          <p id="merchantProductDesc">选择商家后查看可点商品</p>
-        </div>
-        <button id="clearMerchantBtn" class="text-btn">查看全部</button>
-      </div>
       <div id="productList" class="product-list"></div>
       <button id="loadMoreBtn" class="ghost-btn full hidden">加载更多</button>
     </section>
@@ -91,13 +83,16 @@
         <h3>确认订单</h3>
         <button id="closeCheckoutBtn" class="icon-btn">×</button>
       </div>
-      <label for="addressSelect" class="field-label">收货地址</label>
+      <label class="field-label">收货地址</label>
       <select id="addressSelect" class="input"></select>
-      <label for="remarkInput" class="field-label">备注</label>
+      <p class="muted small">地址必须包含经纬度；没有定位时请先到"我的-收货地址"使用真实定位或地图选点。</p>
+      <label class="field-label">备注</label>
       <textarea id="remarkInput" class="input textarea" placeholder="例如：少辣、放宿舍楼下、电话联系"></textarea>
       <div class="price-row"><span>商品金额</span><b id="modalGoodsAmount">￥0.00</b></div>
       <div class="price-row"><span>配送费</span><b id="modalDeliveryFee">￥0.00</b></div>
-      <div class="price-row total"><span>应付</span><b id="modalPayAmount">￥0.00</b></div>
+      <div class="price-row"><span>等级减免</span><b id="modalDiscountAmount">￥0.00</b></div>
+      <div class="price-row total"><span>预估应付</span><b id="modalPayAmount">￥0.00</b></div>
+      <p id="checkoutLevelTip" class="privilege-note">实际金额以后端事务计算为准。</p>
       <button id="submitOrderBtn" class="primary-btn full">提交订单</button>
     </div>
   </div>
