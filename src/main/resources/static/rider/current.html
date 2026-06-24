@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>当前配送 - 饭点优选骑手端</title>
+    <link rel="stylesheet" href="/rider/css/rider-app.css">
+</head>
+<body class="mt-body" data-rider-module="current">
+
+<div class="mt-shell">
+    <header class="mt-module-header current">
+        <div class="mt-module-top">
+            <a class="mt-back" href="/rider/dashboard.html">‹</a>
+            <div>
+                <h1>当前配送</h1>
+                <p>集中处理配送中订单，完成后自动更新收入和状态</p>
+            </div>
+        </div>
+    </header>
+
+    <main class="mt-module-main">
+        <section class="mt-module-panel">
+            <div class="mt-module-title">
+                <div>
+                    <h2>配送中订单</h2>
+                    <p>不再放置模拟打赏按钮，打赏订单独立展示</p>
+                </div>
+                <button id="refreshBtn" class="mt-refresh">刷新</button>
+            </div>
+
+            <div id="moduleContent" class="mt-list">
+                <div class="mt-empty">正在加载当前配送...</div>
+            </div>
+        </section>
+    </main>
+
+    <nav class="mt-bottom">
+        <a href="/rider/dashboard.html"><span>🏠</span>首页</a>
+        <a href="/rider/recommend.html"><span>📍</span>推荐</a>
+        <a class="active" href="/rider/current.html"><span>🛵</span>配送</a>
+        <a href="/rider/growth.html"><span>⚡</span>成长</a>
+    </nav>
+</div>
+
+<script src="/rider/js/rider-common.js"></script>
+<script src="/rider/js/rider-modules-app.js"></script>
+</body>
+</html>

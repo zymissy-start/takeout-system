@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>打赏订单 - 饭点优选骑手端</title>
+    <link rel="stylesheet" href="/rider/css/rider-app.css">
+</head>
+<body class="mt-body" data-rider-module="tips">
+
+<div class="mt-shell">
+    <header class="mt-module-header tips">
+        <div class="mt-module-top">
+            <a class="mt-back" href="/rider/dashboard.html">‹</a>
+            <div>
+                <h1>打赏订单</h1>
+                <p>集中展示用户已打赏订单，打赏计入今日收入</p>
+            </div>
+        </div>
+    </header>
+
+    <main class="mt-module-main">
+        <section class="mt-module-panel">
+            <div class="mt-module-title">
+                <div>
+                    <h2>今日打赏</h2>
+                    <p>这里只展示真实已有打赏记录</p>
+                </div>
+                <span id="tipTotal" class="mt-pill">合计 ¥0.00</span>
+            </div>
+
+            <div id="moduleContent" class="mt-list">
+                <div class="mt-empty">正在加载打赏订单...</div>
+            </div>
+        </section>
+    </main>
+
+    <nav class="mt-bottom">
+        <a href="/rider/dashboard.html"><span>🏠</span>首页</a>
+        <a href="/rider/recommend.html"><span>📍</span>推荐</a>
+        <a href="/rider/current.html"><span>🛵</span>配送</a>
+        <a href="/rider/growth.html"><span>⚡</span>成长</a>
+    </nav>
+</div>
+
+<script src="/rider/js/rider-common.js"></script>
+<script src="/rider/js/rider-modules-app.js"></script>
+</body>
+</html>

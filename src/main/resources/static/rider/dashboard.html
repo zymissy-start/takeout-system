@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>骑手首页 - 饭点优选骑手端</title>
+    <link rel="stylesheet" href="/rider/css/rider-app.css">
+</head>
+<body class="mt-body">
+
+<div class="mt-shell">
+    <header class="mt-home-header">
+        <div class="mt-top">
+            <div class="mt-profile">
+                <div id="riderAvatar" class="mt-avatar">骑</div>
+                <div>
+                    <h1 id="riderName">骑手首页</h1>
+                    <p id="riderSub">正在加载骑手信息...</p>
+                </div>
+            </div>
+
+            <button id="logoutBtn" class="mt-logout">退出</button>
+        </div>
+
+        <section class="mt-hero">
+            <div class="mt-hero-line">
+                <span id="riderLevelBadge" class="mt-pill">成长骑手</span>
+
+                <div class="mt-speed">
+                    <span>当前效率</span>
+                    <b id="effectiveSpeed">--</b>
+                </div>
+            </div>
+
+            <h2 id="portalTitle">模块化配送中心</h2>
+            <p id="portalDesc">根据距离、等级、疲劳衰减和订单状态，为骑手提供清晰的功能入口。</p>
+        </section>
+    </header>
+
+    <main class="mt-main">
+        <section class="mt-stats">
+            <article class="mt-stat">
+                <span>✅</span>
+                <b id="todayFinishedCount">0</b>
+                <p>今日完成</p>
+            </article>
+
+            <article class="mt-stat">
+                <span>🛵</span>
+                <b id="deliveringCount">0</b>
+                <p>配送中</p>
+            </article>
+
+            <article class="mt-stat">
+                <span>📦</span>
+                <b id="availableOrderCount">0</b>
+                <p>可接订单</p>
+            </article>
+
+            <article class="mt-stat">
+                <span>💰</span>
+                <b id="estimatedIncome">¥0.00</b>
+                <p>预计收入</p>
+            </article>
+        </section>
+
+        <section class="mt-card">
+            <div class="mt-card-title">
+                <div>
+                    <h3>功能模块</h3>
+                    <p>像 App 首页一样，通过入口进入独立功能页</p>
+                </div>
+                <button class="mt-refresh" onclick="location.reload()">刷新</button>
+            </div>
+
+            <div class="mt-grid">
+                <a class="mt-grid-item" href="/rider/recommend.html">
+                    <span class="mt-icon recommend">📍</span>
+                    <strong>智能推荐</strong>
+                </a>
+
+                <a class="mt-grid-item" href="/rider/current.html">
+                    <span class="mt-icon current">🛵</span>
+                    <strong>当前配送</strong>
+                </a>
+
+                <a class="mt-grid-item" href="/rider/tips.html">
+                    <span class="mt-icon tips">🎁</span>
+                    <strong>打赏订单</strong>
+                </a>
+
+                <a class="mt-grid-item" href="/rider/growth.html">
+                    <span class="mt-icon growth">⚡</span>
+                    <strong>成长路线</strong>
+                </a>
+
+                <a class="mt-grid-item" href="/rider/location.html">
+                    <span class="mt-icon location">🧭</span>
+                    <strong>位置中心</strong>
+                </a>
+
+                <a class="mt-grid-item" href="/rider/wait-cooking.html">
+                    <span class="mt-icon cooking">⏱️</span>
+                    <strong>催促出餐</strong>
+                </a>
+
+                <a class="mt-grid-item" href="/rider/orders.html">
+                    <span class="mt-icon orders">📋</span>
+                    <strong>订单大厅</strong>
+                </a>
+
+                <a class="mt-grid-item" href="#statusPanel">
+                    <span class="mt-icon status">🟢</span>
+                    <strong>状态说明</strong>
+                </a>
+            </div>
+        </section>
+
+        <section id="statusPanel" class="mt-card">
+            <div class="mt-card-title">
+                <div>
+                    <h3>骑手状态</h3>
+                    <p>不同状态会影响推荐策略和配送效率</p>
+                </div>
+            </div>
+
+            <div class="mt-status-box">
+                <div id="statusIcon" class="mt-status-icon">🟢</div>
+                <div>
+                    <h3 id="statusTitle">空闲待命</h3>
+                    <p id="statusDesc">当前没有配送任务，系统会优先推荐距离更近的订单。</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="mt-card">
+            <div class="mt-card-title">
+                <div>
+                    <h3>位置关系</h3>
+                    <p>骑手、商家、用户位置分开展示，详情进入位置中心</p>
+                </div>
+            </div>
+
+            <div class="mt-position-preview">
+                <a class="mt-pos-rider" href="/rider/location.html">
+                    <b>骑手</b>
+                    <span>当前位置</span>
+                </a>
+
+                <a class="mt-pos-merchant" href="/rider/location.html">
+                    <b>商家</b>
+                    <span>出餐位置</span>
+                </a>
+
+                <a class="mt-pos-user" href="/rider/location.html">
+                    <b>用户</b>
+                    <span>收货位置</span>
+                </a>
+            </div>
+        </section>
+    </main>
+
+    <nav class="mt-bottom">
+        <a class="active" href="/rider/dashboard.html">
+            <span>🏠</span>
+            首页
+        </a>
+
+        <a href="/rider/recommend.html">
+            <span>📍</span>
+            推荐
+        </a>
+
+        <a href="/rider/current.html">
+            <span>🛵</span>
+            配送
+        </a>
+
+        <a href="/rider/growth.html">
+            <span>⚡</span>
+            成长
+        </a>
+    </nav>
+</div>
+
+<script src="/rider/js/rider-common.js"></script>
+<script src="/rider/js/rider-dashboard-app.js"></script>
+</body>
+</html>

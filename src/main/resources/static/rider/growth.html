@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>成长路线 - 饭点优选骑手端</title>
+    <link rel="stylesheet" href="/rider/css/rider-app.css">
+</head>
+<body class="mt-body" data-rider-module="growth">
+
+<div class="mt-shell">
+    <header class="mt-module-header growth">
+        <div class="mt-module-top">
+            <a class="mt-back" href="/rider/dashboard.html">‹</a>
+            <div>
+                <h1>成长路线</h1>
+                <p>完成单数越高，等级越高；疲劳会让速度逐渐衰减</p>
+            </div>
+        </div>
+    </header>
+
+    <main class="mt-module-main">
+        <section class="mt-module-panel">
+            <div class="mt-module-title">
+                <div>
+                    <h2 id="growthTitle">成长骑手</h2>
+                    <p id="growthDesc">正在计算成长状态...</p>
+                </div>
+                <span id="growthBadge" class="mt-pill">等级</span>
+            </div>
+
+            <div class="mt-growth-stages">
+                <article>
+                    <span>🌱</span>
+                    <b>成长骑手</b>
+                    <p>0 - 4 单，无额外奖金，保持基础速度。</p>
+                </article>
+
+                <article>
+                    <span>⚡</span>
+                    <b>闪电侠骑手</b>
+                    <p>5 单以上，获得速度修正和基础奖金。</p>
+                </article>
+
+                <article>
+                    <span>👑</span>
+                    <b>单王骑手</b>
+                    <p>10 单以上，获得最高等级奖励和更强速度修正。</p>
+                </article>
+            </div>
+
+            <div class="mt-growth-chart">
+                <svg viewBox="0 0 680 240" class="mt-growth-svg">
+                    <path class="mt-growth-bg" d="M50 190 C170 170, 220 105, 330 115 C450 125, 485 60, 630 50"></path>
+                    <path id="growthPathActive" class="mt-growth-active" d="M50 190 C170 170, 220 105, 330 115 C450 125, 485 60, 630 50"></path>
+
+                    <circle cx="50" cy="190" r="11" class="mt-growth-dot active"></circle>
+                    <text x="22" y="220">成长</text>
+
+                    <circle id="growthFlashDot" cx="330" cy="115" r="11" class="mt-growth-dot"></circle>
+                    <text x="285" y="150">5单 闪电侠</text>
+
+                    <circle id="growthKingDot" cx="630" cy="50" r="11" class="mt-growth-dot"></circle>
+                    <text x="560" y="84">10单 单王</text>
+                </svg>
+            </div>
+
+            <div id="moduleContent" class="mt-list" style="margin-top:16px;"></div>
+        </section>
+    </main>
+
+    <nav class="mt-bottom">
+        <a href="/rider/dashboard.html"><span>🏠</span>首页</a>
+        <a href="/rider/recommend.html"><span>📍</span>推荐</a>
+        <a href="/rider/current.html"><span>🛵</span>配送</a>
+        <a class="active" href="/rider/growth.html"><span>⚡</span>成长</a>
+    </nav>
+</div>
+
+<script src="/rider/js/rider-common.js"></script>
+<script src="/rider/js/rider-modules-app.js"></script>
+</body>
+</html>
