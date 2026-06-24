@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>店铺信息 - 饭点优选</title>
+    <link rel="stylesheet" href="/merchant/css/merchant.css">
+</head>
+<body>
+
+<header class="merchant-header">
+    <div class="header-inner">
+        <div class="header-top">
+            <div class="header-title">
+                <span class="avatar">店</span>
+                <div>
+                    <h1>店铺信息</h1>
+                    <p>维护公告、地址、电话和营业状态</p>
+                </div>
+            </div>
+
+            <button class="logout-btn" onclick="location.href='/merchant/dashboard.html'">返回后台</button>
+        </div>
+
+        <section class="hero-panel">
+            <div>
+                <span class="badge">商家资料</span>
+                <h2>让用户和骑手看到准确的店铺信息</h2>
+                <p>店铺名称、电话、地址会同步用于订单小票和商家展示。</p>
+            </div>
+            <div class="hero-icon">🏪</div>
+        </section>
+    </div>
+</header>
+
+<main class="merchant-shell">
+    <section class="section-card">
+        <div class="section-title">
+            <div>
+                <h2>基础资料</h2>
+                <p>保存后会同步更新商家账号名称和联系电话</p>
+            </div>
+        </div>
+
+        <form id="shopForm" class="shop-form">
+            <label>登录账号</label>
+            <input id="usernameInput" disabled>
+
+            <label>店铺名称</label>
+            <input id="shopNameInput" name="shopName" placeholder="请输入店铺名称">
+
+            <label>联系电话</label>
+            <input id="contactPhoneInput" name="contactPhone" placeholder="请输入手机号">
+
+            <label>店铺地址</label>
+            <input id="shopAddressInput" name="shopAddress" placeholder="请输入店铺地址">
+
+            <label>营业时间</label>
+            <input id="businessHoursInput" name="businessHours" placeholder="例如：09:00-22:00">
+
+            <label>营业状态</label>
+            <select id="businessStatusInput" name="businessStatus">
+                <option value="1">营业中</option>
+                <option value="0">休息中</option>
+            </select>
+
+            <label>店铺公告</label>
+            <textarea id="shopNoticeInput" name="shopNotice" placeholder="请输入店铺公告"></textarea>
+
+            <label>配送说明</label>
+            <textarea id="deliveryDescriptionInput" name="deliveryDescription" placeholder="请输入配送说明"></textarea>
+
+            <button class="ghost-btn main" type="submit">保存店铺信息</button>
+        </form>
+    </section>
+</main>
+
+<style>
+    .shop-form {
+        display: grid;
+        gap: 12px;
+        margin-top: 16px;
+    }
+
+    .shop-form label {
+        font-weight: 800;
+        color: #334155;
+    }
+
+    .shop-form input,
+    .shop-form textarea,
+    .shop-form select {
+        min-height: 48px;
+        padding: 0 14px;
+        border: 1px solid #e2e8f0;
+        border-radius: 16px;
+        outline: none;
+        background: #f8fafc;
+        font: inherit;
+    }
+
+    .shop-form textarea {
+        min-height: 110px;
+        padding-top: 12px;
+        resize: vertical;
+    }
+
+    .shop-form input:focus,
+    .shop-form textarea:focus,
+    .shop-form select:focus {
+        border-color: #ffd100;
+        background: #fff;
+        box-shadow: 0 0 0 4px rgba(255, 209, 0, .15);
+    }
+</style>
+
+<script src="/merchant/js/merchant-common.js"></script>
+<script src="/merchant/js/merchant-shop.js"></script>
+</body>
+</html>

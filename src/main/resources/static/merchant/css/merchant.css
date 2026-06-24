@@ -896,3 +896,68 @@ a {
         gap: 4px;
     }
 }
+/* =========================
+   商家订单打印小票
+   ========================= */
+
+.merchant-print-receipt {
+    display: none;
+}
+
+.print-receipt-header {
+    text-align: center;
+    border-bottom: 2px dashed #999;
+    padding-bottom: 12px;
+}
+
+.print-receipt-header h2 {
+    margin: 0;
+    font-size: 24px;
+}
+
+.print-receipt-info {
+    display: grid;
+    gap: 6px;
+    padding: 14px 0;
+    border-bottom: 2px dashed #999;
+}
+
+.print-receipt-info p {
+    margin: 0;
+}
+
+.print-receipt-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 14px;
+}
+
+.print-receipt-table th,
+.print-receipt-table td {
+    padding: 8px 4px;
+    border-bottom: 1px solid #ddd;
+    text-align: left;
+}
+
+.print-receipt-footer {
+    margin-top: 14px;
+    text-align: right;
+}
+
+.print-receipt-footer b {
+    font-size: 22px;
+}
+
+@media print {
+    body > *:not(.merchant-print-receipt) {
+        display: none !important;
+    }
+
+    .merchant-print-receipt {
+        display: block !important;
+        width: 100%;
+        padding: 20px;
+        color: #000;
+        background: #fff;
+    }
+}
