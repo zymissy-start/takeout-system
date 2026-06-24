@@ -17,8 +17,6 @@ public class UserLevelVO {
     private Integer priorityFlag;
     private String description;
 
-<<<<<<< HEAD
-=======
     /**
      * 基于用户有效点餐数的业务等级：
      * < 10 普通用户；>= 10 优先用户；>= 15 尊享用户。
@@ -31,7 +29,6 @@ public class UserLevelVO {
     private String nextOrderTitle;
     private Integer nextNeedOrders;
 
->>>>>>> origin/feature-user-rider-merchant
     public Integer getLevelId() { return levelId; }
     public void setLevelId(Integer levelId) { this.levelId = levelId; }
     public String getLevelName() { return levelName; }
@@ -58,8 +55,6 @@ public class UserLevelVO {
     public void setPriorityFlag(Integer priorityFlag) { this.priorityFlag = priorityFlag; }
     public String getDescription() { return description; }
     public void setDescription(String description) { this.description = description; }
-<<<<<<< HEAD
-=======
     public Integer getOrderCount() { return orderCount; }
     public void setOrderCount(Integer orderCount) { this.orderCount = orderCount; }
     public Integer getOrderLevel() { return orderLevel; }
@@ -72,5 +67,4 @@ public class UserLevelVO {
     public void setNextOrderTitle(String nextOrderTitle) { this.nextOrderTitle = nextOrderTitle; }
     public Integer getNextNeedOrders() { return nextNeedOrders; }
     public void setNextNeedOrders(Integer nextNeedOrders) { this.nextNeedOrders = nextNeedOrders; }
->>>>>>> origin/feature-user-rider-merchant
 }

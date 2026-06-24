@@ -8,10 +8,7 @@ import com.example.takeoutsystem.entity.UserOrderVO;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
-<<<<<<< HEAD
-=======
 import java.math.BigDecimal;
->>>>>>> origin/feature-user-rider-merchant
 import java.util.Date;
 import java.util.List;
 
@@ -24,10 +21,7 @@ public interface UserOrderMapper {
     List<UserOrderItemVO> selectOrderItems(@Param("orderId") Integer orderId);
     int cancelOrder(@Param("orderId") Integer orderId, @Param("userId") Integer userId, @Param("reason") String reason);
     int updateUrgeInfo(@Param("orderId") Integer orderId);
-<<<<<<< HEAD
-=======
     int updateTipAmount(@Param("orderId") Integer orderId, @Param("userId") Integer userId, @Param("tipAmount") BigDecimal tipAmount);
->>>>>>> origin/feature-user-rider-merchant
     Date selectLastRemindTime(@Param("orderId") Integer orderId, @Param("userId") Integer userId);
     int insertStatusLog(@Param("orderId") Integer orderId,
                         @Param("status") Integer status,

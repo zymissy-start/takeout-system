@@ -3,13 +3,10 @@ package com.example.takeoutsystem.controller;
 import com.example.takeoutsystem.common.UserApiResult;
 import com.example.takeoutsystem.common.UserContext;
 import com.example.takeoutsystem.service.UserProfileService;
-<<<<<<< HEAD
-=======
 import com.example.takeoutsystem.entity.UserLevelVO;
 
 import java.util.List;
 import java.util.Map;
->>>>>>> origin/feature-user-rider-merchant
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -37,8 +34,6 @@ public class UserProfileController {
     public UserApiResult<?> level(HttpServletRequest request) {
         return UserApiResult.success(userProfileService.getLevel(UserContext.getCurrentUserId(request)));
     }
-<<<<<<< HEAD
-=======
 
 
     @GetMapping("/api/user/level/details")
@@ -77,5 +72,4 @@ public class UserProfileController {
                 "note", "用户点餐数达到 10 单成为优先用户，达到 15 单成为尊享用户；闪电侠、单王配送是骑手等级，不是用户等级。"
         ));
     }
->>>>>>> origin/feature-user-rider-merchant
 }

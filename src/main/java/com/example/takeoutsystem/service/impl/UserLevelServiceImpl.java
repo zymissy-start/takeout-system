@@ -2,10 +2,7 @@ package com.example.takeoutsystem.service.impl;
 
 import com.example.takeoutsystem.entity.UserLevelVO;
 import com.example.takeoutsystem.mapper.UserLevelMapper;
-<<<<<<< HEAD
-=======
 import com.example.takeoutsystem.mapper.UserOrderMapper;
->>>>>>> origin/feature-user-rider-merchant
 import com.example.takeoutsystem.service.UserLevelService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,17 +12,11 @@ import java.math.BigDecimal;
 @Service
 public class UserLevelServiceImpl implements UserLevelService {
     private final UserLevelMapper userLevelMapper;
-<<<<<<< HEAD
-
-    public UserLevelServiceImpl(UserLevelMapper userLevelMapper) {
-        this.userLevelMapper = userLevelMapper;
-=======
     private final UserOrderMapper userOrderMapper;
 
     public UserLevelServiceImpl(UserLevelMapper userLevelMapper, UserOrderMapper userOrderMapper) {
         this.userLevelMapper = userLevelMapper;
         this.userOrderMapper = userOrderMapper;
->>>>>>> origin/feature-user-rider-merchant
     }
 
     @Override
@@ -57,10 +48,7 @@ public class UserLevelServiceImpl implements UserLevelService {
         int max = current.getMaxGrowth() == null ? Math.max(min + 1, growth) : current.getMaxGrowth();
         int percent = max <= min ? 100 : (int) Math.min(100, Math.max(0, ((growth - min) * 100.0 / (max - min + 1))));
         current.setProgressPercent(percent);
-<<<<<<< HEAD
-=======
         applyOrderLevel(userId, current);
->>>>>>> origin/feature-user-rider-merchant
         return current;
     }
 
@@ -85,8 +73,6 @@ public class UserLevelServiceImpl implements UserLevelService {
         updateGrowth(userId, orderId, 5, "ORDER_REVIEW");
     }
 
-<<<<<<< HEAD
-=======
     private void applyOrderLevel(Integer userId, UserLevelVO current) {
         Integer count = userOrderMapper.countUserOrders(userId);
         int orderCount = count == null ? 0 : count;
@@ -112,7 +98,6 @@ public class UserLevelServiceImpl implements UserLevelService {
         }
     }
 
->>>>>>> origin/feature-user-rider-merchant
     private void updateGrowth(Integer userId, Integer orderId, int change, String reason) {
         UserLevelVO current = getCurrentLevel(userId);
         int newGrowth = (current.getGrowthValue() == null ? 0 : current.getGrowthValue()) + change;

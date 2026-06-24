@@ -14,12 +14,9 @@ public class UserOrder {
     private BigDecimal deliveryFee;
     private BigDecimal discountAmount;
     private BigDecimal actualAmount;
-<<<<<<< HEAD
-=======
     private BigDecimal tipAmount;
     private Integer requiredRiderLevel;
     private String requiredRiderTitle;
->>>>>>> origin/feature-user-rider-merchant
     private Integer status;
     private Integer payStatus;
     private Integer addressId;
@@ -53,15 +50,12 @@ public class UserOrder {
     public void setDiscountAmount(BigDecimal discountAmount) { this.discountAmount = discountAmount; }
     public BigDecimal getActualAmount() { return actualAmount; }
     public void setActualAmount(BigDecimal actualAmount) { this.actualAmount = actualAmount; }
-<<<<<<< HEAD
-=======
     public BigDecimal getTipAmount() { return tipAmount; }
     public void setTipAmount(BigDecimal tipAmount) { this.tipAmount = tipAmount; }
     public Integer getRequiredRiderLevel() { return requiredRiderLevel; }
     public void setRequiredRiderLevel(Integer requiredRiderLevel) { this.requiredRiderLevel = requiredRiderLevel; }
     public String getRequiredRiderTitle() { return requiredRiderTitle; }
     public void setRequiredRiderTitle(String requiredRiderTitle) { this.requiredRiderTitle = requiredRiderTitle; }
->>>>>>> origin/feature-user-rider-merchant
     public Integer getStatus() { return status; }
     public void setStatus(Integer status) { this.status = status; }
     public Integer getPayStatus() { return payStatus; }

@@ -19,12 +19,9 @@ public class UserContext {
         id = parseInt(request.getHeader("X-User-Id"));
         if (id != null) return id;
 
-<<<<<<< HEAD
-=======
         id = parseAuthorization(request.getHeader("Authorization"));
         if (id != null) return id;
 
->>>>>>> origin/feature-user-rider-merchant
         id = parseInt(request.getParameter("userId"));
         if (id != null) return id;
 
@@ -44,8 +41,6 @@ public class UserContext {
         return parseInt(v == null ? null : String.valueOf(v));
     }
 
-<<<<<<< HEAD
-=======
     private static Integer parseAuthorization(String value) {
         if (value == null || value.trim().isEmpty()) return null;
         String token = value.trim();
@@ -54,7 +49,6 @@ public class UserContext {
         return parseInt(token);
     }
 
->>>>>>> origin/feature-user-rider-merchant
     private static Integer parseInt(String value) {
         if (value == null || value.trim().isEmpty()) return null;
         try { return Integer.parseInt(value.trim()); } catch (Exception e) { return null; }

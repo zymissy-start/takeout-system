@@ -6,13 +6,6 @@
         INSERT INTO delivery_order(order_no, user_id, merchant_id, rider_id, total_price, status,
                                    address, remark, is_urged, address_id, receiver_name, receiver_phone,
                                    receiver_address, receiver_latitude, receiver_longitude,
-<<<<<<< HEAD
-                                   product_amount, delivery_fee, discount_amount, actual_amount, pay_status)
-        VALUES(#{orderNo}, #{userId}, #{merchantId}, #{riderId}, #{totalPrice}, #{status},
-               #{address}, #{remark}, #{isUrged}, #{addressId}, #{receiverName}, #{receiverPhone},
-               #{receiverAddress}, #{receiverLatitude}, #{receiverLongitude},
-               #{productAmount}, #{deliveryFee}, #{discountAmount}, #{actualAmount}, #{payStatus})
-=======
                                    product_amount, delivery_fee, discount_amount, actual_amount, pay_status,
                                    tip_amount, required_rider_level, required_rider_title)
         VALUES(#{orderNo}, #{userId}, #{merchantId}, #{riderId}, #{totalPrice}, #{status},
@@ -20,7 +13,6 @@
                #{receiverAddress}, #{receiverLatitude}, #{receiverLongitude},
                #{productAmount}, #{deliveryFee}, #{discountAmount}, #{actualAmount}, #{payStatus},
                #{tipAmount}, #{requiredRiderLevel}, #{requiredRiderTitle})
->>>>>>> origin/feature-user-rider-merchant
     </insert>
 
     <insert id="insertOrderItem" parameterType="com.example.takeoutsystem.entity.UserOrderItem" useGeneratedKeys="true" keyProperty="itemId">
@@ -44,12 +36,9 @@
             o.discount_amount AS discountAmount,
             o.actual_amount AS actualAmount,
             COALESCE(o.actual_amount, o.total_price) AS payAmount,
-<<<<<<< HEAD
-=======
             COALESCE(o.tip_amount, 0) AS tipAmount,
             COALESCE(o.required_rider_level, 0) AS requiredRiderLevel,
             COALESCE(o.required_rider_title, '普通') AS requiredRiderTitle,
->>>>>>> origin/feature-user-rider-merchant
             o.status AS status,
             o.pay_status AS payStatus,
             o.order_time AS orderTime,
@@ -116,8 +105,6 @@
         WHERE order_id = #{orderId}
     </update>
 
-<<<<<<< HEAD
-=======
     <update id="updateTipAmount">
         UPDATE delivery_order
         SET tip_amount = COALESCE(tip_amount, 0) + #{tipAmount}
@@ -127,7 +114,6 @@
           AND status IN (3, 4)
     </update>
 
->>>>>>> origin/feature-user-rider-merchant
     <select id="selectLastRemindTime" resultType="java.util.Date">
         SELECT MAX(create_time)
         FROM order_reminder
@@ -157,11 +143,7 @@
     </select>
 
     <select id="countUserOrders" resultType="int">
-<<<<<<< HEAD
-        SELECT COUNT(1) FROM delivery_order WHERE user_id = #{userId}
-=======
         SELECT COUNT(1) FROM delivery_order WHERE user_id = #{userId} AND status &lt;&gt; -1
->>>>>>> origin/feature-user-rider-merchant
     </select>
 
     <select id="countUserCoupons" resultType="int">

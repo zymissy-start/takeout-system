@@ -2,23 +2,9 @@ package com.example.takeoutsystem.mapper;
 
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
-<<<<<<< HEAD
-/**
- * 商家首页统计数据访问接口。
- *
- * 首页四个统计卡片的数据均来自 delivery_order 表，
- * 根据订单状态 status 分别统计待接单、制作中、待骑手接单和已完成订单数。
- */
-
 
 public interface MerchantDashboardMapper {
 
-    /** 统计待商家接单订单数量，status = 0。 */
-=======
-
-public interface MerchantDashboardMapper {
-
->>>>>>> origin/feature-user-rider-merchant
     @Select("""
             SELECT COUNT(*)
             FROM delivery_order
@@ -26,11 +12,7 @@ public interface MerchantDashboardMapper {
               AND status = 0
             """)
     Integer countWaitAccept(@Param("merchantId") Integer merchantId);
-<<<<<<< HEAD
-    /** 统计制作中订单数量，status = 1。 */
-=======
 
->>>>>>> origin/feature-user-rider-merchant
     @Select("""
             SELECT COUNT(*)
             FROM delivery_order
@@ -39,10 +21,6 @@ public interface MerchantDashboardMapper {
             """)
     Integer countCooking(@Param("merchantId") Integer merchantId);
 
-<<<<<<< HEAD
-    /** 统计已出餐、待骑手接单订单数量，status = 2。 */
-=======
->>>>>>> origin/feature-user-rider-merchant
     @Select("""
             SELECT COUNT(*)
             FROM delivery_order
@@ -51,10 +29,6 @@ public interface MerchantDashboardMapper {
             """)
     Integer countWaitRider(@Param("merchantId") Integer merchantId);
 
-<<<<<<< HEAD
-    /** 统计已完成订单数量，status = 4。 */
-=======
->>>>>>> origin/feature-user-rider-merchant
     @Select("""
             SELECT COUNT(*)
             FROM delivery_order

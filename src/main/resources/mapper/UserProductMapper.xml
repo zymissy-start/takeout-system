@@ -8,8 +8,6 @@
         ORDER BY category_id ASC
     </select>
 
-<<<<<<< HEAD
-=======
 
     <sql id="merchantBaseSelect">
         SELECT
@@ -78,7 +76,6 @@
         ) t
     </select>
 
->>>>>>> origin/feature-user-rider-merchant
     <sql id="productBaseSelect">
         SELECT
             p.product_id AS productId,
@@ -115,12 +112,9 @@
         <if test="categoryId != null">
             AND p.category_id = #{categoryId}
         </if>
-<<<<<<< HEAD
-=======
         <if test="merchantId != null">
             AND p.merchant_id = #{merchantId}
         </if>
->>>>>>> origin/feature-user-rider-merchant
     </sql>
 
     <select id="selectProducts" resultType="com.example.takeoutsystem.entity.UserProductVO">

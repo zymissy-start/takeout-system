@@ -75,13 +75,10 @@ public class UserOrderServiceImpl implements UserOrderService {
         BigDecimal discountAmount = deliveryFee.subtract(discountedDeliveryFee).max(BigDecimal.ZERO).setScale(2, RoundingMode.HALF_UP);
         BigDecimal actualAmount = productAmount.add(discountedDeliveryFee).setScale(2, RoundingMode.HALF_UP);
 
-<<<<<<< HEAD
-=======
         int orderCountAfterThisOrder = userOrderMapper.countUserOrders(userId) + 1;
         int requiredRiderLevel = resolveRequiredRiderLevel(orderCountAfterThisOrder);
         String requiredRiderTitle = resolveRequiredRiderTitle(requiredRiderLevel);
 
->>>>>>> origin/feature-user-rider-merchant
         UserOrder order = new UserOrder();
         order.setOrderNo(generateOrderNo());
         order.setUserId(userId);
@@ -91,12 +88,9 @@ public class UserOrderServiceImpl implements UserOrderService {
         order.setDeliveryFee(deliveryFee);
         order.setDiscountAmount(discountAmount);
         order.setActualAmount(actualAmount);
-<<<<<<< HEAD
-=======
         order.setTipAmount(BigDecimal.ZERO);
         order.setRequiredRiderLevel(requiredRiderLevel);
         order.setRequiredRiderTitle(requiredRiderTitle);
->>>>>>> origin/feature-user-rider-merchant
         order.setStatus(0);
         order.setPayStatus(1); // 课程演示：默认已支付，方便商家接单和骑手配送流程联调。
         order.setAddressId(address.getAddressId());
@@ -128,12 +122,8 @@ public class UserOrderServiceImpl implements UserOrderService {
             item.setSubtotalAmount(p.getPrice().multiply(BigDecimal.valueOf(quantity)).setScale(2, RoundingMode.HALF_UP));
             userOrderMapper.insertOrderItem(item);
         }
-<<<<<<< HEAD
-        userOrderMapper.insertStatusLog(order.getOrderId(), 0, "用户已下单", "USER", userId, "订单创建成功");
-=======
         userOrderMapper.insertStatusLog(order.getOrderId(), 0, "用户已下单", "USER", userId,
                 "订单创建成功；用户累计点餐数=" + orderCountAfterThisOrder + "，匹配骑手等级=" + requiredRiderTitle);
->>>>>>> origin/feature-user-rider-merchant
         return getDetail(userId, order.getOrderId());
     }
 
@@ -210,8 +200,6 @@ public class UserOrderServiceImpl implements UserOrderService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-<<<<<<< HEAD
-=======
     public Map<String, Object> tip(Integer userId, Integer orderId, BigDecimal tipAmount) {
         UserOrderVO order = userOrderMapper.selectOrderById(orderId, userId);
         if (order == null) throw new IllegalArgumentException("订单不存在");
@@ -245,7 +233,6 @@ public class UserOrderServiceImpl implements UserOrderService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
->>>>>>> origin/feature-user-rider-merchant
     public void comment(Integer userId, Integer orderId, UserCommentForm form) {
         UserOrderVO order = userOrderMapper.selectOrderById(orderId, userId);
         if (order == null) throw new IllegalArgumentException("订单不存在");
@@ -258,8 +245,6 @@ public class UserOrderServiceImpl implements UserOrderService {
         userOrderMapper.insertStatusLog(orderId, 4, "用户评价订单", "USER", userId, "评分：" + score);
     }
 
-<<<<<<< HEAD
-=======
     private int resolveRequiredRiderLevel(int orderCountAfterThisOrder) {
         if (orderCountAfterThisOrder >= 15) return 2;
         if (orderCountAfterThisOrder >= 10) return 1;
@@ -272,7 +257,6 @@ public class UserOrderServiceImpl implements UserOrderService {
         return "普通骑手";
     }
 
->>>>>>> origin/feature-user-rider-merchant
     private Map<Integer, Integer> aggregateQuantity(List<UserOrderItemForm> items) {
         Map<Integer, Integer> map = new LinkedHashMap<>();
         for (UserOrderItemForm item : items) {
