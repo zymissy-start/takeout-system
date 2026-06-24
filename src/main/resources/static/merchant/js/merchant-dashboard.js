@@ -111,20 +111,36 @@
         const map = {
             '-1': '已取消',
             '0': '待商家接单',
-            '1': '商家已接单',
-            '2': '制作中',
-            '3': '待骑手接单',
-            '4': '配送中',
-            '5': '已完成'
+            '1': '制作中',
+            '2': '待骑手接单',
+            '3': '骑手配送中',
+            '4': '已完成'
         };
 
         return map[String(status)] || '未知状态';
     }
 
     function pillClass(status) {
-        if (String(status) === '5') return 'done';
+        if (String(status) === '4') return 'done';
         if (String(status) === '-1') return 'cancel';
-        if (String(status) === '4') return 'info';
+        if (String(status) === '3') return 'info';
+        if (String(status) === '2') return 'warning';
+        return '';
+    }
+
+    function isUrgentOrder(order) {
+        const status = Number(MerchantApp.getField(order, ['status'], 0));
+        if (status === 4 || status === -1) return false;
+        return Number(MerchantApp.getField(order, ['reminderCount', 'reminder_count'], 0)) > 0
+            || Number(MerchantApp.getField(order, ['riderUrgeCount', 'rider_urge_count'], 0)) > 0;
+    }
+
+    function urgentText(order) {
+        const reminderCount = Number(MerchantApp.getField(order, ['reminderCount', 'reminder_count'], 0));
+        const riderUrgeCount = Number(MerchantApp.getField(order, ['riderUrgeCount', 'rider_urge_count'], 0));
+        const latest = MerchantApp.getField(order, ['latestReminderTime', 'latest_reminder_time', 'riderUrgeTime', 'rider_urge_time'], '刚刚');
+        if (riderUrgeCount > 0) return `骑手已催出餐 ${riderUrgeCount} 次 · ${latest}`;
+        if (reminderCount > 0) return `用户催单 ${reminderCount} 次 · ${latest}`;
         return '';
     }
 
@@ -136,35 +152,45 @@
             return;
         }
 
-        box.innerHTML = state.orders.map(order => {
+        const urgentCount = state.orders.filter(isUrgentOrder).length;
+        const urgentBanner = urgentCount > 0
+            ? `<div class="merchant-urge-banner">⚠️ 有 ${urgentCount} 个订单正在催单，请优先处理红色标记订单。</div>`
+            : '';
+
+        box.innerHTML = urgentBanner + state.orders.map(order => {
             const id = MerchantApp.getField(order, ['orderId', 'order_id', 'id'], '');
             const userName = MerchantApp.getField(order, ['userName', 'user_name', 'receiverName'], '用户');
             const status = MerchantApp.getField(order, ['status'], 0);
             const total = MerchantApp.getField(order, ['payAmount', 'pay_amount', 'totalPrice', 'total_price'], 0);
             const time = MerchantApp.getField(order, ['orderTime', 'order_time', 'createTime', 'create_time'], '');
             const summary = MerchantApp.getField(order, ['summary', 'itemsText'], '点击查看订单商品明细');
+            const requiredTitle = MerchantApp.getField(order, ['requiredRiderTitle', 'required_rider_title'], '普通');
+            const urgent = isUrgentOrder(order);
+            const urgentLine = urgent ? `<div class="order-urge-alert">🔔 ${MerchantApp.escapeHtml(urgentText(order))}</div>` : '';
 
             return `
-        <article class="order-card" data-id="${MerchantApp.escapeHtml(id)}">
+        <article class="order-card ${urgent ? 'urgent-order' : ''}" data-id="${MerchantApp.escapeHtml(id)}">
           <div class="order-card-head">
             <b>${MerchantApp.escapeHtml(userName)}</b>
-            <span class="status-pill ${pillClass(status)}">${statusText(status)}</span>
+            <span class="status-pill ${urgent ? 'urgent' : pillClass(status)}">${urgent ? '催单中' : statusText(status)}</span>
           </div>
+
+          ${urgentLine}
 
           <div class="order-items">
             ${MerchantApp.escapeHtml(summary)}
           </div>
 
           <div class="order-card-foot">
-            <span class="muted small">${MerchantApp.escapeHtml(time || '刚刚')}</span>
+            <span class="muted small">${MerchantApp.escapeHtml(time || '刚刚')} · ${MerchantApp.escapeHtml(requiredTitle)}订单</span>
             <strong class="price">${MerchantApp.formatMoney(total)}</strong>
           </div>
 
           <div class="order-actions">
             <button data-action="detail" data-id="${MerchantApp.escapeHtml(id)}">详情</button>
             ${Number(status) === 0 ? `<button class="main" data-action="accept" data-id="${MerchantApp.escapeHtml(id)}">确认接单</button>` : ''}
-            ${Number(status) === 2 ? `<button class="main" data-action="finish" data-id="${MerchantApp.escapeHtml(id)}">出餐完成</button>` : ''}
-            ${Number(status) === 3 ? `<button class="main" data-action="rider" data-id="${MerchantApp.escapeHtml(id)}">召唤骑手</button>` : ''}
+            ${Number(status) === 1 ? `<button class="main" data-action="finish" data-id="${MerchantApp.escapeHtml(id)}">出餐完成</button>` : ''}
+            ${Number(status) === 2 ? `<button class="ghost" type="button" disabled>已进入骑手接单池</button>` : ''}
           </div>
         </article>
       `;
@@ -219,10 +245,6 @@
 
         if (action === 'finish') {
             return postOrderAction('/merchant/order/finish-cooking', id, '已标记出餐完成');
-        }
-
-        if (action === 'rider') {
-            return postOrderAction('/merchant/order/call-rider', id, '已召唤骑手');
         }
     }
 
@@ -287,7 +309,7 @@
             {
                 orderId: 9002,
                 userName: '李四',
-                status: 2,
+                status: 1,
                 totalPrice: 18.5,
                 orderTime: '10 分钟前',
                 summary: '香辣鸡腿堡 × 1'
@@ -295,7 +317,7 @@
             {
                 orderId: 9003,
                 userName: '王五',
-                status: 3,
+                status: 2,
                 totalPrice: 25,
                 orderTime: '18 分钟前',
                 summary: '跑腿代购服务 × 1'

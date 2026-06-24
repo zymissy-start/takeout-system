@@ -22,8 +22,18 @@ public class RiderOrderVO {
     private Integer waitMinutes;
     private String summary;
     private java.math.BigDecimal tipAmount;
+    private Integer requiredRiderLevel;
+    private String requiredRiderTitle;
     private Integer riderUrgeCount;
     private String riderUrgeTime;
+    public Integer getRequiredRiderLevel() { return requiredRiderLevel; }
+
+    public void setRequiredRiderLevel(Integer requiredRiderLevel) { this.requiredRiderLevel = requiredRiderLevel; }
+
+    public String getRequiredRiderTitle() { return requiredRiderTitle; }
+
+    public void setRequiredRiderTitle(String requiredRiderTitle) { this.requiredRiderTitle = requiredRiderTitle; }
+
     public java.math.BigDecimal getTipAmount() {
         return tipAmount;
     }

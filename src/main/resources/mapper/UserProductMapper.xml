@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.takeoutsystem.mapper.UserProductMapper">
+
+    <select id="selectCategories" resultType="com.example.takeoutsystem.entity.UserCategoryVO">
+        SELECT category_id AS categoryId, category_name AS categoryName
+        FROM product_category
+        ORDER BY category_id ASC
+    </select>
+
+
+    <sql id="merchantBaseSelect">
+        SELECT
+            su.user_id AS merchantId,
+            COALESCE(mi.store_name, su.real_name, su.username) AS storeName,
+            mi.store_logo AS storeLogo,
+            COALESCE(mi.store_notice, '欢迎光临本店') AS storeNotice,
+            COALESCE(mi.rating, 5.0) AS rating,
+            COALESCE(mi.monthly_sales, SUM(COALESCE(p.monthly_sales, p.order_count, 0)), 0) AS monthlySales,
+            COALESCE(mi.min_order_amount, 0.00) AS minOrderAmount,
+            COALESCE(mi.delivery_fee, 3.00) AS deliveryFee,
+            COALESCE(mi.delivery_time, 30) AS deliveryTime,
+            COALESCE(mi.distance_km, 1.00) AS distanceKm,
+            COALESCE(mi.status, 1) AS status,
+            COUNT(DISTINCT p.product_id) AS productCount,
+            MIN(p.price) AS lowestPrice,
+            GROUP_CONCAT(DISTINCT p.name ORDER BY COALESCE(p.monthly_sales, p.order_count, 0) DESC SEPARATOR '、') AS topProductNames
+        FROM sys_user su
+        LEFT JOIN merchant_info mi ON su.user_id = mi.merchant_id
+        INNER JOIN product p ON su.user_id = p.merchant_id AND p.status = 1
+        LEFT JOIN product_category c ON p.category_id = c.category_id
+    </sql>
+
+    <sql id="merchantWhere">
+        WHERE su.role_type = 2
+          AND COALESCE(mi.status, 1) = 1
+        <if test="keyword != null and keyword != ''">
+            AND (COALESCE(mi.store_name, su.real_name, su.username) LIKE CONCAT('%', #{keyword}, '%')
+              OR mi.store_notice LIKE CONCAT('%', #{keyword}, '%')
+              OR p.name LIKE CONCAT('%', #{keyword}, '%')
+              OR p.description LIKE CONCAT('%', #{keyword}, '%')
+              OR c.category_name LIKE CONCAT('%', #{keyword}, '%'))
+        </if>
+        <if test="categoryId != null">
+            AND p.category_id = #{categoryId}
+        </if>
+    </sql>
+
+    <select id="selectMerchants" resultType="com.example.takeoutsystem.entity.UserMerchantVO">
+        <include refid="merchantBaseSelect" />
+        <include refid="merchantWhere" />
+        GROUP BY su.user_id, su.real_name, su.username, mi.store_name, mi.store_logo, mi.store_notice,
+                 mi.rating, mi.monthly_sales, mi.min_order_amount, mi.delivery_fee, mi.delivery_time,
+                 mi.distance_km, mi.status
+        ORDER BY
+        <choose>
+            <when test="sort == 'sales'">monthlySales DESC, rating DESC, su.user_id DESC</when>
+            <when test="sort == 'rating'">rating DESC, monthlySales DESC, su.user_id DESC</when>
+            <when test="sort == 'distance'">distanceKm ASC, rating DESC, su.user_id DESC</when>
+            <when test="sort == 'deliveryTime'">deliveryTime ASC, rating DESC, su.user_id DESC</when>
+            <otherwise>rating DESC, monthlySales DESC, distanceKm ASC, su.user_id DESC</otherwise>
+        </choose>
+        LIMIT #{offset}, #{size}
+    </select>
+
+    <select id="countMerchants" resultType="int">
+        SELECT COUNT(1)
+        FROM (
+            SELECT su.user_id
+            FROM sys_user su
+            LEFT JOIN merchant_info mi ON su.user_id = mi.merchant_id
+            INNER JOIN product p ON su.user_id = p.merchant_id AND p.status = 1
+            LEFT JOIN product_category c ON p.category_id = c.category_id
+            <include refid="merchantWhere" />
+            GROUP BY su.user_id
+        ) t
+    </select>
+
+    <sql id="productBaseSelect">
+        SELECT
+            p.product_id AS productId,
+            p.merchant_id AS merchantId,
+            COALESCE(mi.store_name, su.real_name, su.username) AS merchantName,
+            p.category_id AS categoryId,
+            c.category_name AS categoryName,
+            p.name AS name,
+            p.description AS description,
+            p.price AS price,
+            p.image_url AS imageUrl,
+            p.order_count AS orderCount,
+            COALESCE(p.monthly_sales, p.order_count, 0) AS monthlySales,
+            p.stock AS stock,
+            p.rating AS rating,
+            p.tag AS tag,
+            COALESCE(mi.delivery_fee, 3.00) AS deliveryFee,
+            COALESCE(mi.min_order_amount, 0.00) AS minOrderAmount,
+            COALESCE(mi.delivery_time, 30) AS avgDeliveryMinutes
+        FROM product p
+        LEFT JOIN product_category c ON p.category_id = c.category_id
+        LEFT JOIN sys_user su ON p.merchant_id = su.user_id
+        LEFT JOIN merchant_info mi ON p.merchant_id = mi.merchant_id
+    </sql>
+
+    <sql id="productWhere">
+        WHERE p.status = 1
+        <if test="keyword != null and keyword != ''">
+            AND (p.name LIKE CONCAT('%', #{keyword}, '%')
+              OR p.description LIKE CONCAT('%', #{keyword}, '%')
+              OR c.category_name LIKE CONCAT('%', #{keyword}, '%')
+              OR mi.store_name LIKE CONCAT('%', #{keyword}, '%'))
+        </if>
+        <if test="categoryId != null">
+            AND p.category_id = #{categoryId}
+        </if>
+        <if test="merchantId != null">
+            AND p.merchant_id = #{merchantId}
+        </if>
+    </sql>
+
+    <select id="selectProducts" resultType="com.example.takeoutsystem.entity.UserProductVO">
+        <include refid="productBaseSelect" />
+        <include refid="productWhere" />
+        ORDER BY
+        <choose>
+            <when test="sort == 'sales'">COALESCE(p.monthly_sales, p.order_count, 0) DESC, p.product_id DESC</when>
+            <when test="sort == 'priceAsc'">p.price ASC, p.product_id DESC</when>
+            <when test="sort == 'priceDesc'">p.price DESC, p.product_id DESC</when>
+            <otherwise>COALESCE(p.rating, 4.8) DESC, COALESCE(p.monthly_sales, p.order_count, 0) DESC, p.product_id DESC</otherwise>
+        </choose>
+        LIMIT #{offset}, #{size}
+    </select>
+
+    <select id="countProducts" resultType="int">
+        SELECT COUNT(1)
+        FROM product p
+        LEFT JOIN product_category c ON p.category_id = c.category_id
+        LEFT JOIN merchant_info mi ON p.merchant_id = mi.merchant_id
+        <include refid="productWhere" />
+    </select>
+
+    <select id="selectProductsByIds" resultType="com.example.takeoutsystem.entity.UserProductVO">
+        <include refid="productBaseSelect" />
+        WHERE p.status = 1
+          AND p.product_id IN
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </select>
+
+    <update id="decreaseStock">
+        UPDATE product
+        SET stock = stock - #{quantity}
+        WHERE product_id = #{productId}
+          AND status = 1
+          AND stock >= #{quantity}
+    </update>
+
+    <update id="increaseSales">
+        UPDATE product
+        SET order_count = COALESCE(order_count, 0) + #{quantity},
+            monthly_sales = COALESCE(monthly_sales, 0) + #{quantity}
+        WHERE product_id = #{productId}
+    </update>
+</mapper>

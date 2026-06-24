@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>地图选点 - 智慧外卖</title>
+  <link rel="stylesheet" href="/assets/css/user.css" />
+</head>
+<body class="soft-bg map-page">
+  <header class="profile-hero map-hero">
+    <div class="profile-line">
+      <button id="closeBtn" class="ghost-btn text-reset" type="button">关闭</button>
+      <div>
+        <h1>地图选点</h1>
+        <p>点击地图或输入经纬度，确认后会自动填回地址表单。</p>
+      </div>
+    </div>
+  </header>
+
+  <main class="map-shell">
+    <section class="map-search-card">
+      <input id="keywordInput" class="input" placeholder="搜索地点，例如：万达广场 / 学校 / 小区" />
+      <button id="searchBtn" class="primary-btn" type="button">搜索</button>
+    </section>
+
+    <section id="mapStatus" class="privilege-note">地图正在加载，请稍候...</section>
+    <section id="mapContainer" class="map-container"></section>
+
+    <section class="section-card selected-location-card">
+      <h2>已选位置</h2>
+      <p id="addressText" class="muted">请在地图上点击选择位置，或在下方手动输入经纬度。</p>
+      <div class="location-tools">
+        <input id="latInput" class="input" placeholder="纬度 latitude" />
+        <input id="lngInput" class="input" placeholder="经度 longitude" />
+      </div>
+      <input id="detailInput" class="input" placeholder="详细地址，可自动带回地址表单" />
+      <div class="location-tools">
+        <button id="browserLocateBtn" class="ghost-btn" type="button">使用浏览器定位</button>
+        <button id="confirmBtn" class="primary-btn" type="button">确定选点</button>
+      </div>
+    </section>
+  </main>
+
+  <div id="toast" class="toast hidden"></div>
+  <script src="/assets/js/request.js"></script>
+  <script src="/assets/js/map-config.js"></script>
+  <script src="/assets/js/map-picker.js"></script>
+</body>
+</html>
