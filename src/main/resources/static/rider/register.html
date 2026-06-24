@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>骑手注册 - 饭点优选</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background:
+                    radial-gradient(circle at 16% 18%, rgba(19, 194, 163, .22), transparent 28%),
+                    linear-gradient(135deg, #f3fffc, #f5f7fb);
+            color: #111827;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", Arial, sans-serif;
+        }
+
+        a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        .register-page {
+            width: min(920px, calc(100% - 32px));
+            margin: 0 auto;
+            padding: 42px 0 70px;
+        }
+
+        .register-hero {
+            padding: 30px;
+            border-radius: 34px;
+            background:
+                    radial-gradient(circle at 88% 12%, rgba(255,255,255,.66) 0, rgba(255,255,255,.66) 92px, transparent 93px),
+                    linear-gradient(135deg, #b7f7ef, #13c2a3);
+            box-shadow: 0 24px 60px rgba(15, 23, 42, .12);
+        }
+
+        .register-hero span {
+            display: inline-flex;
+            padding: 7px 13px;
+            border-radius: 999px;
+            background: rgba(255,255,255,.76);
+            color: #064e3b;
+            font-weight: 900;
+        }
+
+        .register-hero h1 {
+            margin: 14px 0 8px;
+            font-size: 36px;
+        }
+
+        .register-hero p {
+            margin: 0;
+            color: #23524a;
+            line-height: 1.8;
+        }
+
+        .register-card {
+            margin-top: 18px;
+            padding: 24px;
+            border-radius: 30px;
+            background: #fff;
+            box-shadow: 0 18px 44px rgba(15, 23, 42, .08);
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 14px;
+        }
+
+        .form-item {
+            display: grid;
+            gap: 8px;
+        }
+
+        label {
+            color: #334155;
+            font-weight: 900;
+        }
+
+        input {
+            min-height: 48px;
+            padding: 0 14px;
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+            outline: none;
+            background: #f8fafc;
+            font: inherit;
+        }
+
+        input:focus {
+            border-color: #13c2a3;
+            background: #fff;
+            box-shadow: 0 0 0 4px rgba(19, 194, 163, .15);
+        }
+
+        .form-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .submit-btn {
+            min-width: 160px;
+            min-height: 48px;
+            border: 0;
+            border-radius: 999px;
+            background: linear-gradient(135deg, #13c2a3, #0f9f88);
+            color: #fff;
+            font-weight: 900;
+            cursor: pointer;
+        }
+
+        .link-text {
+            color: #64748b;
+        }
+
+        .link-text a {
+            color: #111827;
+            font-weight: 900;
+        }
+
+        @media (max-width: 720px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .form-actions {
+                align-items: stretch;
+                flex-direction: column;
+            }
+
+            .submit-btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<main class="register-page">
+    <section class="register-hero">
+        <span>骑手加入</span>
+        <h1>注册骑手账号</h1>
+        <p>注册成功后，可使用该账号登录骑手端，查看可接配送订单并更新配送状态。</p>
+    </section>
+
+    <section class="register-card">
+        <form id="riderRegisterForm">
+            <div class="form-grid">
+                <div class="form-item">
+                    <label>登录账号</label>
+                    <input id="usernameInput" name="username" placeholder="3-20位字母、数字或下划线">
+                </div>
+
+                <div class="form-item">
+                    <label>骑手姓名</label>
+                    <input id="realNameInput" name="realName" placeholder="请输入真实姓名">
+                </div>
+
+                <div class="form-item">
+                    <label>登录密码</label>
+                    <input id="passwordInput" name="password" type="password" placeholder="6-20位密码">
+                </div>
+
+                <div class="form-item">
+                    <label>确认密码</label>
+                    <input id="confirmPasswordInput" name="confirmPassword" type="password" placeholder="请再次输入密码">
+                </div>
+
+                <div class="form-item">
+                    <label>手机号</label>
+                    <input id="phoneInput" name="phone" placeholder="请输入11位手机号">
+                </div>
+
+                <div class="form-item">
+                    <label>配送工具</label>
+                    <input id="vehicleTypeInput" name="vehicleType" placeholder="例如：电动车 / 摩托车">
+                </div>
+
+                <div class="form-item">
+                    <label>车牌或编号</label>
+                    <input id="vehicleNumberInput" name="vehicleNumber" placeholder="可选">
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <p class="link-text">
+                    已有账号？
+                    <a href="/rider/login.html">去登录</a>
+                </p>
+
+                <button class="submit-btn" type="submit">注册骑手</button>
+            </div>
+        </form>
+    </section>
+</main>
+
+<script src="/rider/js/rider-register.js"></script>
+</body>
+</html>
