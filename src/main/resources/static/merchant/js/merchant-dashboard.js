@@ -61,10 +61,8 @@
     async function loadStatistics() {
         try {
             const data = await MerchantApp.request('/merchant/dashboard/statistics');
-
             state.statistics = Object.assign(state.statistics, data || {});
         } catch (e) {
-            // 后台统计接口还没写时，前端先展示 0，不阻塞页面使用。
             state.statistics = {
                 waitAcceptCount: 0,
                 cookingCount: 0,
@@ -111,10 +109,10 @@
         const map = {
             '-1': '已取消',
             '0': '待商家接单',
-            '1': '商家已接单',
-            '2': '制作中',
-            '3': '待骑手接单',
-            '4': '配送中',
+            '1': '制作中',
+            '2': '待骑手接单',
+            '3': '配送中',
+            '4': '已完成',
             '5': '已完成'
         };
 
@@ -122,9 +120,9 @@
     }
 
     function pillClass(status) {
-        if (String(status) === '5') return 'done';
+        if (String(status) === '4' || String(status) === '5') return 'done';
         if (String(status) === '-1') return 'cancel';
-        if (String(status) === '4') return 'info';
+        if (String(status) === '3') return 'info';
         return '';
     }
 
@@ -163,8 +161,8 @@
           <div class="order-actions">
             <button data-action="detail" data-id="${MerchantApp.escapeHtml(id)}">详情</button>
             ${Number(status) === 0 ? `<button class="main" data-action="accept" data-id="${MerchantApp.escapeHtml(id)}">确认接单</button>` : ''}
-            ${Number(status) === 2 ? `<button class="main" data-action="finish" data-id="${MerchantApp.escapeHtml(id)}">出餐完成</button>` : ''}
-            ${Number(status) === 3 ? `<button class="main" data-action="rider" data-id="${MerchantApp.escapeHtml(id)}">召唤骑手</button>` : ''}
+            ${Number(status) === 1 || Number(status) === 2 ? `<button class="main" data-action="finish" data-id="${MerchantApp.escapeHtml(id)}">出餐完成</button>` : ''}
+            ${Number(status) === 2 || Number(status) === 3 ? `<button class="main" data-action="rider" data-id="${MerchantApp.escapeHtml(id)}">召唤骑手</button>` : ''}
           </div>
         </article>
       `;
@@ -209,7 +207,7 @@
         const id = event.currentTarget.dataset.id;
 
         if (action === 'detail') {
-            MerchantApp.toast(`订单详情功能预留：${id}`);
+            location.href = '/merchant/orders.html';
             return;
         }
 
@@ -253,12 +251,17 @@
             return;
         }
 
-        const map = {
-            shop: '店铺信息页面下一步开发：/merchant/shop.html',
-            print: '打印订单功能将在订单详情中使用 window.print() 实现'
-        };
+        if (action === 'shop') {
+            location.href = '/merchant/shop.html';
+            return;
+        }
 
-        MerchantApp.toast(map[action] || '功能开发中');
+        if (action === 'print') {
+            location.href = '/merchant/order-print.html';
+            return;
+        }
+
+        MerchantApp.toast('功能开发中');
     }
 
     async function logout() {
@@ -287,7 +290,7 @@
             {
                 orderId: 9002,
                 userName: '李四',
-                status: 2,
+                status: 1,
                 totalPrice: 18.5,
                 orderTime: '10 分钟前',
                 summary: '香辣鸡腿堡 × 1'
@@ -295,7 +298,7 @@
             {
                 orderId: 9003,
                 userName: '王五',
-                status: 3,
+                status: 2,
                 totalPrice: 25,
                 orderTime: '18 分钟前',
                 summary: '跑腿代购服务 × 1'

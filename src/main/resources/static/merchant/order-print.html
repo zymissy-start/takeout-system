@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>打印订单 - 饭点优选</title>
+    <link rel="stylesheet" href="/merchant/css/merchant.css">
+</head>
+<body>
+
+<header class="merchant-header">
+    <div class="header-inner">
+        <div class="header-top">
+            <div class="header-title">
+                <span class="avatar">印</span>
+                <div>
+                    <h1>打印订单</h1>
+                    <p>打印待处理订单小票</p>
+                </div>
+            </div>
+
+            <button class="logout-btn" onclick="location.href='/merchant/dashboard.html'">返回后台</button>
+        </div>
+
+        <section class="hero-panel">
+            <div>
+                <span class="badge">订单小票</span>
+                <h2>选择订单并打印后厨小票</h2>
+                <p>系统会读取订单详情、商品明细、店铺电话和店铺地址。</p>
+            </div>
+            <div class="hero-icon">🧾</div>
+        </section>
+    </div>
+</header>
+
+<main class="merchant-shell">
+    <section class="section-card">
+        <div class="section-title">
+            <div>
+                <h2>按订单号打印</h2>
+                <p>输入订单编号后直接打印</p>
+            </div>
+        </div>
+
+        <div class="print-search">
+            <input id="printOrderIdInput" placeholder="请输入订单ID，例如：1">
+            <button id="printByIdBtn" class="ghost-btn main">打印订单</button>
+        </div>
+    </section>
+
+    <section class="section-card" style="margin-top:14px;">
+        <div class="section-title">
+            <div>
+                <h2>最近订单</h2>
+                <p>点击订单右侧按钮即可打印</p>
+            </div>
+
+            <button id="refreshPrintOrdersBtn" class="ghost-btn main">刷新</button>
+        </div>
+
+        <div id="printOrderList" class="order-list">
+            <div class="empty-state">正在加载订单...</div>
+        </div>
+    </section>
+</main>
+
+<style>
+    .print-search {
+        display: grid;
+        grid-template-columns: 1fr 150px;
+        gap: 12px;
+        margin-top: 16px;
+    }
+
+    .print-search input {
+        min-height: 48px;
+        padding: 0 14px;
+        border: 1px solid #e2e8f0;
+        border-radius: 16px;
+        outline: none;
+        background: #f8fafc;
+        font: inherit;
+    }
+
+    .merchant-print-receipt {
+        display: none;
+    }
+
+    .print-receipt-header {
+        text-align: center;
+        border-bottom: 2px dashed #999;
+        padding-bottom: 12px;
+    }
+
+    .print-receipt-header h2 {
+        margin: 0;
+        font-size: 24px;
+    }
+
+    .print-receipt-info {
+        display: grid;
+        gap: 6px;
+        padding: 14px 0;
+        border-bottom: 2px dashed #999;
+    }
+
+    .print-receipt-info p {
+        margin: 0;
+    }
+
+    .print-receipt-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 14px;
+    }
+
+    .print-receipt-table th,
+    .print-receipt-table td {
+        padding: 8px 4px;
+        border-bottom: 1px solid #ddd;
+        text-align: left;
+    }
+
+    .print-receipt-footer {
+        margin-top: 14px;
+        text-align: right;
+    }
+
+    .print-receipt-footer b {
+        font-size: 22px;
+    }
+
+    @media print {
+        body > *:not(.merchant-print-receipt) {
+            display: none !important;
+        }
+
+        .merchant-print-receipt {
+            display: block !important;
+            width: 100%;
+            padding: 20px;
+            color: #000;
+            background: #fff;
+        }
+    }
+
+    @media (max-width: 720px) {
+        .print-search {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<script src="/merchant/js/merchant-common.js"></script>
+<script src="/merchant/js/merchant-order-print-page.js"></script>
+</body>
+</html>
