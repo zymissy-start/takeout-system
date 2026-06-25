@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>骑手导航</title>
+    <link rel="stylesheet" href="/rider/css/rider-navigation.css" />
+</head>
+<body>
+<div class="phone-shell">
+    <header class="nav-hero">
+        <button class="back-btn" onclick="history.back()">‹</button>
+        <div>
+            <h1>骑手导航</h1>
+            <p>接单后从商家位置出发，按最短距离推荐三条路线</p>
+        </div>
+        <button id="refreshBtn" class="ghost-btn">刷新</button>
+    </header>
+
+    <section class="summary-card">
+        <div class="tag">当前导航订单</div>
+        <h2 id="orderTitle">正在加载订单...</h2>
+        <p id="statusText">请稍候，系统正在读取商家和用户坐标</p>
+
+        <div class="point-grid">
+            <div>
+                <span>取餐起点</span>
+                <strong id="storeName">--</strong>
+                <p id="storeAddress">--</p>
+            </div>
+            <div>
+                <span>送达终点</span>
+                <strong id="receiverName">--</strong>
+                <p id="receiverAddress">--</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="map-card">
+        <div class="card-title">
+            <div>
+                <h3>高德地图路线</h3>
+                <p>自动规划候选线路，默认选择距离最短的一条</p>
+            </div>
+            <button id="openAppBtn" class="primary-mini">打开高德</button>
+        </div>
+
+        <div id="navMap" class="map-box">
+            <div class="map-loading">地图加载中...</div>
+        </div>
+    </section>
+
+    <section class="routes-card">
+        <div class="card-title compact">
+            <h3>推荐路线</h3>
+            <p>按距离从短到长排序</p>
+        </div>
+
+        <div id="routeCards" class="route-list">
+            <div class="empty">暂无路线，请确认高德 Key、商家坐标和用户坐标是否正确。</div>
+        </div>
+    </section>
+</div>
+
+<script src="/rider/js/rider-map-config.js"></script>
+<script src="/rider/js/rider-navigation.js"></script>
+</body>
+</html>

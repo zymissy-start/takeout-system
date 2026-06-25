@@ -429,7 +429,6 @@
             effectiveSpeed
         };
     }
-
     async function acceptOrder(orderId) {
         if (!orderId) {
             RiderApp.toast('订单编号为空，无法接单', 'error');
@@ -442,15 +441,15 @@
                 body: { orderId }
             });
 
-            RiderApp.toast('接单成功，已加入当前配送', 'success');
+            RiderApp.toast('接单成功，开始导航', 'success');
+
             setTimeout(() => {
-                location.href = '/rider/current.html';
+                location.href = '/rider/navigation.html?orderId=' + encodeURIComponent(orderId);
             }, 650);
         } catch (e) {
             RiderApp.toast(e.message || '接单失败：请确认订单未被接走且骑手等级满足要求', 'error');
         }
     }
-
     async function finishOrder(orderId) {
         try {
             await RiderApp.request('/rider/orders/finish', {

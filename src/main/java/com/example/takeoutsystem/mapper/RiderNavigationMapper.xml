@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.takeoutsystem.mapper.RiderNavigationMapper">
+
+    <resultMap id="RiderNavigationResultMap" type="com.example.takeoutsystem.entity.RiderNavigationVO">
+        <id property="orderId" column="orderId"/>
+        <result property="orderNo" column="orderNo"/>
+        <result property="orderStatus" column="orderStatus"/>
+        <result property="merchantId" column="merchantId"/>
+        <result property="riderId" column="riderId"/>
+
+        <result property="storeName" column="storeName"/>
+        <result property="storeAddress" column="storeAddress"/>
+        <result property="startLongitude" column="startLongitude"/>
+        <result property="startLatitude" column="startLatitude"/>
+
+        <result property="receiverName" column="receiverName"/>
+        <result property="receiverPhone" column="receiverPhone"/>
+        <result property="receiverAddress" column="receiverAddress"/>
+        <result property="endLongitude" column="endLongitude"/>
+        <result property="endLatitude" column="endLatitude"/>
+    </resultMap>
+
+    <sql id="NavigationSelectColumns">
+        SELECT
+        o.order_id AS orderId,
+        CONCAT('ORD', LPAD(o.order_id, 6, '0')) AS orderNo,
+        o.status AS orderStatus,
+        o.merchant_id AS merchantId,
+        o.rider_id AS riderId,
+
+        COALESCE(mi.store_name, su.real_name, su.username, '商家门店') AS storeName,
+        COALESCE(mi.store_address, mi.store_name, su.real_name, su.username, '商家位置') AS storeAddress,
+        mi.store_longitude AS startLongitude,
+        mi.store_latitude AS startLatitude,
+
+        COALESCE(o.receiver_name, '用户') AS receiverName,
+        COALESCE(o.receiver_phone, '') AS receiverPhone,
+        COALESCE(o.receiver_address, o.address, '用户收货地址') AS receiverAddress,
+        o.receiver_longitude AS endLongitude,
+        o.receiver_latitude AS endLatitude
+
+        FROM delivery_order o
+        LEFT JOIN merchant_info mi ON o.merchant_id = mi.merchant_id
+        LEFT JOIN sys_user su ON o.merchant_id = su.user_id
+    </sql>
+
+    <select id="selectByOrderId" resultMap="RiderNavigationResultMap">
+        <include refid="NavigationSelectColumns"/>
+        WHERE o.order_id = #{orderId}
+        LIMIT 1
+    </select>
+
+    <select id="selectActiveByRiderId" resultMap="RiderNavigationResultMap">
+        <include refid="NavigationSelectColumns"/>
+        WHERE o.status IN (2, 3)
+        AND (
+        o.rider_id = #{riderId}
+        OR o.rider_id IN (
+        SELECT ri.rider_id
+        FROM rider_info ri
+        WHERE ri.user_id = #{riderId}
+        )
+        )
+        ORDER BY
+        CASE WHEN o.status = 3 THEN 0 ELSE 1 END,
+        o.order_time DESC,
+        o.order_id DESC
+        LIMIT 1
+    </select>
+
+</mapper>

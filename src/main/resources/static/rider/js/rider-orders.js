@@ -218,9 +218,12 @@
                 method: 'POST',
                 body: { orderId }
             });
-            RiderApp.toast('接单成功，订单已进入“我的配送”', 'success');
-            switchTab('delivering');
-            await loadOrders();
+
+            RiderApp.toast('接单成功，开始导航', 'success');
+
+            setTimeout(() => {
+                location.href = '/rider/navigation.html?orderId=' + encodeURIComponent(orderId);
+            }, 650);
         } catch (e) {
             RiderApp.toast(e.message || '接单失败：订单可能已被接走、商家还未出餐，或骑手等级不足', 'error');
         }
