@@ -7,6 +7,8 @@ import com.example.takeoutsystem.service.MerchantShopService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+
 /**
  * 商家店铺信息业务实现。
  */
@@ -42,15 +44,18 @@ public class MerchantShopServiceImpl implements MerchantShopService {
             return null;
         }
 
-        String shopName = trim(form.getShopName());
+        String storeName = trim(form.getStoreName());
+        String storeLogo = trim(form.getStoreLogo());
+        String storeNotice = trim(form.getStoreNotice());
         String contactPhone = trim(form.getContactPhone());
-        String shopAddress = trim(form.getShopAddress());
-        String shopNotice = trim(form.getShopNotice());
-        String businessHours = trim(form.getBusinessHours());
-        String deliveryDescription = trim(form.getDeliveryDescription());
+
+        BigDecimal minOrderAmount = form.getMinOrderAmount();
+        BigDecimal deliveryFee = form.getDeliveryFee();
+        Integer deliveryTime = form.getDeliveryTime();
+        BigDecimal distanceKm = form.getDistanceKm();
         Integer businessStatus = form.getBusinessStatus();
 
-        if (shopName == null || shopName.isEmpty()) {
+        if (storeName == null || storeName.isEmpty()) {
             return null;
         }
 
@@ -58,8 +63,20 @@ public class MerchantShopServiceImpl implements MerchantShopService {
             return null;
         }
 
-        if (shopAddress == null || shopAddress.isEmpty()) {
-            return null;
+        if (minOrderAmount == null || minOrderAmount.compareTo(BigDecimal.ZERO) < 0) {
+            minOrderAmount = BigDecimal.ZERO;
+        }
+
+        if (deliveryFee == null || deliveryFee.compareTo(BigDecimal.ZERO) < 0) {
+            deliveryFee = new BigDecimal("3.00");
+        }
+
+        if (deliveryTime == null || deliveryTime <= 0) {
+            deliveryTime = 30;
+        }
+
+        if (distanceKm == null || distanceKm.compareTo(BigDecimal.ZERO) < 0) {
+            distanceKm = new BigDecimal("1.00");
         }
 
         if (businessStatus == null || (businessStatus != 0 && businessStatus != 1)) {
@@ -74,18 +91,19 @@ public class MerchantShopServiceImpl implements MerchantShopService {
 
         merchantShopMapper.updateShop(
                 merchantId,
-                shopName,
-                contactPhone == null ? "" : contactPhone,
-                shopAddress,
-                shopNotice == null ? "" : shopNotice,
-                businessHours == null || businessHours.isEmpty() ? "09:00-22:00" : businessHours,
-                deliveryDescription == null || deliveryDescription.isEmpty() ? "商家接单后会尽快出餐" : deliveryDescription,
+                storeName,
+                storeLogo == null ? "" : storeLogo,
+                storeNotice == null || storeNotice.isEmpty() ? "欢迎光临本店" : storeNotice,
+                minOrderAmount,
+                deliveryFee,
+                deliveryTime,
+                distanceKm,
                 businessStatus
         );
 
-        merchantShopMapper.updateSysUserMerchantName(
+        merchantShopMapper.updateSysUserMerchantInfo(
                 merchantId,
-                shopName,
+                storeName,
                 contactPhone == null ? "" : contactPhone
         );
 

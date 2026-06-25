@@ -6,7 +6,6 @@ import com.example.takeoutsystem.entity.MerchantOrderVO;
 import com.example.takeoutsystem.mapper.MerchantOrderMapper;
 import com.example.takeoutsystem.service.MerchantOrderService;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 /**
@@ -83,51 +82,35 @@ public class MerchantOrderServiceImpl implements MerchantOrderService {
      * 返回 true 表示数据库成功更新了一行记录。
      */
     @Override
-    @Transactional(rollbackFor = Exception.class)
     public boolean acceptOrder(Integer merchantId, Integer orderId) {
         if (orderId == null) {
             return false;
         }
-        int rows = merchantOrderMapper.acceptOrder(merchantId, orderId);
-        if (rows <= 0) {
-            return false;
-        }
-        merchantOrderMapper.handleMerchantReminders(merchantId, orderId);
-        merchantOrderMapper.insertStatusLog(merchantId, orderId, 1, "商家已接单", "商家确认接单，开始制作");
-        return true;
+
+        return merchantOrderMapper.acceptOrder(merchantId, orderId) > 0;
     }
 
     /**
      * 标记出餐完成。
      */
     @Override
-    @Transactional(rollbackFor = Exception.class)
     public boolean finishCooking(Integer merchantId, Integer orderId) {
         if (orderId == null) {
             return false;
         }
-        int rows = merchantOrderMapper.finishCooking(merchantId, orderId);
-        if (rows <= 0) {
-            return false;
-        }
-        merchantOrderMapper.handleMerchantReminders(merchantId, orderId);
-        merchantOrderMapper.insertStatusLog(merchantId, orderId, 2, "商家已出餐", "订单进入骑手接单池，等待匹配骑手");
-        return true;
+
+        return merchantOrderMapper.finishCooking(merchantId, orderId) > 0;
     }
 
     /**
      * 召唤骑手。
      */
     @Override
-    @Transactional(rollbackFor = Exception.class)
     public boolean callRider(Integer merchantId, Integer orderId) {
         if (orderId == null) {
             return false;
         }
-        if (merchantOrderMapper.countWaitRiderOrder(merchantId, orderId) <= 0) {
-            return false;
-        }
-        merchantOrderMapper.insertStatusLog(merchantId, orderId, 2, "商家已召唤骑手", "订单已在骑手接单池中，按用户等级匹配骑手");
-        return true;
+
+        return merchantOrderMapper.callRider(merchantId, orderId) > 0;
     }
 }

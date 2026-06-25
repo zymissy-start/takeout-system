@@ -14,7 +14,7 @@
                 <span class="avatar">店</span>
                 <div>
                     <h1>店铺信息</h1>
-                    <p>维护公告、地址、电话和营业状态</p>
+                    <p>维护店铺名称、公告、配送信息和营业状态</p>
                 </div>
             </div>
 
@@ -24,8 +24,8 @@
         <section class="hero-panel">
             <div>
                 <span class="badge">商家资料</span>
-                <h2>让用户和骑手看到准确的店铺信息</h2>
-                <p>店铺名称、电话、地址会同步用于订单小票和商家展示。</p>
+                <h2>让用户看到准确的店铺信息</h2>
+                <p>当前 merchant_info 表没有地址字段，联系电话保存到 sys_user.phone。</p>
             </div>
             <div class="hero-icon">🏪</div>
         </section>
@@ -37,7 +37,7 @@
         <div class="section-title">
             <div>
                 <h2>基础资料</h2>
-                <p>保存后会同步更新商家账号名称和联系电话</p>
+                <p>店铺名称会同步更新商家账号名称，联系电话会同步更新商家账号手机号。</p>
             </div>
         </div>
 
@@ -46,16 +46,13 @@
             <input id="usernameInput" disabled>
 
             <label>店铺名称</label>
-            <input id="shopNameInput" name="shopName" placeholder="请输入店铺名称">
+            <input id="storeNameInput" name="storeName" placeholder="请输入店铺名称">
 
             <label>联系电话</label>
             <input id="contactPhoneInput" name="contactPhone" placeholder="请输入手机号">
 
-            <label>店铺地址</label>
-            <input id="shopAddressInput" name="shopAddress" placeholder="请输入店铺地址">
-
-            <label>营业时间</label>
-            <input id="businessHoursInput" name="businessHours" placeholder="例如：09:00-22:00">
+            <label>店铺Logo地址</label>
+            <input id="storeLogoInput" name="storeLogo" placeholder="请输入Logo图片地址，可为空">
 
             <label>营业状态</label>
             <select id="businessStatusInput" name="businessStatus">
@@ -63,11 +60,32 @@
                 <option value="0">休息中</option>
             </select>
 
-            <label>店铺公告</label>
-            <textarea id="shopNoticeInput" name="shopNotice" placeholder="请输入店铺公告"></textarea>
+            <label>起送价</label>
+            <input id="minOrderAmountInput" name="minOrderAmount" type="number" step="0.01" min="0" placeholder="例如：0.00">
 
-            <label>配送说明</label>
-            <textarea id="deliveryDescriptionInput" name="deliveryDescription" placeholder="请输入配送说明"></textarea>
+            <label>配送费</label>
+            <input id="deliveryFeeInput" name="deliveryFee" type="number" step="0.01" min="0" placeholder="例如：3.00">
+
+            <label>预计配送时间，单位：分钟</label>
+            <input id="deliveryTimeInput" name="deliveryTime" type="number" min="1" placeholder="例如：30">
+
+            <label>距离，单位：公里</label>
+            <input id="distanceKmInput" name="distanceKm" type="number" step="0.01" min="0" placeholder="例如：1.00">
+
+            <label>店铺公告</label>
+            <textarea id="storeNoticeInput" name="storeNotice" placeholder="请输入店铺公告"></textarea>
+
+            <div class="shop-readonly-grid">
+                <div>
+                    <span>店铺评分</span>
+                    <b id="ratingText">5.0</b>
+                </div>
+
+                <div>
+                    <span>月售数量</span>
+                    <b id="monthlySalesText">0</b>
+                </div>
+            </div>
 
             <button class="ghost-btn main" type="submit">保存店铺信息</button>
         </form>
@@ -110,6 +128,36 @@
         border-color: #ffd100;
         background: #fff;
         box-shadow: 0 0 0 4px rgba(255, 209, 0, .15);
+    }
+
+    .shop-readonly-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+    }
+
+    .shop-readonly-grid div {
+        padding: 14px;
+        border-radius: 18px;
+        background: #f8fafc;
+    }
+
+    .shop-readonly-grid span {
+        display: block;
+        color: #64748b;
+        font-size: 13px;
+    }
+
+    .shop-readonly-grid b {
+        display: block;
+        margin-top: 6px;
+        font-size: 22px;
+    }
+
+    @media (max-width: 720px) {
+        .shop-readonly-grid {
+            grid-template-columns: 1fr;
+        }
     }
 </style>
 

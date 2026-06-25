@@ -18,9 +18,9 @@ public interface MerchantOrderPrintMapper {
             SELECT
                 o.order_id AS orderId,
                 u.real_name AS userName,
-                IFNULL(mi.shop_name, m.real_name) AS merchantName,
-                IFNULL(mi.contact_phone, m.phone) AS merchantPhone,
-                mi.shop_address AS merchantAddress,
+                IFNULL(mi.store_name, m.real_name) AS merchantName,
+                m.phone AS merchantPhone,
+                NULL AS merchantAddress,
                 CASE o.status
                     WHEN 0 THEN '待商家接单'
                     WHEN 1 THEN '制作中'

@@ -20,18 +20,7 @@ CREATE TABLE sys_user (
     create_time DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '注册时间'
 );
 
-CREATE TABLE IF NOT EXISTS merchant_info (
-                                             merchant_id INT PRIMARY KEY COMMENT '商家ID，对应 sys_user.user_id',
-                                             shop_name VARCHAR(100) NOT NULL COMMENT '店铺名称',
-                                             contact_phone VARCHAR(20) COMMENT '商家联系电话',
-                                             shop_address VARCHAR(255) COMMENT '店铺地址',
-                                             shop_notice VARCHAR(255) COMMENT '店铺公告',
-                                             business_hours VARCHAR(100) DEFAULT '09:00-22:00' COMMENT '营业时间',
-                                             delivery_description VARCHAR(255) DEFAULT '商家接单后会尽快出餐' COMMENT '配送说明',
-                                             business_status TINYINT DEFAULT 1 COMMENT '营业状态：1-营业中，0-休息中',
-                                             update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-                                             FOREIGN KEY (merchant_id) REFERENCES sys_user(user_id)
-);
+
 -- 2. 商品分类表（食品、饮品、跑腿生活用品）
 CREATE TABLE product_category (
     category_id INT AUTO_INCREMENT PRIMARY KEY,
@@ -103,29 +92,6 @@ INSERT INTO sys_user (username, password, real_name, role_type, credit_score) VA
 ('zhangsan', '123456', '张三', 1, 10),
 ('burger_king', '123456', '汉堡王商家', 2, 0),
 ('rider_knight', '123456', '极速骑手', 3, 0);
-
-INSERT IGNORE INTO merchant_info (
-    merchant_id,
-    shop_name,
-    contact_phone,
-    shop_address,
-    shop_notice,
-    business_hours,
-    delivery_description,
-    business_status
-)
-SELECT
-    user_id,
-    real_name,
-    IFNULL(phone, '未绑定手机号'),
-    '西苑校区商业街一楼',
-    '今日汉堡套餐热卖中，欢迎下单',
-    '09:00-22:00',
-    '商家接单后会尽快出餐',
-    1
-FROM sys_user
-WHERE username = 'burger_king'
-  AND role_type = 2;
 
 -- 插入骑手详细信息
 INSERT INTO rider_info (user_id, is_full_time, status, avg_speed) VALUES 
