@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.takeoutsystem.mapper.UserCouponMapper">
+
+    <update id="expireUserCoupons">
+        UPDATE user_coupon uc
+            INNER JOIN coupon c ON uc.coupon_id = c.coupon_id
+            SET uc.status = 2
+        WHERE uc.user_id = #{userId}
+          AND uc.status = 0
+          AND c.end_time &lt; NOW()
+    </update>
+
+    <select id="selectCouponCenter" resultType="com.example.takeoutsystem.entity.UserCouponVO">
+        SELECT
+            c.coupon_id AS couponId,
+            c.title,
+            c.amount,
+            c.min_amount AS minAmount,
+            c.start_time AS startTime,
+            c.end_time AS endTime,
+            c.status,
+            COALESCE(c.total_stock, 0) AS totalStock,
+            COALESCE(c.remaining_stock, 0) AS remainingStock,
+            COALESCE(c.receive_count, 0) AS receiveCount,
+            COALESCE(c.per_user_limit, 1) AS perUserLimit,
+            CASE WHEN uc.user_coupon_id IS NULL THEN 0 ELSE 1 END AS received,
+            uc.user_coupon_id AS userCouponId,
+            uc.status AS userCouponStatus,
+            uc.receive_time AS receiveTime,
+            CASE WHEN c.status = 1
+                AND NOW() BETWEEN c.start_time AND c.end_time
+                AND COALESCE(c.remaining_stock, 0) &gt; 0
+                AND uc.user_coupon_id IS NULL
+                     THEN 1 ELSE 0 END AS available
+        FROM coupon c
+                 LEFT JOIN user_coupon uc ON c.coupon_id = uc.coupon_id AND uc.user_id = #{userId}
+        WHERE c.status &lt;&gt; 0
+        ORDER BY available DESC, c.end_time ASC, c.coupon_id DESC
+    </select>
+
+    <select id="selectMyCoupons" resultType="com.example.takeoutsystem.entity.UserCouponVO">
+        SELECT
+        c.coupon_id AS couponId,
+        c.title,
+        c.amount,
+        c.min_amount AS minAmount,
+        c.start_time AS startTime,
+        c.end_time AS endTime,
+        c.status,
+        COALESCE(c.total_stock, 0) AS totalStock,
+        COALESCE(c.remaining_stock, 0) AS remainingStock,
+        COALESCE(c.receive_count, 0) AS receiveCount,
+        COALESCE(c.per_user_limit, 1) AS perUserLimit,
+        1 AS received,
+        uc.user_coupon_id AS userCouponId,
+        uc.status AS userCouponStatus,
+        uc.order_id AS orderId,
+        uc.receive_time AS receiveTime,
+        uc.use_time AS useTime,
+        CASE WHEN uc.status = 0
+        AND c.status = 1
+        AND NOW() BETWEEN c.start_time AND c.end_time
+        THEN 1 ELSE 0 END AS available
+        FROM user_coupon uc
+        INNER JOIN coupon c ON uc.coupon_id = c.coupon_id
+        WHERE uc.user_id = #{userId}
+        <if test="status != null">
+            AND uc.status = #{status}
+        </if>
+        ORDER BY uc.status ASC, c.end_time ASC, uc.receive_time DESC
+    </select>
+
+    <select id="selectCouponForReceive" resultType="com.example.takeoutsystem.entity.UserCouponVO">
+        SELECT
+            coupon_id AS couponId,
+            title,
+            amount,
+            min_amount AS minAmount,
+            start_time AS startTime,
+            end_time AS endTime,
+            status,
+            COALESCE(total_stock, 0) AS totalStock,
+            COALESCE(remaining_stock, 0) AS remainingStock,
+            COALESCE(receive_count, 0) AS receiveCount,
+            COALESCE(per_user_limit, 1) AS perUserLimit
+        FROM coupon
+        WHERE coupon_id = #{couponId}
+    </select>
+
+    <select id="countUserReceivedCoupon" resultType="int">
+        SELECT COUNT(1)
+        FROM user_coupon
+        WHERE user_id = #{userId}
+          AND coupon_id = #{couponId}
+    </select>
+
+    <update id="decreaseCouponStock">
+        UPDATE coupon
+        SET remaining_stock = remaining_stock - 1,
+            receive_count = COALESCE(receive_count, 0) + 1,
+            update_time = CURRENT_TIMESTAMP
+        WHERE coupon_id = #{couponId}
+          AND status = 1
+          AND start_time &lt;= NOW()
+          AND end_time &gt;= NOW()
+          AND remaining_stock &gt; 0
+    </update>
+
+    <insert id="insertUserCoupon">
+        INSERT INTO user_coupon(user_id, coupon_id, status, receive_time)
+        VALUES(#{userId}, #{couponId}, 0, CURRENT_TIMESTAMP)
+    </insert>
+
+</mapper>

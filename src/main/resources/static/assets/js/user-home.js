@@ -13,7 +13,8 @@
     products: [],
     addresses: [],
     deliveryFee: 3.00,
-    level: null
+    level: null,
+    favoriteMerchantIds: new Set()
   };
 
   const foodEmoji = ['🍔', '🍗', '🍜', '🥤', '🍱', '🍕', '🥟', '🧋'];
@@ -25,9 +26,39 @@
   async function init() {
     bindEvents();
     await initUser();
-    await Promise.all([loadLevel(), loadCategories(), loadAddresses()]);
+    await Promise.all([loadLevel(), loadCategories(), loadAddresses(), loadFavoriteMerchantIds()]);
     await loadMerchants(true);
+    openMerchantFromProfile();
     renderCart();
+  }
+
+  function openMerchantFromProfile() {
+    try {
+      const raw = localStorage.getItem('openMerchant');
+      if (!raw) return;
+
+      localStorage.removeItem('openMerchant');
+
+      const merchant = JSON.parse(raw);
+      const id = App.getField(merchant, ['merchantId', 'merchant_id', 'id'], null);
+
+      if (!id) return;
+
+      state.selectedMerchant = merchant;
+      state.mode = 'products';
+      loadProducts(true);
+    } catch (e) {
+      // 忽略非法缓存
+    }
+  }
+
+  async function loadFavoriteMerchantIds() {
+    try {
+      const ids = await App.request('/api/user/favorites?type=merchant&idsOnly=true');
+      state.favoriteMerchantIds = new Set((Array.isArray(ids) ? ids : []).map(id => String(id)));
+    } catch (e) {
+      state.favoriteMerchantIds = new Set();
+    }
   }
 
   function bindEvents() {
@@ -170,16 +201,76 @@
             <div class="product-meta"><span>⭐ ${rating}</span><span>月售 ${sales}</span><span>${distance}km · ${deliveryTime}分钟</span></div>
             <div class="product-meta"><span>${productCount} 个商品</span><span>起送 ${App.formatMoney(minOrder)}</span><span>配送费 ${App.formatMoney(deliveryFee)}</span></div>
             ${topProducts ? `<div class="store-products-line">热卖：${App.escapeHtml(String(topProducts).split('、').slice(0, 3).join('、'))}</div>` : ''}
-            <div class="price-line"><span class="muted small">点击进入商店查看商品</span><button class="ghost-btn enter-store-btn" data-id="${MerchantSafe(merchantId)}" ${open ? '' : 'disabled'}>进店</button></div>
+            <div class="price-line store-action-line">
+                <button class="favorite-store-btn ${state.favoriteMerchantIds.has(String(merchantId)) ? 'active' : ''}" data-id="${MerchantSafe(merchantId)}" type="button">
+                    ${state.favoriteMerchantIds.has(String(merchantId)) ? '★ 已收藏' : '☆ 收藏'}
+                </button>
+                <button class="ghost-btn enter-store-btn" data-id="${MerchantSafe(merchantId)}" ${open ? '' : 'disabled'}>进店</button>
+            </div>
           </div>
         </article>`;
     }).join('');
-    box.querySelectorAll('.store-card, .enter-store-btn').forEach(el => el.addEventListener('click', e => {
-      const id = e.currentTarget.dataset.id || e.currentTarget.closest('.store-card')?.dataset.id;
-      const merchant = state.merchants.find(item => String(App.getField(item, ['merchantId', 'merchant_id', 'id'], '')) === String(id));
+    box.querySelectorAll('.store-card').forEach(el => el.addEventListener('click', e => {
+      if (e.target.closest('button')) return;
+
+      const id = e.currentTarget.dataset.id;
+      const merchant = state.merchants.find(item =>
+          String(App.getField(item, ['merchantId', 'merchant_id', 'id'], '')) === String(id)
+      );
+
       if (merchant) enterMerchant(merchant);
     }));
+
+    box.querySelectorAll('.enter-store-btn').forEach(el => el.addEventListener('click', e => {
+      e.stopPropagation();
+
+      const id = e.currentTarget.dataset.id;
+      const merchant = state.merchants.find(item =>
+          String(App.getField(item, ['merchantId', 'merchant_id', 'id'], '')) === String(id)
+      );
+
+      if (merchant) enterMerchant(merchant);
+    }));
+
+    box.querySelectorAll('.favorite-store-btn').forEach(el => {
+      el.addEventListener('click', toggleFavoriteMerchant);
+    });
     App.$('#loadMoreBtn').classList.toggle('hidden', !state.hasMore);
+  }
+
+  async function toggleFavoriteMerchant(event) {
+    event.stopPropagation();
+
+    const btn = event.currentTarget;
+    const merchantId = btn.dataset.id;
+
+    if (!merchantId) return;
+
+    try {
+      btn.disabled = true;
+
+      const result = await App.request(
+          `/api/user/favorites/merchants/${encodeURIComponent(merchantId)}/toggle`,
+          { method: 'POST' }
+      );
+
+      const favorite = Boolean(App.getField(result, ['favorite'], false));
+
+      if (favorite) {
+        state.favoriteMerchantIds.add(String(merchantId));
+      } else {
+        state.favoriteMerchantIds.delete(String(merchantId));
+      }
+
+      btn.classList.toggle('active', favorite);
+      btn.textContent = favorite ? '★ 已收藏' : '☆ 收藏';
+
+      App.toast(App.getField(result, ['message'], favorite ? '收藏成功' : '已取消收藏'));
+    } catch (e) {
+      App.toast(e.message || '收藏操作失败');
+    } finally {
+      btn.disabled = false;
+    }
   }
 
   function MerchantSafe(value) { return App.escapeHtml(value); }

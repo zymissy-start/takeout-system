@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.takeoutsystem.mapper.UserFavoriteMapper">
+
+    <select id="existsMerchant" resultType="int">
+        SELECT COUNT(1)
+        FROM sys_user su
+                 LEFT JOIN merchant_info mi ON su.user_id = mi.merchant_id
+        WHERE su.user_id = #{merchantId}
+          AND su.role_type = 2
+          AND COALESCE(mi.status, 1) = 1
+    </select>
+
+    <insert id="insertMerchantFavorite">
+        INSERT IGNORE INTO user_favorite(user_id, target_type, target_id, create_time)
+        VALUES(#{userId}, 2, #{merchantId}, CURRENT_TIMESTAMP)
+    </insert>
+
+    <delete id="deleteMerchantFavorite">
+        DELETE FROM user_favorite
+        WHERE user_id = #{userId}
+          AND target_type = 2
+          AND target_id = #{merchantId}
+    </delete>
+
+    <select id="countMerchantFavorite" resultType="int">
+        SELECT COUNT(1)
+        FROM user_favorite
+        WHERE user_id = #{userId}
+          AND target_type = 2
+          AND target_id = #{merchantId}
+    </select>
+
+    <select id="selectFavoriteMerchantIds" resultType="int">
+        SELECT target_id
+        FROM user_favorite
+        WHERE user_id = #{userId}
+          AND target_type = 2
+        ORDER BY create_time DESC, favorite_id DESC
+    </select>
+
+    <sql id="favoriteMerchantSelect">
+        SELECT
+            f.favorite_id AS favoriteId,
+            su.user_id AS merchantId,
+            COALESCE(mi.store_name, su.real_name, su.username) AS storeName,
+            mi.store_logo AS storeLogo,
+            COALESCE(mi.store_notice, '欢迎光临本店') AS storeNotice,
+            COALESCE(mi.rating, 5.0) AS rating,
+            COALESCE(mi.monthly_sales, SUM(COALESCE(p.monthly_sales, p.order_count, 0)), 0) AS monthlySales,
+            COALESCE(mi.min_order_amount, 0.00) AS minOrderAmount,
+            COALESCE(mi.delivery_fee, 3.00) AS deliveryFee,
+            COALESCE(mi.delivery_time, 30) AS deliveryTime,
+            COALESCE(mi.distance_km, 1.00) AS distanceKm,
+            COALESCE(mi.status, 1) AS status,
+            f.create_time AS createTime
+        FROM user_favorite f
+                 INNER JOIN sys_user su ON f.target_id = su.user_id AND su.role_type = 2
+                 LEFT JOIN merchant_info mi ON su.user_id = mi.merchant_id
+                 LEFT JOIN product p ON su.user_id = p.merchant_id AND p.status = 1
+    </sql>
+
+    <select id="selectMerchantFavorites" resultType="com.example.takeoutsystem.entity.UserFavoriteMerchantVO">
+        <include refid="favoriteMerchantSelect" />
+        WHERE f.user_id = #{userId}
+        AND f.target_type = 2
+        GROUP BY f.favorite_id, su.user_id, su.real_name, su.username, mi.store_name, mi.store_logo,
+        mi.store_notice, mi.rating, mi.monthly_sales, mi.min_order_amount, mi.delivery_fee,
+        mi.delivery_time, mi.distance_km, mi.status, f.create_time
+        ORDER BY f.create_time DESC, f.favorite_id DESC
+        LIMIT #{offset}, #{size}
+    </select>
+
+    <select id="countMerchantFavorites" resultType="int">
+        SELECT COUNT(1)
+        FROM user_favorite f
+                 INNER JOIN sys_user su ON f.target_id = su.user_id AND su.role_type = 2
+        WHERE f.user_id = #{userId}
+          AND f.target_type = 2
+    </select>
+
+</mapper>
