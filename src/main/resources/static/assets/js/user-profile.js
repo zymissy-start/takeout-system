@@ -1,5 +1,13 @@
 (function () {
-  const state = { addresses: [], editingId: null, picked: null, levelDetails: null };
+  const state = {
+    addresses: [],
+    editingId: null,
+    picked: null,
+    levelDetails: null,
+    favorites: [],
+    coupons: [],
+    couponTab: 'center'
+  };
   document.addEventListener('DOMContentLoaded', init);
   window.addEventListener('message', handleMapMessage);
   window.addEventListener('storage', handleStoragePick);
@@ -17,8 +25,14 @@
     App.$('#geoLocationBtn').addEventListener('click', locateByBrowser);
     App.$('#mapPickBtn').addEventListener('click', openMapPicker);
     App.$('#logoutBtn').addEventListener('click', logout);
-    App.$('#favoriteBtn').addEventListener('click', () => App.toast('收藏页接口预留：/api/user/favorites'));
-    App.$('#couponBtn').addEventListener('click', () => App.toast('优惠券接口预留：/api/user/coupons'));
+    App.$('#favoriteBtn').addEventListener('click', openFavorites);
+    App.$('#couponBtn').addEventListener('click', openCoupons);
+    App.$('#closeFavoriteBtn').addEventListener('click', closeFavorites);
+    App.$('#closeCouponBtn').addEventListener('click', closeCoupons);
+
+    App.$all('[data-coupon-tab]').forEach(btn => {
+      btn.addEventListener('click', () => switchCouponTab(btn.dataset.couponTab));
+    });
     App.$('#levelDetailBtn').addEventListener('click', openLevelDetail);
     App.$('#closeLevelDetailBtn').addEventListener('click', closeLevelDetail);
   }
@@ -290,6 +304,207 @@
     }
   }
 
+  async function openFavorites() {
+    App.$('#favoriteMask').classList.remove('hidden');
+    App.$('#favoriteList').innerHTML = '正在加载收藏...';
+
+    try {
+      const data = await App.request('/api/user/favorites?type=merchant&page=1&size=50');
+      state.favorites = Array.isArray(data) ? data : (data.records || data.list || data.rows || []);
+      renderFavorites();
+    } catch (e) {
+      App.$('#favoriteList').innerHTML = `<div class="empty-state">${App.escapeHtml(e.message || '收藏加载失败')}</div>`;
+    }
+  }
+
+  function closeFavorites() {
+    App.$('#favoriteMask').classList.add('hidden');
+  }
+
+  function renderFavorites() {
+    const box = App.$('#favoriteList');
+
+    if (!state.favorites.length) {
+      box.innerHTML = `<div class="empty-state">暂无收藏商家。可以到首页点击商家卡片上的“收藏”。</div>`;
+      return;
+    }
+
+    box.innerHTML = state.favorites.map(item => {
+      const merchantId = App.getField(item, ['merchantId', 'merchant_id'], '');
+      const name = App.getField(item, ['storeName', 'store_name'], '商家');
+      const notice = App.getField(item, ['storeNotice', 'store_notice'], '欢迎光临本店');
+      const rating = App.getField(item, ['rating'], 5);
+      const sales = App.getField(item, ['monthlySales', 'monthly_sales'], 0);
+      const deliveryFee = App.getField(item, ['deliveryFee', 'delivery_fee'], 3);
+      const deliveryTime = App.getField(item, ['deliveryTime', 'delivery_time'], 30);
+      const open = Number(App.getField(item, ['status'], 1)) === 1;
+
+      return `<article class="favorite-card" data-id="${App.escapeHtml(merchantId)}">
+      <div>
+        <h4>${App.escapeHtml(name)} ${open ? '<span class="tag-pill">营业中</span>' : '<span class="tag-pill muted-pill">休息中</span>'}</h4>
+        <p>${App.escapeHtml(notice)}</p>
+        <div class="product-meta">
+          <span>⭐ ${rating}</span>
+          <span>月售 ${sales}</span>
+          <span>${deliveryTime}分钟</span>
+          <span>配送费 ${App.formatMoney(deliveryFee)}</span>
+        </div>
+      </div>
+      <div class="favorite-actions">
+        <button class="ghost-btn go-store-btn" data-id="${App.escapeHtml(merchantId)}" type="button">去看看</button>
+        <button class="ghost-btn danger" data-id="${App.escapeHtml(merchantId)}" data-action="unfavorite" type="button">取消收藏</button>
+      </div>
+    </article>`;
+    }).join('');
+
+    box.querySelectorAll('.go-store-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const merchant = state.favorites.find(item =>
+            String(App.getField(item, ['merchantId', 'merchant_id'], '')) === String(btn.dataset.id)
+        );
+
+        localStorage.setItem('openMerchant', JSON.stringify(merchant || { merchantId: btn.dataset.id }));
+        location.href = '/user/index.html';
+      });
+    });
+
+    box.querySelectorAll('button[data-action="unfavorite"]').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        if (!confirm('确定取消收藏该商家吗？')) return;
+
+        try {
+          await App.request(`/api/user/favorites/merchants/${encodeURIComponent(btn.dataset.id)}`, {
+            method: 'DELETE'
+          });
+
+          App.toast('已取消收藏');
+
+          state.favorites = state.favorites.filter(item =>
+              String(App.getField(item, ['merchantId', 'merchant_id'], '')) !== String(btn.dataset.id)
+          );
+
+          renderFavorites();
+        } catch (e) {
+          App.toast(e.message || '操作失败');
+        }
+      });
+    });
+  }
+
+  async function openCoupons() {
+    App.$('#couponMask').classList.remove('hidden');
+    await loadCoupons();
+  }
+
+  function closeCoupons() {
+    App.$('#couponMask').classList.add('hidden');
+  }
+
+  async function switchCouponTab(tab) {
+    state.couponTab = tab || 'center';
+
+    App.$all('[data-coupon-tab]').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.couponTab === state.couponTab);
+    });
+
+    await loadCoupons();
+  }
+
+  async function loadCoupons() {
+    const box = App.$('#couponList');
+    box.innerHTML = '正在加载优惠券...';
+
+    try {
+      const url = state.couponTab === 'mine'
+          ? '/api/user/coupons/my'
+          : '/api/user/coupons';
+
+      const list = await App.request(url);
+
+      state.coupons = Array.isArray(list) ? list : [];
+
+      renderCoupons();
+      loadStats();
+    } catch (e) {
+      box.innerHTML = `<div class="empty-state">${App.escapeHtml(e.message || '优惠券加载失败')}</div>`;
+    }
+  }
+
+  function renderCoupons() {
+    const box = App.$('#couponList');
+
+    if (!state.coupons.length) {
+      box.innerHTML = `<div class="empty-state">${state.couponTab === 'mine' ? '暂无已领取优惠券。' : '暂无可领取优惠券。'}</div>`;
+      return;
+    }
+
+    box.innerHTML = state.coupons.map(c => {
+      const couponId = App.getField(c, ['couponId', 'coupon_id'], '');
+      const title = App.getField(c, ['title'], '优惠券');
+      const amount = Number(App.getField(c, ['amount'], 0));
+      const minAmount = Number(App.getField(c, ['minAmount', 'min_amount'], 0));
+      const remaining = App.getField(c, ['remainingStock', 'remaining_stock'], 0);
+      const received = Number(App.getField(c, ['received'], 0)) === 1;
+      const available = Number(App.getField(c, ['available'], 0)) === 1;
+      const userStatus = Number(App.getField(c, ['userCouponStatus', 'user_coupon_status'], 0));
+
+      const statusText = state.couponTab === 'mine'
+          ? (userStatus === 0 ? '未使用' : userStatus === 1 ? '已使用' : '已过期')
+          : (received ? '已领取' : available ? '立即领取' : '不可领取');
+
+      const timeText = formatDate(App.getField(c, ['endTime', 'end_time'], ''));
+
+      return `<article class="coupon-card ${available ? '' : 'disabled'}">
+      <div class="coupon-amount">
+        <b>￥${amount.toFixed(0)}</b>
+        <span>满${minAmount.toFixed(0)}可用</span>
+      </div>
+      <div class="coupon-info">
+        <h4>${App.escapeHtml(title)}</h4>
+        <p>有效期至：${App.escapeHtml(timeText || '长期')}</p>
+        <p>剩余库存：${App.escapeHtml(remaining)}</p>
+      </div>
+      ${state.couponTab === 'center'
+          ? `<button class="primary-btn receive-coupon-btn" data-id="${App.escapeHtml(couponId)}" ${available ? '' : 'disabled'} type="button">${statusText}</button>`
+          : `<span class="coupon-status">${statusText}</span>`}
+    </article>`;
+    }).join('');
+
+    box.querySelectorAll('.receive-coupon-btn').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        try {
+          btn.disabled = true;
+
+          await App.request(`/api/user/coupons/${encodeURIComponent(btn.dataset.id)}/receive`, {
+            method: 'POST'
+          });
+
+          App.toast('领取成功');
+          await loadCoupons();
+        } catch (e) {
+          App.toast(e.message || '领取失败');
+          btn.disabled = false;
+        }
+      });
+    });
+  }
+
+  function formatDate(value) {
+    if (!value) return '';
+
+    const d = new Date(value);
+
+    if (Number.isNaN(d.getTime())) {
+      return String(value).replace('T', ' ').slice(0, 19);
+    }
+
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+
+    return `${y}-${m}-${day}`;
+  }
+
   function logout() {
     if (!confirm('确认退出登录吗？')) return;
     localStorage.removeItem('token');
@@ -299,3 +514,4 @@
     location.href = '/login.html';
   }
 })();
+

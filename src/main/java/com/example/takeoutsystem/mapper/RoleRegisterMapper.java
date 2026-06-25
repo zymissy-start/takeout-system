@@ -43,29 +43,31 @@ public interface RoleRegisterMapper {
     @Insert("""
             INSERT INTO merchant_info (
                 merchant_id,
-                shop_name,
-                contact_phone,
-                shop_address,
-                shop_notice,
-                business_hours,
-                delivery_description,
-                business_status
+                store_name,
+                store_logo,
+                store_notice,
+                rating,
+                monthly_sales,
+                min_order_amount,
+                delivery_fee,
+                delivery_time,
+                distance_km,
+                status
             ) VALUES (
                 #{merchantId},
-                #{shopName},
-                #{contactPhone},
-                #{shopAddress},
-                #{shopNotice},
-                #{businessHours},
-                #{deliveryDescription},
+                #{storeName},
+                NULL,
+                #{storeNotice},
+                5.0,
+                0,
+                0.00,
+                3.00,
+                30,
+                1.00,
                 1
             )
             """)
     int insertMerchantInfo(@Param("merchantId") Integer merchantId,
-                           @Param("shopName") String shopName,
-                           @Param("contactPhone") String contactPhone,
-                           @Param("shopAddress") String shopAddress,
-                           @Param("shopNotice") String shopNotice,
-                           @Param("businessHours") String businessHours,
-                           @Param("deliveryDescription") String deliveryDescription);
+                           @Param("storeName") String storeName,
+                           @Param("storeNotice") String storeNotice);
 }

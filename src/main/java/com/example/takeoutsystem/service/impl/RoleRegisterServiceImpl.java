@@ -57,11 +57,7 @@ public class RoleRegisterServiceImpl implements RoleRegisterService {
         roleRegisterMapper.insertMerchantInfo(
                 merchant.getUserId(),
                 shopName,
-                trim(form.getPhone()),
-                shopAddress,
-                shopNotice == null || shopNotice.isEmpty() ? "欢迎光临本店" : shopNotice,
-                businessHours == null || businessHours.isEmpty() ? "09:00-22:00" : businessHours,
-                deliveryDescription == null || deliveryDescription.isEmpty() ? "商家接单后会尽快出餐" : deliveryDescription
+                shopNotice == null || shopNotice.isEmpty() ? "欢迎光临本店" : shopNotice
         );
 
         merchant.setPassword(null);

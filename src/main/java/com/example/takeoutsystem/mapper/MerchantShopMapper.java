@@ -3,6 +3,8 @@ package com.example.takeoutsystem.mapper;
 import com.example.takeoutsystem.entity.MerchantShopInfo;
 import org.apache.ibatis.annotations.*;
 
+import java.math.BigDecimal;
+
 /**
  * 商家店铺信息 Mapper。
  */
@@ -13,13 +15,17 @@ public interface MerchantShopMapper {
             SELECT
                 mi.merchant_id AS merchantId,
                 u.username AS username,
-                mi.shop_name AS shopName,
-                mi.contact_phone AS contactPhone,
-                mi.shop_address AS shopAddress,
-                mi.shop_notice AS shopNotice,
-                mi.business_hours AS businessHours,
-                mi.delivery_description AS deliveryDescription,
-                mi.business_status AS businessStatus,
+                mi.store_name AS storeName,
+                mi.store_logo AS storeLogo,
+                mi.store_notice AS storeNotice,
+                mi.rating AS rating,
+                mi.monthly_sales AS monthlySales,
+                mi.min_order_amount AS minOrderAmount,
+                mi.delivery_fee AS deliveryFee,
+                mi.delivery_time AS deliveryTime,
+                mi.distance_km AS distanceKm,
+                mi.status AS businessStatus,
+                u.phone AS contactPhone,
                 u.status AS accountStatus
             FROM merchant_info mi
             INNER JOIN sys_user u ON mi.merchant_id = u.user_id
@@ -31,22 +37,28 @@ public interface MerchantShopMapper {
     @Insert("""
             INSERT INTO merchant_info (
                 merchant_id,
-                shop_name,
-                contact_phone,
-                shop_address,
-                shop_notice,
-                business_hours,
-                delivery_description,
-                business_status
+                store_name,
+                store_logo,
+                store_notice,
+                rating,
+                monthly_sales,
+                min_order_amount,
+                delivery_fee,
+                delivery_time,
+                distance_km,
+                status
             )
             SELECT
                 user_id,
                 real_name,
-                IFNULL(phone, '未绑定手机号'),
-                '未设置店铺地址',
+                NULL,
                 '欢迎光临本店',
-                '09:00-22:00',
-                '商家接单后会尽快出餐',
+                5.0,
+                0,
+                0.00,
+                3.00,
+                30,
+                1.00,
                 1
             FROM sys_user
             WHERE user_id = #{merchantId}
@@ -56,32 +68,34 @@ public interface MerchantShopMapper {
 
     @Update("""
             UPDATE merchant_info
-            SET shop_name = #{shopName},
-                contact_phone = #{contactPhone},
-                shop_address = #{shopAddress},
-                shop_notice = #{shopNotice},
-                business_hours = #{businessHours},
-                delivery_description = #{deliveryDescription},
-                business_status = #{businessStatus}
+            SET store_name = #{storeName},
+                store_logo = #{storeLogo},
+                store_notice = #{storeNotice},
+                min_order_amount = #{minOrderAmount},
+                delivery_fee = #{deliveryFee},
+                delivery_time = #{deliveryTime},
+                distance_km = #{distanceKm},
+                status = #{businessStatus}
             WHERE merchant_id = #{merchantId}
             """)
     int updateShop(@Param("merchantId") Integer merchantId,
-                   @Param("shopName") String shopName,
-                   @Param("contactPhone") String contactPhone,
-                   @Param("shopAddress") String shopAddress,
-                   @Param("shopNotice") String shopNotice,
-                   @Param("businessHours") String businessHours,
-                   @Param("deliveryDescription") String deliveryDescription,
+                   @Param("storeName") String storeName,
+                   @Param("storeLogo") String storeLogo,
+                   @Param("storeNotice") String storeNotice,
+                   @Param("minOrderAmount") BigDecimal minOrderAmount,
+                   @Param("deliveryFee") BigDecimal deliveryFee,
+                   @Param("deliveryTime") Integer deliveryTime,
+                   @Param("distanceKm") BigDecimal distanceKm,
                    @Param("businessStatus") Integer businessStatus);
 
     @Update("""
             UPDATE sys_user
-            SET real_name = #{shopName},
+            SET real_name = #{storeName},
                 phone = #{contactPhone}
             WHERE user_id = #{merchantId}
               AND role_type = 2
             """)
-    int updateSysUserMerchantName(@Param("merchantId") Integer merchantId,
-                                  @Param("shopName") String shopName,
+    int updateSysUserMerchantInfo(@Param("merchantId") Integer merchantId,
+                                  @Param("storeName") String storeName,
                                   @Param("contactPhone") String contactPhone);
 }

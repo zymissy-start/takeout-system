@@ -49,10 +49,10 @@ public class MerchantShopController {
         MerchantShopInfo shopInfo = merchantShopService.updateShopInfo(merchant.getUserId(), form);
 
         if (shopInfo == null) {
-            return Result.fail("保存失败，请检查店铺名称、电话或地址");
+            return Result.fail("保存失败，请检查店铺名称、手机号或金额信息");
         }
 
-        merchant.setRealName(shopInfo.getShopName());
+        merchant.setRealName(shopInfo.getStoreName());
         merchant.setPhone(shopInfo.getContactPhone());
         session.setAttribute("loginMerchant", merchant);
 
