@@ -33,7 +33,7 @@
     </section>
   </header>
 
-  <main class="page-shell pb-90">
+  <main class="page-shell">
     <section class="quick-grid" aria-label="快捷入口">
       <button class="quick-item" data-category-name="美食"><span>🍱</span><b>美食</b></button>
       <button class="quick-item" data-category-name="饮品"><span>🥤</span><b>饮品</b></button>
@@ -62,7 +62,12 @@
     </section>
   </main>
 
-  <aside id="cartPanel" class="cart-panel" aria-label="购物车">
+  <button id="cartToggleBtn" class="cart-fab" aria-label="购物车">
+    <span class="cart-fab-icon">🛒</span>
+    <span id="cartFabBadge" class="cart-fab-badge hidden">0</span>
+  </button>
+
+  <aside id="cartPanel" class="cart-panel hidden" aria-label="购物车">
     <div class="cart-header">
       <b>购物车</b>
       <button id="clearCartBtn" class="text-btn danger">清空</button>

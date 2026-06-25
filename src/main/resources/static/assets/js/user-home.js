@@ -47,7 +47,20 @@
     App.$('#checkoutBtn').addEventListener('click', openCheckout);
     App.$('#closeCheckoutBtn').addEventListener('click', closeCheckout);
     App.$('#submitOrderBtn').addEventListener('click', submitOrder);
+    App.$('#cartToggleBtn').addEventListener('click', toggleCart);
     App.$all('.quick-item[data-category-name]').forEach(btn => btn.addEventListener('click', () => selectCategoryByName(btn.dataset.categoryName)));
+  }
+
+  function toggleCart() {
+    const panel = App.$('#cartPanel');
+    panel.classList.toggle('open');
+    panel.classList.toggle('hidden', !panel.classList.contains('open'));
+  }
+
+  function closeCart() {
+    const panel = App.$('#cartPanel');
+    panel.classList.remove('open');
+    panel.classList.add('hidden');
   }
 
   async function initUser() {
@@ -274,6 +287,15 @@
   function renderCart() {
     const items = Cart.readCart();
     const box = App.$('#cartItems');
+    const totalCount = items.reduce((s, i) => s + Number(i.quantity || 0), 0);
+    const badge = App.$('#cartFabBadge');
+    if (totalCount > 0) {
+      badge.textContent = totalCount > 99 ? '99+' : totalCount;
+      badge.classList.remove('hidden');
+    } else {
+      badge.classList.add('hidden');
+      closeCart();
+    }
     if (!items.length) {
       box.classList.add('empty');
       box.innerHTML = '购物车还是空的';
