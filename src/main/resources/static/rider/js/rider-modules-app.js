@@ -84,9 +84,231 @@
     }
 
     async function initLocationModule() {
-        await ensureLocation();
-        await loadAvailableOrders();
-        renderLocationModule();
+        const loadingArea = RiderApp.$('#navLoadingArea');
+        const navContent = RiderApp.$('#navContentArea');
+        const noOrderArea = RiderApp.$('#noOrderArea');
+
+        try {
+            const riderUser = state.rider || {};
+            const riderId = RiderApp.getField(riderUser, ['riderId', 'rider_id', 'userId', 'user_id'], '');
+            const query = new URLSearchParams();
+            if (riderId) query.set('riderId', riderId);
+
+            const res = await fetch('/api/rider/navigation/active?' + query.toString(), {
+                headers: buildLocationHeaders(riderId)
+            });
+            const body = await safeLocationJson(res);
+
+            const success = res.ok && (body.code === 200 || body.code === 0 || body.success === true);
+
+            if (!success || !body.data || !body.data.orderId) {
+                showNoOrderState();
+                return;
+            }
+
+            loadingArea.classList.add('hidden');
+            navContent.classList.remove('hidden');
+            startNavigation(body.data);
+        } catch (e) {
+            console.warn('位置中心检查订单失败：', e.message);
+            showNoOrderState();
+        }
+
+        function showNoOrderState() {
+            loadingArea.classList.add('hidden');
+            noOrderArea.classList.remove('hidden');
+        }
+    }
+
+    function buildLocationHeaders(riderId) {
+        const headers = { 'Accept': 'application/json' };
+        const token = localStorage.getItem('token');
+        if (token) headers.Authorization = 'Bearer ' + token;
+        if (riderId) headers['X-User-Id'] = riderId;
+        return headers;
+    }
+
+    function safeLocationJson(res) {
+        return res.text().then(text => {
+            try { return text ? JSON.parse(text) : {}; } catch (e) { return { code: res.status, success: false, message: text }; }
+        });
+    }
+
+    function startNavigation(order) {
+        if (!window.__navState) {
+            window.__navState = { order: null, map: null, AMap: null, lines: [], markers: [], routes: [], selectedIndex: 0 };
+        }
+        const ns = window.__navState;
+        ns.order = order;
+
+        const $ = id => document.getElementById(id);
+
+        $('orderTitle').textContent = (order.orderNo || ('订单 #' + order.orderId)) + ' · 开始导航';
+        $('storeName').textContent = order.storeName || '商家门店';
+        $('storeAddress').textContent = order.storeAddress || '商家位置';
+        $('receiverName').textContent = order.receiverName ? ('用户：' + order.receiverName) : '用户收货点';
+        $('receiverAddress').textContent = order.receiverAddress || '用户收货地址';
+        $('statusText').textContent = '起点为商家位置，终点为用户收货地址，正在规划三条候选路线';
+
+        const refreshBtn = $('refreshBtn');
+        if (refreshBtn && !refreshBtn.__navBound) {
+            refreshBtn.addEventListener('click', () => location.reload());
+            refreshBtn.__navBound = true;
+        }
+
+        const openAppBtn = $('openAppBtn');
+        if (openAppBtn && !openAppBtn.__navBound) {
+            openAppBtn.addEventListener('click', () => {
+                const o = ns.order;
+                if (!o) return;
+                const s = toNavLngLat(o.startLongitude, o.startLatitude);
+                const e = toNavLngLat(o.endLongitude, o.endLatitude);
+                if (!s || !e) return;
+                const url = 'https://uri.amap.com/navigation?from=' + s[0] + ',' + s[1] + ',商家取餐点&to=' + e[0] + ',' + e[1] + ',用户收货点&mode=car&policy=1&coordinate=gaode&callnative=1&src=takeout-rider';
+                window.open(url, '_blank');
+            });
+            openAppBtn.__navBound = true;
+        }
+
+        loadNavMap(ns, order);
+    }
+
+    function toNavLngLat(lng, lat) {
+        const x = Number(lng), y = Number(lat);
+        if (!Number.isFinite(x) || !Number.isFinite(y)) return null;
+        return [x, y];
+    }
+
+    async function loadNavMap(ns, order) {
+        const cfg = window.RIDER_MAP_CONFIG || {};
+        if (!cfg.amapKey || cfg.amapKey === '这里填写骑手端高德Web端JS API Key') {
+            document.getElementById('statusText').textContent = '请先在 rider-map-config.js 中配置高德 Key';
+            return;
+        }
+
+        const AMap = await loadNavAMap(cfg);
+        ns.AMap = AMap;
+
+        const start = toNavLngLat(order.startLongitude, order.startLatitude);
+        const end = toNavLngLat(order.endLongitude, order.endLatitude);
+
+        if (!start || !end) {
+            document.getElementById('statusText').textContent = '商家或用户经纬度为空，无法规划路线';
+            return;
+        }
+
+        if (!ns.map) {
+            ns.map = new AMap.Map('navMap', { zoom: 14, resizeEnable: true, center: [start[0], start[1]] });
+            ns.map.addControl(new AMap.Scale());
+            ns.map.addControl(new AMap.ToolBar({ position: 'RB' }));
+        }
+
+        ns.markers.forEach(m => ns.map.remove(m));
+        ns.markers = [
+            new AMap.Marker({ position: start, title: '商家取餐点', label: { content: '商', direction: 'top' } }),
+            new AMap.Marker({ position: end, title: '用户收货点', label: { content: '客', direction: 'top' } })
+        ];
+        ns.map.add(ns.markers);
+        ns.map.setFitView(ns.markers, true, [80, 80, 80, 80]);
+
+        await planNavRoutes(ns, start, end);
+    }
+
+    function loadNavAMap(cfg) {
+        if (window.AMap) return Promise.resolve(window.AMap);
+        if (cfg.amapSecurityCode) window._AMapSecurityConfig = { securityJsCode: cfg.amapSecurityCode };
+        return new Promise((resolve, reject) => {
+            const s = document.createElement('script');
+            s.src = 'https://webapi.amap.com/maps?v=2.0&key=' + encodeURIComponent(cfg.amapKey) + '&plugin=AMap.Driving,AMap.Scale,AMap.ToolBar';
+            s.onload = () => resolve(window.AMap);
+            s.onerror = () => reject(new Error('高德地图脚本加载失败'));
+            document.head.appendChild(s);
+        });
+    }
+
+    async function planNavRoutes(ns, start, end) {
+        const AMap = ns.AMap;
+        document.getElementById('statusText').textContent = '正在向高德地图请求路线...';
+
+        const policies = [
+            { name: '最短距离', policy: AMap.DrivingPolicy.LEAST_DISTANCE, desc: '优先选择距离更短的路径' },
+            { name: '最快时间', policy: AMap.DrivingPolicy.LEAST_TIME, desc: '优先选择预计耗时更短的路径' },
+            { name: '躲避拥堵', policy: AMap.DrivingPolicy.REAL_TRAFFIC, desc: '结合实时路况避开拥堵' }
+        ];
+
+        const results = await Promise.all(policies.map(p => new Promise(resolve => {
+            const driving = new AMap.Driving({ policy: p.policy, extensions: 'all' });
+            driving.search(start, end, (status, result) => {
+                if (status === 'complete' && result && result.routes && result.routes.length) {
+                    const r = result.routes[0];
+                    resolve({ name: p.name, desc: p.desc, distance: Number(r.distance || 0), duration: Number(r.time || 0), route: r });
+                } else { resolve(null); }
+            });
+        })));
+
+        const unique = [];
+        const seen = new Map();
+        results.filter(Boolean).forEach(r => {
+            const key = Math.round(r.distance / 10) + '-' + Math.round(r.duration / 30);
+            if (!seen.has(key)) { seen.set(key, true); unique.push(r); }
+        });
+        unique.sort((a, b) => a.distance - b.distance || a.duration - b.duration);
+        ns.routes = unique.slice(0, 3);
+        ns.selectedIndex = 0;
+
+        if (!ns.routes.length) {
+            document.getElementById('routeCards').innerHTML = '<div class="empty">高德暂未返回可用路线</div>';
+            document.getElementById('statusText').textContent = '未规划到可用路线';
+            return;
+        }
+
+        renderNavRouteCards(ns);
+        drawNavRouteLines(ns);
+        document.getElementById('statusText').textContent = '已推荐 ' + ns.routes.length + ' 条路线，默认选中第 1 条';
+    }
+
+    function renderNavRouteCards(ns) {
+        const fmtDist = m => m >= 1000 ? (m / 1000).toFixed(2) + ' km' : Math.round(m) + ' m';
+        const fmtMin = s => s ? Math.max(1, Math.round(s / 60)) + ' 分钟' : '--';
+
+        document.getElementById('routeCards').innerHTML = ns.routes.map((r, i) => `
+            <div class="route-item ${i === ns.selectedIndex ? 'active' : ''}" data-index="${i}">
+                <div class="route-rank">${i + 1}</div>
+                <div>
+                    <div class="route-name">${r.name}</div>
+                    <div class="route-meta">${r.desc} · 预计 ${fmtMin(r.duration)}</div>
+                </div>
+                <div class="route-distance">${fmtDist(r.distance)}</div>
+            </div>
+        `).join('');
+
+        document.querySelectorAll('.route-item').forEach(item => {
+            item.addEventListener('click', function () {
+                ns.selectedIndex = Number(this.dataset.index);
+                renderNavRouteCards(ns);
+                drawNavRouteLines(ns);
+            });
+        });
+    }
+
+    function drawNavRouteLines(ns) {
+        ns.lines.forEach(line => ns.map.remove(line));
+        ns.lines = [];
+
+        ns.routes.forEach((r, i) => {
+            const path = [];
+            (r.route.steps || []).forEach(step => (step.path || []).forEach(p => path.push(p)));
+            if (!path.length) return;
+            const active = i === ns.selectedIndex;
+            ns.lines.push(new ns.AMap.Polyline({
+                path, strokeColor: active ? '#08c3d1' : '#9aa8b8',
+                strokeWeight: active ? 8 : 5, strokeOpacity: active ? 0.95 : 0.38,
+                lineJoin: 'round', zIndex: active ? 20 : 10
+            }));
+        });
+
+        ns.map.add(ns.lines);
+        ns.map.setFitView([...ns.markers, ...ns.lines], true, [80, 80, 80, 80]);
     }
 
     async function initWaitCooking() {
@@ -301,59 +523,7 @@
     }
 
     function renderLocationModule() {
-        const sorted = sortOrdersByDistance(state.availableOrders);
-        const nearest = sorted[0];
-
-        let merchantText = '暂无可接订单';
-        let userText = '暂无可接订单';
-        let nearestText = '暂无可接订单';
-        let distanceText = '暂无路线';
-        let nearestId = '';
-
-        if (nearest) {
-            const merchant = resolveMerchantPoint(nearest);
-            const user = resolveAddressPoint(RiderApp.getField(nearest, ['address'], ''));
-            const distance = computeRouteDistance(nearest);
-            const id = RiderApp.getField(nearest, ['orderId', 'order_id'], '');
-
-            nearestId = id;
-            merchantText = merchant.label;
-            userText = user.label;
-            nearestText = `#${id}`;
-            distanceText = `预计路线 ${distance.toFixed(2)} km`;
-        }
-
-        RiderApp.$('#moduleContent').innerHTML = `
-      <article>
-        <span>骑手位置</span>
-        <b>${RiderApp.escapeHtml(state.currentLocation.label)}</b>
-        <p>${state.currentLocation.longitude}, ${state.currentLocation.latitude}</p>
-      </article>
-
-      <article>
-        <span>商家位置</span>
-        <b>${RiderApp.escapeHtml(merchantText)}</b>
-        <p>根据订单商家名称映射坐标</p>
-      </article>
-
-      <article>
-        <span>用户位置</span>
-        <b>${RiderApp.escapeHtml(userText)}</b>
-        <p>根据用户收货地址映射坐标</p>
-      </article>
-
-      <article>
-        <span>最近订单</span>
-        <b>${RiderApp.escapeHtml(nearestText)}</b>
-        <p>${RiderApp.escapeHtml(distanceText)}</p>
-        ${nearestId ? `<div class="mt-actions"><button class="green" data-action="accept-nearest" data-id="${RiderApp.escapeHtml(nearestId)}">接这个最近订单</button></div>` : ''}
-      </article>
-    `;
-
-        const acceptBtn = RiderApp.$('button[data-action="accept-nearest"]');
-        if (acceptBtn) {
-            acceptBtn.addEventListener('click', () => acceptOrder(acceptBtn.dataset.id));
-        }
+        // 已由 startNavigation 接管渲染，此处留空
     }
 
     function renderWaitCooking(orders) {

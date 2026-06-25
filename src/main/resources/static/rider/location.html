@@ -2,8 +2,10 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>位置中心 - 饭点优选骑手端</title>
     <link rel="stylesheet" href="/rider/css/rider-app.css">
+    <link rel="stylesheet" href="/rider/css/rider-navigation.css" />
 </head>
 <body class="mt-body" data-rider-module="location">
 
@@ -13,43 +15,76 @@
             <a class="mt-back" href="/rider/dashboard.html">‹</a>
             <div>
                 <h1>位置中心</h1>
-                <p>骑手、商家、用户位置分开展示，定位失败时自动使用模拟位置</p>
+                <p>接单后自动展示导航路线，无订单时显示空闲状态</p>
             </div>
+            <button id="refreshBtn" class="mt-refresh">刷新</button>
         </div>
     </header>
 
     <main class="mt-module-main">
-        <section class="mt-module-panel">
-            <div class="mt-module-title">
-                <div>
-                    <h2>配送路线视图</h2>
-                    <p>不同身份用不同颜色区分</p>
+        <div id="navLoadingArea" class="mt-module-panel">
+            <div class="mt-empty">正在检查当前配送订单...</div>
+        </div>
+
+        <div id="navContentArea" class="hidden">
+            <section class="summary-card">
+                <div class="tag">当前导航订单</div>
+                <h2 id="orderTitle">正在加载订单...</h2>
+                <p id="statusText">请稍候，系统正在读取商家和用户坐标</p>
+
+                <div class="point-grid">
+                    <div>
+                        <span>取餐起点</span>
+                        <strong id="storeName">--</strong>
+                        <p id="storeAddress">--</p>
+                    </div>
+                    <div>
+                        <span>送达终点</span>
+                        <strong id="receiverName">--</strong>
+                        <p id="receiverAddress">--</p>
+                    </div>
                 </div>
-                <button id="refreshBtn" class="mt-refresh">刷新定位</button>
-            </div>
+            </section>
 
-            <div class="mt-map">
-                <div class="mt-map-grid"></div>
-                <div class="mt-map-route"></div>
-
-                <div class="mt-map-node rider">
-                    <span>骑</span>
-                    <b>骑手位置</b>
+            <section class="map-card">
+                <div class="card-title">
+                    <div>
+                        <h3>高德地图路线</h3>
+                        <p>自动规划候选线路，默认选择距离最短的一条</p>
+                    </div>
+                    <button id="openAppBtn" class="primary-mini">打开高德</button>
                 </div>
 
-                <div class="mt-map-node merchant">
-                    <span>商</span>
-                    <b>商家位置</b>
+                <div id="navMap" class="map-box">
+                    <div class="map-loading">地图加载中...</div>
+                </div>
+            </section>
+
+            <section class="routes-card">
+                <div class="card-title compact">
+                    <h3>推荐路线</h3>
+                    <p>按距离从短到长排序</p>
                 </div>
 
-                <div class="mt-map-node user">
-                    <span>客</span>
-                    <b>用户位置</b>
+                <div id="routeCards" class="route-list">
+                    <div class="empty">路线规划中...</div>
                 </div>
-            </div>
+            </section>
+        </div>
 
-            <div id="moduleContent" class="mt-info-grid"></div>
-        </section>
+        <div id="noOrderArea" class="hidden">
+            <section class="mt-module-panel">
+                <div class="mt-empty-nav">
+                    <div class="nav-empty-icon">🧭</div>
+                    <h2>当前没有配送任务</h2>
+                    <p>接单后会自动加载导航路线</p>
+                    <div class="nav-empty-actions">
+                        <a class="mt-nav-btn primary" href="/rider/recommend.html">去接单</a>
+                        <a class="mt-nav-btn" href="/rider/dashboard.html">返回首页</a>
+                    </div>
+                </div>
+            </section>
+        </div>
     </main>
 
     <nav class="mt-bottom">
@@ -61,6 +96,8 @@
 </div>
 
 <script src="/rider/js/rider-common.js"></script>
+<script src="/rider/js/rider-map-config.js"></script>
+<script src="/rider/js/rider-navigation.js"></script>
 <script src="/rider/js/rider-modules-app.js"></script>
 </body>
 </html>

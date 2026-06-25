@@ -1074,3 +1074,45 @@ body.mt-body {
     .mt-order-head { align-items: flex-start; }
     .order-hall-foot { align-items: center; }
 }
+
+/* ── 位置中心导航空状态 ── */
+.mt-empty-nav {
+    text-align: center;
+    padding: 48px 20px;
+}
+.mt-empty-nav .nav-empty-icon {
+    font-size: 64px;
+    margin-bottom: 16px;
+}
+.mt-empty-nav h2 {
+    margin: 0 0 8px;
+    font-size: 22px;
+}
+.mt-empty-nav p {
+    margin: 0 0 28px;
+    color: var(--sub, #606975);
+    font-size: 15px;
+}
+.mt-empty-nav .nav-empty-actions {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+}
+.mt-nav-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    padding: 0 24px;
+    border-radius: 999px;
+    border: 1px solid var(--line, #e9edf3);
+    background: #fff;
+    color: var(--ink, #171a20);
+    font-weight: 900;
+    text-decoration: none;
+}
+.mt-nav-btn.primary {
+    border: 0;
+    background: var(--brand, #ffd43b);
+    color: #111;
+}
