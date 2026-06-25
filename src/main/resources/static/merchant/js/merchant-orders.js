@@ -127,6 +127,7 @@
 
           <div class="order-actions">
             <button data-action="detail" data-id="${MerchantApp.escapeHtml(id)}">详情</button>
+            <button data-action="print" data-id="${MerchantApp.escapeHtml(id)}">打印订单</button>
             ${Number(status) === 0 ? `<button class="main" data-action="accept" data-id="${MerchantApp.escapeHtml(id)}">确认接单</button>` : ''}
             ${Number(status) === 1 ? `<button class="main" data-action="finish" data-id="${MerchantApp.escapeHtml(id)}">出餐完成</button>` : ''}
             ${Number(status) === 2 ? `<button class="ghost" type="button" disabled>等待骑手接单</button>` : ''}
@@ -146,6 +147,11 @@
 
         if (action === 'detail') {
             openDetail(id);
+            return;
+        }
+
+        if (action === 'print') {
+            printOrder(id);
             return;
         }
 
@@ -184,6 +190,7 @@
         const status = MerchantApp.getField(order, ['status'], 0);
         const total = MerchantApp.getField(order, ['totalPrice', 'total_price'], 0);
         const items = MerchantApp.getField(order, ['items'], []);
+        const orderId = MerchantApp.getField(order, ['orderId', 'order_id'], '');
 
         const rows = Array.isArray(items) && items.length
             ? items.map(item => {
@@ -203,7 +210,7 @@
         box.innerHTML = `
       <div class="detail-row">
         <span>订单编号</span>
-        <b>#${MerchantApp.escapeHtml(MerchantApp.getField(order, ['orderId', 'order_id'], ''))}</b>
+        <b>#${MerchantApp.escapeHtml(orderId)}</b>
       </div>
 
       <div class="detail-row">
@@ -246,7 +253,13 @@
       <p class="muted">出餐完成：${MerchantApp.escapeHtml(MerchantApp.getField(order, ['kitchenFinishTime', 'kitchen_finish_time'], '未出餐'))}</p>
       <p class="muted">预计送达：${MerchantApp.escapeHtml(MerchantApp.getField(order, ['estimatedArrivalTime', 'estimated_arrival_time'], '暂无'))}</p>
       <p class="muted">完成时间：${MerchantApp.escapeHtml(MerchantApp.getField(order, ['finishTime', 'finish_time'], '未完成'))}</p>
+
+      <div class="order-actions" style="margin-top:16px;">
+        <button class="main" id="detailPrintBtn">打印订单</button>
+      </div>
     `;
+
+        MerchantApp.$('#detailPrintBtn').addEventListener('click', () => printOrder(orderId));
     }
 
     async function postOrderAction(url, orderId, successMessage) {
@@ -261,6 +274,81 @@
         } catch (e) {
             MerchantApp.toast(e.message || '操作失败', 'error');
         }
+    }
+
+    async function printOrder(orderId) {
+        try {
+            const order = await MerchantApp.request(`/merchant/orders/print-data?orderId=${encodeURIComponent(orderId)}`);
+            renderReceipt(order);
+
+            setTimeout(() => {
+                window.print();
+            }, 100);
+        } catch (e) {
+            MerchantApp.toast(e.message || '打印失败', 'error');
+        }
+    }
+
+    function renderReceipt(order) {
+        let box = document.querySelector('#merchantPrintReceipt');
+
+        if (!box) {
+            box = document.createElement('section');
+            box.id = 'merchantPrintReceipt';
+            box.className = 'merchant-print-receipt';
+            document.body.appendChild(box);
+        }
+
+        const items = MerchantApp.getField(order, ['items'], []) || [];
+
+        box.innerHTML = `
+            <header class="print-receipt-header">
+                <h2>${MerchantApp.escapeHtml(MerchantApp.getField(order, ['merchantName', 'merchant_name'], '饭点优选商家'))}</h2>
+                <p>订单打印小票</p>
+            </header>
+
+            <div class="print-receipt-info">
+                <p>店铺电话：<b>${MerchantApp.escapeHtml(MerchantApp.getField(order, ['merchantPhone', 'merchant_phone'], '未设置'))}</b></p>
+                <p>店铺地址：<b>${MerchantApp.escapeHtml(MerchantApp.getField(order, ['merchantAddress', 'merchant_address'], '未设置'))}</b></p>
+                <p>订单编号：<b>${MerchantApp.escapeHtml(MerchantApp.getField(order, ['orderId', 'order_id'], '--'))}</b></p>
+                <p>订单状态：<b>${MerchantApp.escapeHtml(MerchantApp.getField(order, ['statusText', 'status_text'], '--'))}</b></p>
+                <p>下单时间：<b>${MerchantApp.escapeHtml(MerchantApp.getField(order, ['orderTime', 'order_time'], '--'))}</b></p>
+                <p>打印时间：<b>${MerchantApp.escapeHtml(MerchantApp.getField(order, ['printTime', 'print_time'], '--'))}</b></p>
+                <p>顾客姓名：<b>${MerchantApp.escapeHtml(MerchantApp.getField(order, ['userName', 'user_name'], '--'))}</b></p>
+                <p>收货地址：<b>${MerchantApp.escapeHtml(MerchantApp.getField(order, ['address'], '--'))}</b></p>
+                <p>订单备注：<b>${MerchantApp.escapeHtml(MerchantApp.getField(order, ['remark'], '无') || '无')}</b></p>
+            </div>
+
+            <table class="print-receipt-table">
+                <thead>
+                    <tr>
+                        <th>商品</th>
+                        <th>数量</th>
+                        <th>单价</th>
+                        <th>小计</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${items.length ? items.map(item => `
+                        <tr>
+                            <td>${MerchantApp.escapeHtml(MerchantApp.getField(item, ['productName', 'product_name'], '未命名商品'))}</td>
+                            <td>${MerchantApp.escapeHtml(MerchantApp.getField(item, ['quantity'], 0))}</td>
+                            <td>${MerchantApp.formatMoney(MerchantApp.getField(item, ['price'], 0))}</td>
+                            <td>${MerchantApp.formatMoney(MerchantApp.getField(item, ['subtotal'], 0))}</td>
+                        </tr>
+                    `).join('') : `
+                        <tr>
+                            <td colspan="4">暂无商品明细</td>
+                        </tr>
+                    `}
+                </tbody>
+            </table>
+
+            <footer class="print-receipt-footer">
+                <p>合计金额：<b>${MerchantApp.formatMoney(MerchantApp.getField(order, ['totalPrice', 'total_price'], 0))}</b></p>
+                <p>请核对商品后及时出餐。</p>
+            </footer>
+        `;
     }
 
     async function logout() {
