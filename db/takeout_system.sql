@@ -11,7 +11,7 @@
  Target Server Version : 80028
  File Encoding         : 65001
 
- Date: 24/06/2026 14:59:32
+ Date: 25/06/2026 18:25:34
 */
 
 SET NAMES utf8mb4;
@@ -29,12 +29,82 @@ CREATE TABLE `coupon`  (
   `start_time` datetime(0) NOT NULL,
   `end_time` datetime(0) NOT NULL,
   `status` tinyint(0) NULL DEFAULT 1,
-  PRIMARY KEY (`coupon_id`) USING BTREE
+  `total_stock` int(0) NOT NULL DEFAULT 0 COMMENT '总库存',
+  `remaining_stock` int(0) NOT NULL DEFAULT 0 COMMENT '剩余库存，高并发领券按此字段原子扣减',
+  `receive_count` int(0) NOT NULL DEFAULT 0 COMMENT '已领取数量',
+  `per_user_limit` int(0) NOT NULL DEFAULT 1 COMMENT '每个用户限领数量',
+  `create_time` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP(0),
+  `update_time` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP(0) ON UPDATE CURRENT_TIMESTAMP(0),
+  PRIMARY KEY (`coupon_id`) USING BTREE,
+  INDEX `idx_coupon_status_time_stock`(`status`, `start_time`, `end_time`, `remaining_stock`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of coupon
 -- ----------------------------
+INSERT INTO `coupon` VALUES (1, '新用户满30减5', 5.00, 30.00, '2026-01-01 00:00:00', '2026-12-31 23:59:59', 1, 1000, 1000, 0, 1, '2026-06-25 17:46:52', '2026-06-25 17:46:52');
+INSERT INTO `coupon` VALUES (2, '午餐满50减10', 10.00, 50.00, '2026-01-01 00:00:00', '2026-12-31 23:59:59', 1, 500, 500, 0, 1, '2026-06-25 17:46:52', '2026-06-25 17:46:52');
+INSERT INTO `coupon` VALUES (3, '限时满80减18', 18.00, 80.00, '2026-01-01 00:00:00', '2026-12-31 23:59:59', 1, 200, 200, 0, 1, '2026-06-25 17:46:52', '2026-06-25 17:46:52');
+
+-- ----------------------------
+-- Table structure for customer_service_message
+-- ----------------------------
+DROP TABLE IF EXISTS `customer_service_message`;
+CREATE TABLE `customer_service_message`  (
+  `message_id` int(0) NOT NULL AUTO_INCREMENT COMMENT '客服消息ID',
+  `ticket_id` int(0) NOT NULL COMMENT '工单ID',
+  `sender_id` int(0) NOT NULL COMMENT '发送人ID',
+  `sender_role` tinyint(0) NOT NULL COMMENT '1-用户, 4-平台管理员/客服',
+  `content` text CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '消息内容',
+  `content_type` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL DEFAULT 'TEXT' COMMENT '消息类型',
+  `is_read` tinyint(0) NOT NULL DEFAULT 0 COMMENT '0-未读, 1-已读',
+  `create_time` datetime(0) NOT NULL DEFAULT CURRENT_TIMESTAMP(0) COMMENT '发送时间',
+  PRIMARY KEY (`message_id`) USING BTREE,
+  INDEX `idx_csm_ticket_time`(`ticket_id`, `create_time`) USING BTREE,
+  INDEX `idx_csm_unread`(`ticket_id`, `sender_role`, `is_read`) USING BTREE,
+  INDEX `fk_csm_sender`(`sender_id`) USING BTREE,
+  CONSTRAINT `fk_csm_sender` FOREIGN KEY (`sender_id`) REFERENCES `sys_user` (`user_id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CONSTRAINT `fk_csm_ticket` FOREIGN KEY (`ticket_id`) REFERENCES `customer_service_ticket` (`ticket_id`) ON DELETE RESTRICT ON UPDATE RESTRICT
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '客服消息表' ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of customer_service_message
+-- ----------------------------
+INSERT INTO `customer_service_message` VALUES (1, 1, 2, 1, '测试测试', 'TEXT', 1, '2026-06-25 18:21:59');
+INSERT INTO `customer_service_message` VALUES (2, 1, 2, 1, '我', 'TEXT', 1, '2026-06-25 18:22:05');
+INSERT INTO `customer_service_message` VALUES (3, 2, 2, 1, '啊', 'TEXT', 0, '2026-06-25 18:22:19');
+INSERT INTO `customer_service_message` VALUES (4, 1, 1, 4, '你好', 'TEXT', 1, '2026-06-25 18:22:40');
+
+-- ----------------------------
+-- Table structure for customer_service_ticket
+-- ----------------------------
+DROP TABLE IF EXISTS `customer_service_ticket`;
+CREATE TABLE `customer_service_ticket`  (
+  `ticket_id` int(0) NOT NULL AUTO_INCREMENT COMMENT '客服工单ID',
+  `user_id` int(0) NOT NULL COMMENT '发起用户ID',
+  `order_id` int(0) NULL DEFAULT NULL COMMENT '关联订单ID，可为空',
+  `admin_id` int(0) NULL DEFAULT NULL COMMENT '处理管理员ID',
+  `type` varchar(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL DEFAULT '其他问题' COMMENT '问题类型',
+  `title` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '问题标题',
+  `status` tinyint(0) NOT NULL DEFAULT 0 COMMENT '0-待处理, 1-处理中, 2-已解决, 3-已关闭',
+  `priority` tinyint(0) NOT NULL DEFAULT 0 COMMENT '0-普通, 1-较高, 2-紧急',
+  `create_time` datetime(0) NOT NULL DEFAULT CURRENT_TIMESTAMP(0) COMMENT '创建时间',
+  `update_time` datetime(0) NOT NULL DEFAULT CURRENT_TIMESTAMP(0) ON UPDATE CURRENT_TIMESTAMP(0) COMMENT '更新时间',
+  `close_time` datetime(0) NULL DEFAULT NULL COMMENT '关闭时间',
+  PRIMARY KEY (`ticket_id`) USING BTREE,
+  INDEX `idx_cst_user_status`(`user_id`, `status`) USING BTREE,
+  INDEX `idx_cst_admin_status`(`admin_id`, `status`) USING BTREE,
+  INDEX `idx_cst_order`(`order_id`) USING BTREE,
+  CONSTRAINT `fk_cst_admin` FOREIGN KEY (`admin_id`) REFERENCES `sys_user` (`user_id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CONSTRAINT `fk_cst_order` FOREIGN KEY (`order_id`) REFERENCES `delivery_order` (`order_id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CONSTRAINT `fk_cst_user` FOREIGN KEY (`user_id`) REFERENCES `sys_user` (`user_id`) ON DELETE RESTRICT ON UPDATE RESTRICT
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '客服工单表' ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of customer_service_ticket
+-- ----------------------------
+INSERT INTO `customer_service_ticket` VALUES (1, 2, NULL, 1, '订单问题', '我的钱没有退', 3, 0, '2026-06-25 18:21:59', '2026-06-25 18:23:25', '2026-06-25 18:23:25');
+INSERT INTO `customer_service_ticket` VALUES (2, 2, NULL, NULL, '订单问题', '测试', 0, 0, '2026-06-25 18:22:19', '2026-06-25 18:22:19', NULL);
 
 -- ----------------------------
 -- Table structure for delivery_order
@@ -75,37 +145,32 @@ CREATE TABLE `delivery_order`  (
   `is_urged` tinyint(0) NULL DEFAULT 0 COMMENT '0-未催单, 1-已催单',
   `remind_count` int(0) NULL DEFAULT 0 COMMENT '催单次数',
   `last_remind_time` datetime(0) NULL DEFAULT NULL COMMENT '最后催单时间',
-<<<<<<< HEAD
-=======
   `tip_amount` decimal(10, 2) NULL DEFAULT 0.00 COMMENT '用户给骑手打赏金额',
   `required_rider_level` tinyint(0) NULL DEFAULT 0 COMMENT '订单要求骑手等级：0普通 1闪电侠 2单王配送',
   `required_rider_title` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT '普通' COMMENT '订单要求骑手称号',
   `rider_urge_count` int(0) NULL DEFAULT 0 COMMENT '骑手催商家次数',
   `rider_urge_time` datetime(0) NULL DEFAULT NULL COMMENT '骑手最近催商家时间',
->>>>>>> origin/feature-user-rider-merchant
   PRIMARY KEY (`order_id`) USING BTREE,
   UNIQUE INDEX `order_no`(`order_no`) USING BTREE,
   INDEX `idx_order_user_status_time`(`user_id`, `status`, `order_time`) USING BTREE,
   INDEX `idx_order_merchant_status_time`(`merchant_id`, `status`, `order_time`) USING BTREE,
   INDEX `idx_delivery_order_user_status`(`user_id`, `status`) USING BTREE,
-<<<<<<< HEAD
-  INDEX `idx_delivery_order_rider_status`(`rider_id`, `status`) USING BTREE
-=======
   INDEX `idx_delivery_order_rider_status`(`rider_id`, `status`) USING BTREE,
   INDEX `idx_order_required_rider`(`status`, `required_rider_level`) USING BTREE
->>>>>>> origin/feature-user-rider-merchant
-) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 9 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of delivery_order
 -- ----------------------------
-<<<<<<< HEAD
-INSERT INTO `delivery_order` VALUES (1, NULL, 2, 3, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 43.00, 0.00, 0.00, 0.00, 0.00, 0.00, -1, 0, '2026-06-21 22:38:37', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '西苑校区 6 号宿舍楼', 'no ice', 1, 0, NULL);
-INSERT INTO `delivery_order` VALUES (4, 'OD20260624145905849849', 2, 6, NULL, 2, '测试', '17554896666', '地图选点位置', 34.663712, 112.372509, 23.00, 20.00, 3.00, 0.00, 23.00, 0.00, -1, 1, '2026-06-24 14:59:05', NULL, NULL, NULL, NULL, NULL, '2026-06-24 14:59:12', '用户主动取消', NULL, NULL, '地图选点位置', '', 0, 0, NULL);
-=======
 INSERT INTO `delivery_order` VALUES (1, NULL, 2, 3, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 43.00, 0.00, 0.00, 0.00, 0.00, 0.00, -1, 0, '2026-06-21 22:38:37', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '西苑校区 6 号宿舍楼', 'no ice', 1, 0, NULL, 0.00, 0, '普通', 0, NULL);
 INSERT INTO `delivery_order` VALUES (4, 'OD20260624145905849849', 2, 6, NULL, 2, '测试', '17554896666', '地图选点位置', 34.663712, 112.372509, 23.00, 20.00, 3.00, 0.00, 23.00, 0.00, -1, 1, '2026-06-24 14:59:05', NULL, NULL, NULL, NULL, NULL, '2026-06-24 14:59:12', '用户主动取消', NULL, NULL, '地图选点位置', '', 0, 0, NULL, 0.00, 0, '普通', 0, NULL);
->>>>>>> origin/feature-user-rider-merchant
+INSERT INTO `delivery_order` VALUES (5, 'OD20260624164715075359', 2, 6, NULL, 3, '1', '1111', '地图选点位置', 34.663750, 112.372499, 15.00, 12.00, 3.00, 0.00, 15.00, 0.00, -1, 1, '2026-06-24 16:47:15', NULL, NULL, NULL, NULL, NULL, '2026-06-24 16:47:33', '用户主动取消', NULL, NULL, '地图选点位置', '测试', 0, 0, NULL, 0.00, 0, '普通', 0, NULL);
+INSERT INTO `delivery_order` VALUES (6, 'OD20260624164746666175', 2, 3, 4, 3, '1', '1111', '地图选点位置', 34.663750, 112.372499, 28.00, 25.00, 3.00, 0.00, 28.00, 0.00, 4, 1, '2026-06-24 16:47:46', NULL, '2026-06-24 16:47:55', '2026-06-24 16:52:38', '2026-06-24 17:56:53', '2026-06-24 17:27:22', NULL, NULL, '暂无电话', '极速骑手', '地图选点位置', '测试', 1, 2, '2026-06-24 17:27:00', 0.00, 0, '普通', 0, NULL);
+INSERT INTO `delivery_order` VALUES (7, 'OD20260624173933666512', 2, 3, 4, 3, '1', '1111', '地图选点位置', 34.663750, 112.372499, 21.50, 18.50, 3.00, 0.00, 21.50, 0.00, 4, 1, '2026-06-24 17:39:33', NULL, '2026-06-24 17:39:43', '2026-06-24 17:39:46', '2026-06-24 18:09:54', '2026-06-24 17:40:03', NULL, NULL, '暂无电话', '极速骑手', '地图选点位置', '测试', 0, 0, NULL, 0.00, 0, '普通', 0, NULL);
+INSERT INTO `delivery_order` VALUES (8, 'OD20260624213057129987', 2, 3, 4, 3, '1', '1111', '地图选点位置', 34.663750, 112.372499, 21.50, 18.50, 3.00, 0.00, 21.50, 0.00, 4, 1, '2026-06-24 21:30:57', NULL, '2026-06-24 21:31:08', '2026-06-25 13:47:06', '2026-06-25 14:17:29', '2026-06-25 14:27:32', NULL, NULL, '暂无电话', '极速骑手', '地图选点位置', '1', 0, 0, NULL, 0.00, 0, '普通骑手', 0, NULL);
+INSERT INTO `delivery_order` VALUES (9, 'OD20260625142751649554', 2, 3, NULL, 3, '1', '1111', '地图选点位置', 34.663750, 112.372499, 28.00, 25.00, 3.00, 0.00, 28.00, 0.00, -1, 1, '2026-06-25 14:27:51', NULL, NULL, NULL, NULL, NULL, '2026-06-25 14:27:55', '用户主动取消', NULL, NULL, '地图选点位置', '', 0, 0, NULL, 0.00, 0, '普通骑手', 0, NULL);
+INSERT INTO `delivery_order` VALUES (10, 'OD20260625143216415367', 2, 3, 4, 4, '小明', '1110111101', '河科大北苑', 34.664383, 112.369997, 28.00, 25.00, 3.00, 0.00, 28.00, 0.00, 4, 1, '2026-06-25 14:32:16', NULL, '2026-06-25 14:32:33', '2026-06-25 14:32:45', '2026-06-25 15:03:25', '2026-06-25 16:09:37', NULL, NULL, '暂无电话', '极速骑手', '河科大北苑', '备注测试', 0, 1, '2026-06-25 14:32:41', 0.00, 0, '普通骑手', 0, NULL);
+INSERT INTO `delivery_order` VALUES (11, 'OD20260625162143705668', 2, 3, 4, 4, '小明', '1110111101', '河科大北苑', 34.664383, 112.369997, 21.50, 18.50, 3.00, 0.00, 21.50, 0.00, 4, 1, '2026-06-25 16:21:43', NULL, '2026-06-25 16:22:12', '2026-06-25 16:22:17', '2026-06-25 16:52:25', '2026-06-25 17:53:17', NULL, NULL, '暂无电话', '极速骑手', '河科大北苑', '少辣', 0, 0, NULL, 0.00, 0, '普通骑手', 0, NULL);
 
 -- ----------------------------
 -- Table structure for merchant_info
@@ -116,6 +181,9 @@ CREATE TABLE `merchant_info`  (
   `store_name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '店铺名称',
   `store_logo` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT '店铺Logo',
   `store_notice` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT '店铺公告',
+  `store_address` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT '门店地址',
+  `store_longitude` decimal(10, 6) NULL DEFAULT NULL COMMENT '门店经度',
+  `store_latitude` decimal(10, 6) NULL DEFAULT NULL COMMENT '门店纬度',
   `rating` decimal(2, 1) NULL DEFAULT 5.0 COMMENT '店铺评分',
   `monthly_sales` int(0) NULL DEFAULT 0 COMMENT '月售数量',
   `min_order_amount` decimal(10, 2) NULL DEFAULT 0.00 COMMENT '起送价',
@@ -130,7 +198,8 @@ CREATE TABLE `merchant_info`  (
 -- ----------------------------
 -- Records of merchant_info
 -- ----------------------------
-INSERT INTO `merchant_info` VALUES (3, '汉堡王校园店', '/images/store-burger.jpg', '新用户下单立减，热卖汉堡套餐供应中', 4.8, 420, 15.00, 3.00, 28, 0.80, 1);
+INSERT INTO `merchant_info` VALUES (3, '汉堡王校园店', '/images/store-burger.jpg', '新用户下单立减，热卖汉堡套餐供应中', '西苑校区商业街一楼', 112.374500, 34.661200, 4.8, 420, 15.00, 3.00, 28, 0.80, 1);
+INSERT INTO `merchant_info` VALUES (9, '蜜雪冰城', NULL, '好喝的蜜雪冰城', NULL, NULL, NULL, 5.0, 0, 0.00, 3.00, 30, 1.00, 1);
 
 -- ----------------------------
 -- Table structure for order_comment
@@ -148,7 +217,7 @@ CREATE TABLE `order_comment`  (
   INDEX `fk_order_comment_user`(`user_id`) USING BTREE,
   CONSTRAINT `fk_order_comment_order` FOREIGN KEY (`order_id`) REFERENCES `delivery_order` (`order_id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `fk_order_comment_user` FOREIGN KEY (`user_id`) REFERENCES `sys_user` (`user_id`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of order_comment
@@ -170,7 +239,7 @@ CREATE TABLE `order_item`  (
   PRIMARY KEY (`item_id`) USING BTREE,
   INDEX `idx_order_item_order`(`order_id`) USING BTREE,
   CONSTRAINT `order_item_ibfk_1` FOREIGN KEY (`order_id`) REFERENCES `delivery_order` (`order_id`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 2 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 10 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of order_item
@@ -178,6 +247,13 @@ CREATE TABLE `order_item`  (
 INSERT INTO `order_item` VALUES (1, 1, 2, NULL, NULL, 2, 18.50, NULL);
 INSERT INTO `order_item` VALUES (2, 1, 3, NULL, NULL, 1, 6.00, NULL);
 INSERT INTO `order_item` VALUES (5, 4, 6, '柠檬冰茶', '', 2, 10.00, 20.00);
+INSERT INTO `order_item` VALUES (6, 5, 5, '珍珠奶茶', '', 1, 12.00, 12.00);
+INSERT INTO `order_item` VALUES (7, 6, 1, '经典双层芝士汉堡', '/images/burger1.jpg', 1, 25.00, 25.00);
+INSERT INTO `order_item` VALUES (8, 7, 2, '香辣鸡腿堡', '/images/burger2.jpg', 1, 18.50, 18.50);
+INSERT INTO `order_item` VALUES (9, 8, 2, '香辣鸡腿堡', '/images/burger2.jpg', 1, 18.50, 18.50);
+INSERT INTO `order_item` VALUES (10, 9, 1, '经典双层芝士汉堡', '/images/burger1.jpg', 1, 25.00, 25.00);
+INSERT INTO `order_item` VALUES (11, 10, 1, '经典双层芝士汉堡', '/images/burger1.jpg', 1, 25.00, 25.00);
+INSERT INTO `order_item` VALUES (12, 11, 2, '香辣鸡腿堡', '/images/burger2.jpg', 1, 18.50, 18.50);
 
 -- ----------------------------
 -- Table structure for order_reminder
@@ -187,11 +263,7 @@ CREATE TABLE `order_reminder`  (
   `reminder_id` int(0) NOT NULL AUTO_INCREMENT,
   `order_id` int(0) NOT NULL,
   `user_id` int(0) NOT NULL,
-<<<<<<< HEAD
-  `target_type` tinyint(0) NOT NULL COMMENT '提醒对象类型 1商家 2骑手',
-=======
   `target_type` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'MERCHANT/RIDER',
->>>>>>> origin/feature-user-rider-merchant
   `target_id` int(0) NOT NULL COMMENT '提醒对象ID',
   `content` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT '提醒内容',
   `status` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT 'UNREAD' COMMENT 'UNREAD/READ/HANDLED',
@@ -201,11 +273,14 @@ CREATE TABLE `order_reminder`  (
   PRIMARY KEY (`reminder_id`) USING BTREE,
   INDEX `idx_reminder_order`(`order_id`) USING BTREE,
   INDEX `idx_reminder_user`(`user_id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 4 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of order_reminder
 -- ----------------------------
+INSERT INTO `order_reminder` VALUES (1, 6, 2, 'MERCHANT', 3, '用户催单：订单 OD20260624164746666175 请尽快处理', 'UNREAD', '2026-06-24 17:01:57', NULL, NULL);
+INSERT INTO `order_reminder` VALUES (2, 6, 2, 'RIDER', 4, '用户催单：订单 OD20260624164746666175 请尽快处理', 'UNREAD', '2026-06-24 17:27:00', NULL, NULL);
+INSERT INTO `order_reminder` VALUES (3, 10, 2, 'MERCHANT', 3, '用户催单：订单 OD20260625143216415367 请尽快处理', 'HANDLED', '2026-06-25 14:32:41', NULL, '2026-06-25 14:32:45');
 
 -- ----------------------------
 -- Table structure for order_status_log
@@ -227,13 +302,49 @@ CREATE TABLE `order_status_log`  (
   INDEX `operator_id`(`operator_id`) USING BTREE,
   CONSTRAINT `order_status_log_ibfk_1` FOREIGN KEY (`order_id`) REFERENCES `delivery_order` (`order_id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `order_status_log_ibfk_2` FOREIGN KEY (`operator_id`) REFERENCES `sys_user` (`user_id`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 25 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of order_status_log
 -- ----------------------------
 INSERT INTO `order_status_log` VALUES (1, 4, 0, '用户已下单', NULL, NULL, 2, 'USER', '订单创建成功', '2026-06-24 14:59:05');
 INSERT INTO `order_status_log` VALUES (2, 4, -1, '用户取消订单', NULL, NULL, 2, 'USER', '用户主动取消', '2026-06-24 14:59:12');
+INSERT INTO `order_status_log` VALUES (3, 5, 0, '用户已下单', NULL, NULL, 2, 'USER', '订单创建成功；用户累计点餐数=1，匹配骑手等级=普通', '2026-06-24 16:47:15');
+INSERT INTO `order_status_log` VALUES (4, 5, -1, '用户取消订单', NULL, NULL, 2, 'USER', '用户主动取消', '2026-06-24 16:47:33');
+INSERT INTO `order_status_log` VALUES (5, 6, 0, '用户已下单', NULL, NULL, 2, 'USER', '订单创建成功；用户累计点餐数=1，匹配骑手等级=普通', '2026-06-24 16:47:46');
+INSERT INTO `order_status_log` VALUES (6, 6, 1, '商家已接单', NULL, NULL, 3, 'MERCHANT', '商家确认接单，开始制作', '2026-06-24 16:47:55');
+INSERT INTO `order_status_log` VALUES (7, 6, 2, '商家已出餐', NULL, NULL, 3, 'MERCHANT', '订单进入骑手接单池，等待匹配骑手', '2026-06-24 16:52:38');
+INSERT INTO `order_status_log` VALUES (8, 6, 2, '商家已召唤骑手', NULL, NULL, 3, 'MERCHANT', '订单已在骑手接单池中，按用户等级匹配骑手', '2026-06-24 16:52:40');
+INSERT INTO `order_status_log` VALUES (9, 6, 2, '商家已召唤骑手', NULL, NULL, 3, 'MERCHANT', '订单已在骑手接单池中，按用户等级匹配骑手', '2026-06-24 16:52:42');
+INSERT INTO `order_status_log` VALUES (10, 6, 2, '商家已召唤骑手', NULL, NULL, 3, 'MERCHANT', '订单已在骑手接单池中，按用户等级匹配骑手', '2026-06-24 17:00:49');
+INSERT INTO `order_status_log` VALUES (11, 6, 2, '用户已催单', NULL, NULL, 2, 'USER', '催单对象：MERCHANT', '2026-06-24 17:01:57');
+INSERT INTO `order_status_log` VALUES (12, 6, 3, '骑手已接单', NULL, NULL, 4, 'RIDER', '订单进入配送中', '2026-06-24 17:26:53');
+INSERT INTO `order_status_log` VALUES (13, 6, 3, '用户已催单', NULL, NULL, 2, 'USER', '催单对象：RIDER', '2026-06-24 17:27:00');
+INSERT INTO `order_status_log` VALUES (14, 6, 4, '骑手已送达', NULL, NULL, 4, 'RIDER', '配送完成', '2026-06-24 17:27:22');
+INSERT INTO `order_status_log` VALUES (15, 6, 4, '用户评价订单', NULL, NULL, 2, 'USER', '评分：1', '2026-06-24 17:27:30');
+INSERT INTO `order_status_log` VALUES (16, 7, 0, '用户已下单', NULL, NULL, 2, 'USER', '订单创建成功；用户累计点餐数=2，匹配骑手等级=普通', '2026-06-24 17:39:33');
+INSERT INTO `order_status_log` VALUES (17, 7, 1, '商家已接单', NULL, NULL, 3, 'MERCHANT', '商家确认接单，开始制作', '2026-06-24 17:39:43');
+INSERT INTO `order_status_log` VALUES (18, 7, 2, '商家已出餐', NULL, NULL, 3, 'MERCHANT', '订单进入骑手接单池，等待匹配骑手', '2026-06-24 17:39:46');
+INSERT INTO `order_status_log` VALUES (19, 7, 3, '骑手已接单', NULL, NULL, 4, 'RIDER', '订单进入配送中', '2026-06-24 17:39:54');
+INSERT INTO `order_status_log` VALUES (20, 7, 4, '骑手已送达', NULL, NULL, 4, 'RIDER', '配送完成，催单提醒已处理', '2026-06-24 17:40:03');
+INSERT INTO `order_status_log` VALUES (21, 8, 0, '用户已下单', NULL, NULL, 2, 'USER', '订单创建成功；用户累计点餐数=3，匹配骑手等级=普通骑手', '2026-06-24 21:30:57');
+INSERT INTO `order_status_log` VALUES (22, 8, 1, '商家已接单', NULL, NULL, 3, 'MERCHANT', '商家确认接单，开始制作', '2026-06-24 21:31:08');
+INSERT INTO `order_status_log` VALUES (23, 8, 2, '商家已出餐', NULL, NULL, 3, 'MERCHANT', '订单进入骑手接单池，等待匹配骑手', '2026-06-25 13:47:06');
+INSERT INTO `order_status_log` VALUES (24, 8, 3, '骑手已接单', NULL, NULL, 4, 'RIDER', '订单进入配送中', '2026-06-25 13:47:29');
+INSERT INTO `order_status_log` VALUES (25, 8, 4, '骑手已送达', NULL, NULL, 4, 'RIDER', '配送完成，催单提醒已处理', '2026-06-25 14:27:32');
+INSERT INTO `order_status_log` VALUES (26, 9, 0, '用户已下单', NULL, NULL, 2, 'USER', '订单创建成功；用户累计点餐数=4，匹配骑手等级=普通骑手', '2026-06-25 14:27:51');
+INSERT INTO `order_status_log` VALUES (27, 9, -1, '用户取消订单', NULL, NULL, 2, 'USER', '用户主动取消', '2026-06-25 14:27:55');
+INSERT INTO `order_status_log` VALUES (28, 10, 0, '用户已下单', NULL, NULL, 2, 'USER', '订单创建成功；用户累计点餐数=4，匹配骑手等级=普通骑手', '2026-06-25 14:32:16');
+INSERT INTO `order_status_log` VALUES (29, 10, 1, '商家已接单', NULL, NULL, 3, 'MERCHANT', '商家确认接单，开始制作', '2026-06-25 14:32:33');
+INSERT INTO `order_status_log` VALUES (30, 10, 1, '用户已催单', NULL, NULL, 2, 'USER', '催单对象：MERCHANT', '2026-06-25 14:32:41');
+INSERT INTO `order_status_log` VALUES (31, 10, 2, '商家已出餐', NULL, NULL, 3, 'MERCHANT', '订单进入骑手接单池，等待匹配骑手', '2026-06-25 14:32:45');
+INSERT INTO `order_status_log` VALUES (32, 10, 3, '骑手已接单', NULL, NULL, 4, 'RIDER', '订单进入配送中', '2026-06-25 14:33:25');
+INSERT INTO `order_status_log` VALUES (33, 10, 4, '骑手已送达', NULL, NULL, 4, 'RIDER', '配送完成，催单提醒已处理', '2026-06-25 16:09:37');
+INSERT INTO `order_status_log` VALUES (34, 11, 0, '用户已下单', NULL, NULL, 2, 'USER', '订单创建成功；用户累计点餐数=5，匹配骑手等级=普通骑手', '2026-06-25 16:21:43');
+INSERT INTO `order_status_log` VALUES (35, 11, 1, '商家已接单', NULL, NULL, 3, 'MERCHANT', '商家确认接单，开始制作', '2026-06-25 16:22:12');
+INSERT INTO `order_status_log` VALUES (36, 11, 2, '商家已出餐', NULL, NULL, 3, 'MERCHANT', '订单进入骑手接单池，等待匹配骑手', '2026-06-25 16:22:17');
+INSERT INTO `order_status_log` VALUES (37, 11, 3, '骑手已接单', NULL, NULL, 4, 'RIDER', '订单进入配送中', '2026-06-25 16:22:25');
+INSERT INTO `order_status_log` VALUES (38, 11, 4, '骑手已送达', NULL, NULL, 4, 'RIDER', '配送完成，催单提醒已处理', '2026-06-25 17:53:17');
 
 -- ----------------------------
 -- Table structure for product
@@ -260,16 +371,16 @@ CREATE TABLE `product`  (
   INDEX `idx_product_name`(`name`) USING BTREE,
   CONSTRAINT `product_ibfk_1` FOREIGN KEY (`merchant_id`) REFERENCES `sys_user` (`user_id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `product_ibfk_2` FOREIGN KEY (`category_id`) REFERENCES `product_category` (`category_id`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 6 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 7 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of product
 -- ----------------------------
-INSERT INTO `product` VALUES (1, 3, 1, '经典双层芝士汉堡', '芝士浓郁，牛肉多汁', 25.00, 999, '/images/burger1.jpg', '2026-06-19', 120, 4.8, 120, '热卖', 1);
-INSERT INTO `product` VALUES (2, 3, 1, '香辣鸡腿堡', '外酥里嫩，微辣可口', 18.50, 999, '/images/burger2.jpg', '2026-06-19', 85, 4.8, 85, '热卖', 1);
+INSERT INTO `product` VALUES (1, 3, 1, '经典双层芝士汉堡', '芝士浓郁，牛肉多汁', 25.00, 996, '/images/burger1.jpg', '2026-06-19', 123, 4.8, 123, '热卖', 1);
+INSERT INTO `product` VALUES (2, 3, 1, '香辣鸡腿堡', '外酥里嫩，微辣可口', 18.50, 996, '/images/burger2.jpg', '2026-06-19', 88, 4.8, 88, '热卖', 1);
 INSERT INTO `product` VALUES (3, 3, 2, '冰镇可乐', '加冰口感更佳', 6.00, 999, '/images/cola.jpg', '2026-06-19', 200, 4.8, 200, '热卖', 1);
 INSERT INTO `product` VALUES (4, 5, 1, '招牌鸡排饭', '大块鸡排配米饭和时蔬，适合午晚餐。', 16.80, 999, '', '2026-06-21', 236, 5.0, 0, NULL, 1);
-INSERT INTO `product` VALUES (5, 6, 2, '珍珠奶茶', '默认三分糖，可在备注中调整糖度和冰量。', 12.00, 999, '', '2026-06-21', 310, 5.0, 0, NULL, 1);
+INSERT INTO `product` VALUES (5, 6, 2, '珍珠奶茶', '默认三分糖，可在备注中调整糖度和冰量。', 12.00, 998, '', '2026-06-21', 311, 5.0, 1, NULL, 1);
 INSERT INTO `product` VALUES (6, 6, 2, '柠檬冰茶', '清爽酸甜，适合下午自习提神。', 10.00, 997, '', '2026-06-21', 156, 5.0, 2, NULL, 1);
 
 -- ----------------------------
@@ -280,7 +391,7 @@ CREATE TABLE `product_category`  (
   `category_id` int(0) NOT NULL AUTO_INCREMENT,
   `category_name` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '分类名称',
   PRIMARY KEY (`category_id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 3 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 4 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of product_category
@@ -311,11 +422,12 @@ CREATE TABLE `product_review`  (
   CONSTRAINT `product_review_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `sys_user` (`user_id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `product_review_ibfk_3` FOREIGN KEY (`merchant_id`) REFERENCES `sys_user` (`user_id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `product_review_ibfk_4` FOREIGN KEY (`product_id`) REFERENCES `product` (`product_id`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 2 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of product_review
 -- ----------------------------
+INSERT INTO `product_review` VALUES (1, 6, 2, 3, NULL, 1, '1', '2026-06-24 17:27:30');
 
 -- ----------------------------
 -- Table structure for rider_info
@@ -327,27 +439,19 @@ CREATE TABLE `rider_info`  (
   `is_full_time` tinyint(0) NULL DEFAULT 0 COMMENT '0-兼职骑手, 1-全职骑手',
   `status` tinyint(0) NULL DEFAULT 0 COMMENT '0-空闲, 1-忙碌中',
   `avg_speed` decimal(3, 1) NULL DEFAULT NULL COMMENT '平均速度(分钟/公里)',
-<<<<<<< HEAD
-=======
   `total_finished_count` int(0) NULL DEFAULT 0 COMMENT '累计完成配送单数',
   `rider_level` tinyint(0) NULL DEFAULT 0 COMMENT '骑手等级：0普通 1闪电侠 2单王配送',
   `rider_title` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT '普通骑手' COMMENT '骑手等级称号',
->>>>>>> origin/feature-user-rider-merchant
   PRIMARY KEY (`rider_id`) USING BTREE,
   INDEX `user_id`(`user_id`) USING BTREE,
   CONSTRAINT `rider_info_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `sys_user` (`user_id`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 2 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 3 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of rider_info
 -- ----------------------------
-<<<<<<< HEAD
-INSERT INTO `rider_info` VALUES (1, 4, 1, 0, 10.5);
-INSERT INTO `rider_info` VALUES (2, 7, 1, 0, 9.8);
-=======
-INSERT INTO `rider_info` VALUES (1, 4, 1, 0, 10.5, 0, 0, '普通骑手');
-INSERT INTO `rider_info` VALUES (2, 7, 1, 0, 9.8, 10, 1, '闪电侠骑手');
->>>>>>> origin/feature-user-rider-merchant
+INSERT INTO `rider_info` VALUES (1, 4, 1, 0, 10.5, 5, 0, '普通骑手');
+INSERT INTO `rider_info` VALUES (2, 7, 1, 0, 9.8, 0, 0, '普通骑手');
 
 -- ----------------------------
 -- Table structure for shopping_cart
@@ -366,7 +470,7 @@ CREATE TABLE `shopping_cart`  (
   INDEX `product_id`(`product_id`) USING BTREE,
   CONSTRAINT `shopping_cart_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `sys_user` (`user_id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `shopping_cart_ibfk_2` FOREIGN KEY (`product_id`) REFERENCES `product` (`product_id`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of shopping_cart
@@ -390,19 +494,20 @@ CREATE TABLE `sys_user`  (
   `growth_value` int(0) NULL DEFAULT 0 COMMENT '成长值',
   PRIMARY KEY (`user_id`) USING BTREE,
   UNIQUE INDEX `username`(`username`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 8 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 9 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of sys_user
 -- ----------------------------
 INSERT INTO `sys_user` VALUES (1, 'admin', '123456', '系统管理员', NULL, 4, 0, 1, '2026-06-19 16:56:49', 1, 0);
-INSERT INTO `sys_user` VALUES (2, 'zhangsan', '123456', '张三', NULL, 1, 10, 1, '2026-06-19 16:56:49', 1, 0);
+INSERT INTO `sys_user` VALUES (2, 'zhangsan', '123456', '张三', NULL, 1, 10, 1, '2026-06-19 16:56:49', 1, 5);
 INSERT INTO `sys_user` VALUES (3, 'burger_king', '123456', '汉堡王商家', NULL, 2, 0, 1, '2026-06-19 16:56:49', 1, 0);
 INSERT INTO `sys_user` VALUES (4, 'rider_knight', '123456', '极速骑手', NULL, 3, 0, 1, '2026-06-19 16:56:49', 1, 0);
 INSERT INTO `sys_user` VALUES (5, 'xiyuan_food', '123456', '西苑快餐', '13600000001', 2, 0, 1, '2026-06-21 22:33:38', 1, 0);
 INSERT INTO `sys_user` VALUES (6, 'tea_shop', '123456', '茶语小站', '13600000002', 2, 0, 1, '2026-06-21 22:33:38', 1, 0);
 INSERT INTO `sys_user` VALUES (7, 'runner_li', '123456', '李师傅骑手', '13700000001', 3, 0, 1, '2026-06-21 22:33:38', 1, 0);
 INSERT INTO `sys_user` VALUES (8, 'testuser99', '123456', 'Test', '', 1, 10, 1, '2026-06-21 22:36:55', 1, 0);
+INSERT INTO `sys_user` VALUES (9, '1112', '111266', '蜜雪冰城', '17554894168', 2, 0, 1, '2026-06-25 18:24:41', 1, 0);
 
 -- ----------------------------
 -- Table structure for user_address
@@ -426,12 +531,12 @@ CREATE TABLE `user_address`  (
   PRIMARY KEY (`address_id`) USING BTREE,
   INDEX `idx_address_user_default`(`user_id`, `is_default`) USING BTREE,
   CONSTRAINT `user_address_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `sys_user` (`user_id`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 4 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of user_address
 -- ----------------------------
-INSERT INTO `user_address` VALUES (2, 2, '测试', '17554896666', NULL, NULL, NULL, '地图选点位置', 34.663712, 112.372509, NULL, 1, '2026-06-24 14:57:17', '2026-06-24 14:57:17');
+INSERT INTO `user_address` VALUES (4, 2, '小明', '1110111101', NULL, NULL, NULL, '河科大北苑', 34.664383, 112.369997, NULL, 1, '2026-06-25 14:31:40', '2026-06-25 14:31:40');
 
 -- ----------------------------
 -- Table structure for user_coupon
@@ -446,13 +551,13 @@ CREATE TABLE `user_coupon`  (
   `receive_time` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP(0),
   `use_time` datetime(0) NULL DEFAULT NULL,
   PRIMARY KEY (`user_coupon_id`) USING BTREE,
-  INDEX `user_id`(`user_id`) USING BTREE,
+  UNIQUE INDEX `uk_user_coupon_once`(`user_id`, `coupon_id`) USING BTREE,
   INDEX `coupon_id`(`coupon_id`) USING BTREE,
   INDEX `order_id`(`order_id`) USING BTREE,
   CONSTRAINT `user_coupon_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `sys_user` (`user_id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `user_coupon_ibfk_2` FOREIGN KEY (`coupon_id`) REFERENCES `coupon` (`coupon_id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `user_coupon_ibfk_3` FOREIGN KEY (`order_id`) REFERENCES `delivery_order` (`order_id`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of user_coupon
@@ -471,11 +576,12 @@ CREATE TABLE `user_favorite`  (
   PRIMARY KEY (`favorite_id`) USING BTREE,
   UNIQUE INDEX `uk_fav_user_target`(`user_id`, `target_type`, `target_id`) USING BTREE,
   CONSTRAINT `user_favorite_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `sys_user` (`user_id`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of user_favorite
 -- ----------------------------
+INSERT INTO `user_favorite` VALUES (1, 1, 2, 6, '2026-06-25 17:42:41');
 
 -- ----------------------------
 -- Table structure for user_growth_log
@@ -491,11 +597,12 @@ CREATE TABLE `user_growth_log`  (
   PRIMARY KEY (`log_id`) USING BTREE,
   INDEX `idx_growth_user`(`user_id`) USING BTREE,
   INDEX `idx_growth_order`(`order_id`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of user_growth_log
 -- ----------------------------
+INSERT INTO `user_growth_log` VALUES (1, 2, 6, 5, 'ORDER_REVIEW', '2026-06-24 17:27:30');
 
 -- ----------------------------
 -- Table structure for user_level
@@ -521,44 +628,4 @@ INSERT INTO `user_level` VALUES (2, '白银用户', 100, 499, 0.95, 150, 0, '配
 INSERT INTO `user_level` VALUES (3, '黄金用户', 500, 999, 0.90, 120, 1, '配送费9折，商家端显示优先标识');
 INSERT INTO `user_level` VALUES (4, '黑金用户', 1000, NULL, 0.80, 90, 1, '配送费8折，优先提醒商家和骑手');
 
-<<<<<<< HEAD
-=======
-
--- ----------------------------
--- Merge patch: 商家/骑手/用户端接口对齐，支持打赏、骑手催单、高等级用户匹配高等级骑手
--- ----------------------------
-ALTER TABLE `delivery_order`
-  ADD COLUMN `tip_amount` decimal(10, 2) NULL DEFAULT 0.00 COMMENT '用户给骑手的打赏金额' AFTER `actual_amount`,
-  ADD COLUMN `required_rider_level` tinyint(0) NULL DEFAULT 0 COMMENT '订单所需骑手等级：0普通 1闪电侠 2单王配送' AFTER `tip_amount`,
-  ADD COLUMN `required_rider_title` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT '普通' COMMENT '订单所需骑手等级名称' AFTER `required_rider_level`,
-  ADD COLUMN `rider_urge_count` int(0) NULL DEFAULT 0 COMMENT '骑手催商家出餐次数' AFTER `last_remind_time`,
-  ADD COLUMN `rider_urge_time` datetime(0) NULL DEFAULT NULL COMMENT '骑手最近催商家出餐时间' AFTER `rider_urge_count`;
-
-ALTER TABLE `order_reminder`
-  MODIFY COLUMN `target_type` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '提醒对象类型：MERCHANT/RIDER';
-
-ALTER TABLE `rider_info`
-  ADD COLUMN `rider_level` tinyint(0) NULL DEFAULT 0 COMMENT '骑手等级：0普通 1闪电侠 2单王骑手' AFTER `avg_speed`,
-  ADD COLUMN `rider_title` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT '普通骑手' COMMENT '骑手等级名称' AFTER `rider_level`,
-  ADD COLUMN `total_finished_count` int(0) NULL DEFAULT 0 COMMENT '累计完成配送单数' AFTER `rider_title`;
-
-UPDATE `rider_info`
-SET `total_finished_count` = 12,
-    `rider_level` = 1,
-    `rider_title` = '闪电侠骑手'
-WHERE `user_id` = 4;
-
-UPDATE `rider_info`
-SET `total_finished_count` = 16,
-    `rider_level` = 2,
-    `rider_title` = '单王骑手'
-WHERE `user_id` = 7;
-
-UPDATE `delivery_order`
-SET `tip_amount` = 0.00,
-    `required_rider_level` = 0,
-    `required_rider_title` = '普通',
-    `rider_urge_count` = 0;
-
->>>>>>> origin/feature-user-rider-merchant
 SET FOREIGN_KEY_CHECKS = 1;

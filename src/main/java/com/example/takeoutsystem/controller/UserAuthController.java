@@ -12,7 +12,6 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/auth")
 public class UserAuthController {
-
     private final SysUserMapper sysUserMapper;
 
     public UserAuthController(SysUserMapper sysUserMapper) {
@@ -20,14 +19,15 @@ public class UserAuthController {
     }
 
     @PostMapping("/login")
-    public UserApiResult<?> login(@RequestBody Map<String, Object> body, HttpSession session) {
+    public UserApiResult login(@RequestBody Map body, HttpSession session) {
         String username = str(body.get("username"));
         String password = str(body.get("password"));
         if (username.isEmpty() || password.isEmpty()) {
             return UserApiResult.error("请填写账号和密码");
         }
         SysUser user = sysUserMapper.selectByUsername(username);
-        if (user == null || user.getRoleType() == null || user.getRoleType() != 1
+        if (user == null
+                || user.getRoleType() == null || user.getRoleType() != 1
                 || user.getStatus() == null || user.getStatus() != 1
                 || user.getPassword() == null || !user.getPassword().equals(password)) {
             return UserApiResult.error("用户账号或密码错误");
@@ -36,7 +36,7 @@ public class UserAuthController {
     }
 
     @PostMapping("/register")
-    public UserApiResult<?> register(@RequestBody Map<String, Object> body, HttpSession session) {
+    public UserApiResult register(@RequestBody Map body, HttpSession session) {
         String username = str(body.get("username"));
         String password = str(body.get("password"));
         String realName = str(body.get("realName"));
@@ -61,12 +61,18 @@ public class UserAuthController {
         return loginSuccess(user, session, "注册成功");
     }
 
-    private UserApiResult<?> loginSuccess(SysUser user, HttpSession session, String message) {
+    private UserApiResult loginSuccess(SysUser user, HttpSession session, String message) {
+        // 普通用户登录与管理员登录隔离。
+        session.removeAttribute("adminId");
+        session.removeAttribute("adminUser");
+        session.removeAttribute("adminRoleType");
+
         session.setAttribute("userId", user.getUserId());
         session.setAttribute("loginUserId", user.getUserId());
         session.setAttribute("loginUser", user);
+        session.setAttribute("loginRoleType", 1);
         user.setPassword(null);
-        Map<String, Object> data = new HashMap<>();
+        Map data = new HashMap<>();
         data.put("token", String.valueOf(user.getUserId()));
         data.put("user", user);
         return UserApiResult.success(message, data);

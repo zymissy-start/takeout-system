@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.takeoutsystem.mapper.CustomerServiceMapper">
+
+    <sql id="ticketVoColumns">
+        t.ticket_id,
+        t.user_id,
+        u.real_name AS user_name,
+        u.phone AS user_phone,
+        t.order_id,
+        o.merchant_id AS merchant_id,
+        COALESCE(mi.store_name, mu.real_name) AS merchant_name,
+        t.admin_id,
+        a.real_name AS admin_name,
+        t.type,
+        t.title,
+        t.status,
+        t.priority,
+        (
+            SELECT m.content
+            FROM customer_service_message m
+            WHERE m.ticket_id = t.ticket_id
+            ORDER BY m.create_time DESC, m.message_id DESC
+            LIMIT 1
+        ) AS last_message,
+        (
+            SELECT COUNT(1)
+            FROM customer_service_message m
+            WHERE m.ticket_id = t.ticket_id
+        ) AS message_count,
+        (
+            SELECT COUNT(1)
+            FROM customer_service_message m
+            WHERE m.ticket_id = t.ticket_id AND m.is_read = 0
+        ) AS unread_count,
+        t.create_time,
+        t.update_time,
+        t.close_time
+    </sql>
+
+    <insert id="insertTicket" parameterType="com.example.takeoutsystem.entity.CustomerServiceTicket" useGeneratedKeys="true" keyProperty="ticketId">
+        INSERT INTO customer_service_ticket
+        (user_id, order_id, admin_id, type, title, status, priority, create_time, update_time)
+        VALUES
+        (#{userId}, #{orderId}, #{adminId}, #{type}, #{title}, #{status}, #{priority}, NOW(), NOW())
+    </insert>
+
+    <insert id="insertMessage" parameterType="com.example.takeoutsystem.entity.CustomerServiceMessage" useGeneratedKeys="true" keyProperty="messageId">
+        INSERT INTO customer_service_message
+        (ticket_id, sender_id, sender_role, content, content_type, is_read, create_time)
+        VALUES
+        (#{ticketId}, #{senderId}, #{senderRole}, #{content}, #{contentType}, #{isRead}, NOW())
+    </insert>
+
+    <select id="listTicketsByUser" resultType="com.example.takeoutsystem.entity.CustomerServiceTicketVO">
+        SELECT
+        <include refid="ticketVoColumns" />
+        FROM customer_service_ticket t
+        LEFT JOIN sys_user u ON u.user_id = t.user_id
+        LEFT JOIN sys_user a ON a.user_id = t.admin_id
+        LEFT JOIN delivery_order o ON o.order_id = t.order_id
+        LEFT JOIN merchant_info mi ON mi.merchant_id = o.merchant_id
+        LEFT JOIN sys_user mu ON mu.user_id = o.merchant_id
+        WHERE t.user_id = #{userId}
+        <if test="status != null">
+            AND t.status = #{status}
+        </if>
+        ORDER BY t.update_time DESC, t.ticket_id DESC
+    </select>
+
+    <select id="listTicketsForAdmin" resultType="com.example.takeoutsystem.entity.CustomerServiceTicketVO">
+        SELECT
+        <include refid="ticketVoColumns" />
+        FROM customer_service_ticket t
+        LEFT JOIN sys_user u ON u.user_id = t.user_id
+        LEFT JOIN sys_user a ON a.user_id = t.admin_id
+        LEFT JOIN delivery_order o ON o.order_id = t.order_id
+        LEFT JOIN merchant_info mi ON mi.merchant_id = o.merchant_id
+        LEFT JOIN sys_user mu ON mu.user_id = o.merchant_id
+        WHERE 1 = 1
+        <if test="status != null">
+            AND t.status = #{status}
+        </if>
+        <if test="keyword != null and keyword != ''">
+            AND (
+                t.title LIKE CONCAT('%', #{keyword}, '%')
+                OR t.type LIKE CONCAT('%', #{keyword}, '%')
+                OR u.real_name LIKE CONCAT('%', #{keyword}, '%')
+                OR u.phone LIKE CONCAT('%', #{keyword}, '%')
+                OR CAST(t.ticket_id AS CHAR) = #{keyword}
+                OR CAST(t.order_id AS CHAR) = #{keyword}
+            )
+        </if>
+        ORDER BY FIELD(t.status, 0, 1, 2, 3), t.update_time DESC, t.ticket_id DESC
+    </select>
+
+    <select id="selectTicketByUser" resultType="com.example.takeoutsystem.entity.CustomerServiceTicketVO">
+        SELECT
+        <include refid="ticketVoColumns" />
+        FROM customer_service_ticket t
+        LEFT JOIN sys_user u ON u.user_id = t.user_id
+        LEFT JOIN sys_user a ON a.user_id = t.admin_id
+        LEFT JOIN delivery_order o ON o.order_id = t.order_id
+        LEFT JOIN merchant_info mi ON mi.merchant_id = o.merchant_id
+        LEFT JOIN sys_user mu ON mu.user_id = o.merchant_id
+        WHERE t.ticket_id = #{ticketId}
+          AND t.user_id = #{userId}
+        LIMIT 1
+    </select>
+
+    <select id="selectTicketForAdmin" resultType="com.example.takeoutsystem.entity.CustomerServiceTicketVO">
+        SELECT
+        <include refid="ticketVoColumns" />
+        FROM customer_service_ticket t
+        LEFT JOIN sys_user u ON u.user_id = t.user_id
+        LEFT JOIN sys_user a ON a.user_id = t.admin_id
+        LEFT JOIN delivery_order o ON o.order_id = t.order_id
+        LEFT JOIN merchant_info mi ON mi.merchant_id = o.merchant_id
+        LEFT JOIN sys_user mu ON mu.user_id = o.merchant_id
+        WHERE t.ticket_id = #{ticketId}
+        LIMIT 1
+    </select>
+
+    <select id="listMessages" resultType="com.example.takeoutsystem.entity.CustomerServiceMessageVO">
+        SELECT
+            m.message_id,
+            m.ticket_id,
+            m.sender_id,
+            m.sender_role,
+            su.real_name AS sender_name,
+            m.content,
+            m.content_type,
+            m.is_read,
+            m.create_time
+        FROM customer_service_message m
+        LEFT JOIN sys_user su ON su.user_id = m.sender_id
+        WHERE m.ticket_id = #{ticketId}
+        ORDER BY m.create_time ASC, m.message_id ASC
+    </select>
+
+    <select id="countOrderBelongsToUser" resultType="int">
+        SELECT COUNT(1)
+        FROM delivery_order
+        WHERE order_id = #{orderId}
+          AND user_id = #{userId}
+    </select>
+
+    <update id="addTicketAdminIfEmpty">
+        UPDATE customer_service_ticket
+        SET admin_id = #{adminId},
+            status = CASE WHEN status = 0 THEN 1 ELSE status END,
+            update_time = NOW()
+        WHERE ticket_id = #{ticketId}
+          AND admin_id IS NULL
+    </update>
+
+    <update id="updateTicketStatus">
+        UPDATE customer_service_ticket
+        SET status = #{status},
+            admin_id = #{adminId},
+            update_time = NOW(),
+            close_time = CASE WHEN #{status} IN (2, 3) THEN NOW() ELSE close_time END
+        WHERE ticket_id = #{ticketId}
+    </update>
+
+    <update id="touchTicket">
+        UPDATE customer_service_ticket
+        SET update_time = NOW()
+        WHERE ticket_id = #{ticketId}
+    </update>
+
+    <update id="markMessagesRead">
+        UPDATE customer_service_message
+        SET is_read = 1
+        WHERE ticket_id = #{ticketId}
+          AND sender_role != #{readerRole}
+    </update>
+
+</mapper>

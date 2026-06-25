@@ -4,47 +4,35 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 
 /**
- * 当前登录用户解析工具。
+ * 当前管理员解析工具。
  *
- * 只读取普通用户登录信息；读取不到时直接抛出未登录异常。
- * 管理员登录使用 AdminContext，避免管理员账号串到用户端。
+ * 管理员登录信息与普通用户登录信息隔离，避免同一浏览器中
+ * 管理员账号被用户端接口识别为普通用户。
  */
-public class UserContext {
-    private UserContext() {}
+public class AdminContext {
+    private AdminContext() {}
 
-    public static Integer getCurrentUserId(HttpServletRequest request) {
+    public static Integer getCurrentAdminId(HttpServletRequest request) {
         Integer id = getFromSession(request);
-        if (id != null) return id;
-
-        id = parseInt(request.getHeader("X-User-Id"));
         if (id != null) return id;
 
         id = parseAuthorization(request.getHeader("Authorization"));
         if (id != null) return id;
 
-        id = parseInt(request.getParameter("userId"));
+        id = parseInt(request.getHeader("X-Admin-Id"));
         if (id != null) return id;
 
-        throw new UnauthenticatedException("未登录或登录已失效");
+        id = parseInt(request.getParameter("adminId"));
+        if (id != null) return id;
+
+        throw new UnauthenticatedException("管理员未登录或登录已失效");
     }
 
     private static Integer getFromSession(HttpServletRequest request) {
         HttpSession session = request.getSession(false);
         if (session == null) return null;
-
-        Object role = session.getAttribute("loginRoleType");
-        if (role != null && !"1".equals(String.valueOf(role))) {
-            return null;
-        }
-
-        // 兼容旧版管理员登录曾经写入 userId 的情况：只要存在 adminId，且没有明确普通用户角色，就不当作用户登录。
-        if (role == null && session.getAttribute("adminId") != null) {
-            return null;
-        }
-
-        Object v = session.getAttribute("userId");
-        if (v == null) v = session.getAttribute("USER_ID");
-        if (v == null) v = session.getAttribute("loginUserId");
+        Object v = session.getAttribute("adminId");
+        if (v == null) v = session.getAttribute("ADMIN_ID");
         if (v instanceof Integer) return (Integer) v;
         if (v instanceof Long) return ((Long) v).intValue();
         return parseInt(v == null ? null : String.valueOf(v));

@@ -14,6 +14,8 @@
   </header>
 
   <main class="page-shell pb-90">
+    <a class="ghost-btn full" href="/user/customer-service.html" style="margin-bottom: 12px;">发起工单</a>
+
     <div class="order-tabs" id="orderTabs">
       <button class="active" data-status="all">全部</button>
       <button data-status="0">待接单</button>
@@ -21,6 +23,7 @@
       <button data-status="4">已完成</button>
       <button data-status="-1">已取消</button>
     </div>
+
     <section id="orderList" class="order-list"></section>
   </main>
 
@@ -41,6 +44,7 @@
   </nav>
 
   <div id="toast" class="toast hidden"></div>
+
   <script src="/assets/js/request.js"></script>
   <script src="/assets/js/cart.js"></script>
   <script src="/assets/js/user-orders.js"></script>

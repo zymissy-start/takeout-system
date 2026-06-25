@@ -122,7 +122,8 @@
       const cooldown = App.getField(level, ['remindCooldownSeconds', 'remind_cooldown_seconds'], 180);
       const nextNeed = App.getField(level, ['nextNeedGrowth', 'next_need_growth'], 0);
       App.$('#profileLevelBadge').textContent = levelName;
-      App.$('#levelNameText').textContent = levelName;
+      const shortLevel = (levelName.match(/Lv\d+/i) || [levelName.split(/\s+/)[0]])[0];
+      App.$('#levelNameText').textContent = shortLevel;
       App.$('#levelProgressBar').style.width = Math.max(0, Math.min(100, progress)) + '%';
       const orderTitle = App.getField(level, ['orderTitle', 'order_title'], '普通');
       const matchedRider = App.getField(level, ['matchedRiderTitle', 'matched_rider_title'], '普通骑手');

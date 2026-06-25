@@ -1,0 +1,391 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>智慧外卖 - 客服中心</title>
+  <link rel="stylesheet" href="/assets/css/user.css" />
+  <style>
+    .ticket-toolbar { display: flex; gap: 10px; margin-bottom: 12px; }
+    .ticket-toolbar .select { flex: 1; }
+    .ticket-list { display: grid; gap: 12px; }
+    .ticket-card { display: block; width: 100%; text-align: left; border: 1px solid #edf0f5; background: #fff; border-radius: 18px; padding: 14px; box-shadow: 0 10px 26px rgba(15, 23, 42, .06); }
+    .ticket-card.active { border-color: #ffd100; box-shadow: 0 12px 30px rgba(255, 209, 0, .20); }
+    .ticket-card-title { display: flex; justify-content: space-between; gap: 12px; font-weight: 900; }
+    .ticket-meta { margin-top: 8px; color: #64748b; font-size: 13px; line-height: 1.6; }
+    .status-chip { display: inline-flex; align-items: center; justify-content: center; border-radius: 999px; padding: 4px 9px; font-size: 12px; font-weight: 900; background: #f1f5f9; color: #334155; white-space: nowrap; }
+    .status-0 { background: #fff7cc; color: #765800; }
+    .status-1 { background: #dbeafe; color: #1d4ed8; }
+    .status-2 { background: #dcfce7; color: #15803d; }
+    .status-3 { background: #e5e7eb; color: #4b5563; }
+    .message-box { min-height: 260px; max-height: 420px; overflow: auto; display: grid; gap: 10px; padding: 12px; background: #f8fafc; border-radius: 18px; border: 1px solid #edf0f5; }
+    .message-row { display: flex; }
+    .message-row.mine { justify-content: flex-end; }
+    .bubble { max-width: 78%; padding: 10px 12px; border-radius: 16px; background: #fff; box-shadow: 0 8px 18px rgba(15, 23, 42, .06); line-height: 1.6; }
+    .message-row.mine .bubble { background: #fff3a3; }
+    .bubble-meta { font-size: 12px; color: #94a3b8; margin-bottom: 4px; }
+    .reply-row { display: grid; grid-template-columns: 1fr auto; gap: 10px; margin-top: 12px; }
+    .empty-tip { padding: 32px 14px; text-align: center; color: #94a3b8; }
+
+    /* ── 发起工单按钮美化 ── */
+    .sub-action.create-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 7px 14px;
+      border: 0;
+      border-radius: 999px;
+      background: linear-gradient(135deg, #1c1c1c, #333);
+      color: #ffd100;
+      font-size: 13px;
+      font-weight: 800;
+      cursor: pointer;
+      white-space: nowrap;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, .15);
+      transition: transform .16s ease, box-shadow .16s ease;
+    }
+    .sub-action.create-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 18px rgba(0, 0, 0, .22);
+    }
+    .sub-action.create-btn::before {
+      content: "+";
+      font-size: 16px;
+      font-weight: 900;
+      line-height: 1;
+    }
+
+    /* ── 发起工单美化 ── */
+    #createCard {
+      position: relative;
+      border: 1px solid rgba(255, 209, 0, .35);
+      background: linear-gradient(180deg, #fffdf5 0%, #fff 40%);
+      overflow: hidden;
+    }
+    #createCard::before {
+      content: "";
+      position: absolute;
+      right: -40px;
+      top: -40px;
+      width: 140px;
+      height: 140px;
+      border-radius: 50%;
+      background: rgba(255, 209, 0, .10);
+      pointer-events: none;
+    }
+    #createCard::after {
+      content: "";
+      position: absolute;
+      left: -30px;
+      bottom: -30px;
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      background: rgba(255, 209, 0, .06);
+      pointer-events: none;
+    }
+    .create-icon-bar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 18px;
+      padding: 14px 16px;
+      border-radius: 16px;
+      background: linear-gradient(135deg, #1c1c1c, #333);
+      color: #ffd100;
+    }
+    .create-icon-bar .icon-circle {
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      background: rgba(255, 209, 0, .18);
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+    .create-icon-bar .icon-text b { display: block; color: #fff; font-size: 15px; }
+    .create-icon-bar .icon-text span { color: rgba(255, 255, 255, .6); font-size: 12px; }
+    .form-group { position: relative; z-index: 1; margin-bottom: 14px; }
+    .form-group .field-label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin: 0 0 7px;
+      color: #374151;
+      font-size: 13px;
+      font-weight: 800;
+    }
+    .form-group .field-label::before {
+      content: "";
+      width: 3px;
+      height: 14px;
+      border-radius: 2px;
+      background: var(--brand);
+      flex-shrink: 0;
+    }
+    .form-group .input {
+      border: 1.5px solid #e8ecf2;
+      border-radius: 14px;
+      padding: 13px 14px;
+      transition: border-color .2s, box-shadow .2s;
+    }
+    .form-group .input:focus {
+      border-color: var(--brand);
+      box-shadow: 0 0 0 3px rgba(255, 209, 0, .14);
+    }
+    .form-group .textarea {
+      border: 1.5px solid #e8ecf2;
+      border-radius: 14px;
+      padding: 13px 14px;
+      transition: border-color .2s, box-shadow .2s;
+    }
+    .form-group .textarea:focus {
+      border-color: var(--brand);
+      box-shadow: 0 0 0 3px rgba(255, 209, 0, .14);
+    }
+    .submit-line { position: relative; z-index: 1; margin-top: 18px; }
+    .submit-line .primary-btn {
+      background: linear-gradient(135deg, #1c1c1c, #333);
+      padding: 14px;
+      font-size: 15px;
+      border-radius: 16px;
+      letter-spacing: .5px;
+      transition: transform .16s, box-shadow .16s;
+    }
+    .submit-line .primary-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 10px 24px rgba(0, 0, 0, .18);
+    }
+    .create-card-close {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      z-index: 2;
+      border: 0;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: rgba(0, 0, 0, .06);
+      color: #64748b;
+      font-size: 18px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background .15s;
+    }
+    .create-card-close:hover { background: rgba(0, 0, 0, .12); }
+  </style>
+</head>
+<body class="soft-bg">
+  <header class="sub-header">
+    <a href="/user/index.html" class="back-link">‹</a>
+    <h1>客服中心</h1>
+    <button id="showCreateBtn" class="sub-action create-btn" type="button">发起工单</button>
+  </header>
+
+  <main class="page-shell pb-90">
+    <section id="createCard" class="section-card hidden">
+      <button id="closeCreateBtn" class="create-card-close" type="button">×</button>
+
+      <div class="create-icon-bar">
+        <div class="icon-circle">📝</div>
+        <div class="icon-text">
+          <b>发起工单</b>
+          <span>平台客服会统一处理你的问题</span>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="field-label">关联订单号（可选）</label>
+        <input id="orderIdInput" class="input" type="number" placeholder="例如：12" />
+      </div>
+      <div class="form-group">
+        <label class="field-label">问题类型</label>
+        <select id="typeInput" class="input">
+          <option value="订单问题">订单问题</option>
+          <option value="配送问题">配送问题</option>
+          <option value="退款问题">退款问题</option>
+          <option value="商品问题">商品问题</option>
+          <option value="其他问题">其他问题</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="field-label">标题</label>
+        <input id="titleInput" class="input" maxlength="100" placeholder="简单描述你的问题" />
+      </div>
+      <div class="form-group">
+        <label class="field-label">问题描述</label>
+        <textarea id="contentInput" class="input textarea" maxlength="2000" placeholder="请写清楚具体情况，便于客服处理"></textarea>
+      </div>
+      <div class="submit-line">
+        <button id="submitTicketBtn" class="primary-btn full" type="button">提交工单</button>
+      </div>
+    </section>
+
+    <section class="section-card">
+      <div class="section-title">
+        <div>
+          <h2>我的工单</h2>
+          <p>查看处理进度，继续和客服沟通。</p>
+        </div>
+      </div>
+      <div class="ticket-toolbar">
+        <select id="statusFilter" class="select">
+          <option value="">全部状态</option>
+          <option value="0">待处理</option>
+          <option value="1">处理中</option>
+          <option value="2">已解决</option>
+          <option value="3">已关闭</option>
+        </select>
+        <button id="refreshBtn" class="ghost-btn" type="button">刷新</button>
+      </div>
+      <div id="ticketList" class="ticket-list"></div>
+    </section>
+
+    <section class="section-card">
+      <div class="section-title">
+        <div>
+          <h2 id="detailTitle">工单详情</h2>
+          <p id="detailSub">选择左侧工单后查看消息。</p>
+        </div>
+        <button id="closeTicketBtn" class="text-btn danger hidden" type="button">关闭工单</button>
+      </div>
+      <div id="messageBox" class="message-box"><div class="empty-tip">请选择一个工单</div></div>
+      <div class="reply-row">
+        <textarea id="replyInput" class="input textarea" maxlength="2000" placeholder="输入要补充的内容"></textarea>
+        <button id="sendReplyBtn" class="primary-btn" type="button">发送</button>
+      </div>
+    </section>
+  </main>
+
+  <nav class="bottom-nav">
+    <a href="/user/index.html">首页</a>
+    <a href="/user/order.html">订单</a>
+    <a href="/user/profile.html">我的</a>
+  </nav>
+
+  <div id="toast" class="toast hidden"></div>
+
+  <script src="/assets/js/request.js"></script>
+  <script>
+    (function () {
+      const $ = App.$;
+      let tickets = [];
+      let currentTicketId = null;
+      const statusText = ['待处理', '处理中', '已解决', '已关闭'];
+
+      function statusChip(status) {
+        const s = Number(status || 0);
+        return `<span class="status-chip status-${s}">${statusText[s] || '未知'}</span>`;
+      }
+
+      function formatTime(value) {
+        if (!value) return '';
+        return String(value).replace('T', ' ').slice(0, 16);
+      }
+
+      function escapeHtml(value) {
+        return App.escapeHtml(value || '');
+      }
+
+      async function loadTickets() {
+        const status = $('#statusFilter').value;
+        const url = status ? `/api/user/customer-service/tickets?status=${encodeURIComponent(status)}` : '/api/user/customer-service/tickets';
+        tickets = await App.request(url);
+        renderTickets();
+        if (!currentTicketId && tickets.length > 0) openTicket(tickets[0].ticketId);
+      }
+
+      function renderTickets() {
+        const box = $('#ticketList');
+        if (!tickets.length) {
+          box.innerHTML = '<div class="empty-tip">暂无工单，点击右上角“发起工单”提交问题。</div>';
+          return;
+        }
+        box.innerHTML = tickets.map(t => `
+          <button class="ticket-card ${t.ticketId === currentTicketId ? 'active' : ''}" data-ticket-id="${t.ticketId}">
+            <div class="ticket-card-title"><span>#${t.ticketId} ${escapeHtml(t.title)}</span>${statusChip(t.status)}</div>
+            <div class="ticket-meta">${escapeHtml(t.type)} · ${t.orderId ? '订单 #' + t.orderId + ' · ' : ''}${formatTime(t.updateTime)}<br>${escapeHtml(t.lastMessage || '暂无消息')}</div>
+          </button>
+        `).join('');
+        box.querySelectorAll('.ticket-card').forEach(btn => {
+          btn.addEventListener('click', () => openTicket(Number(btn.dataset.ticketId)));
+        });
+      }
+
+      async function openTicket(ticketId) {
+        currentTicketId = ticketId;
+        renderTickets();
+        const detail = await App.request(`/api/user/customer-service/tickets/${ticketId}`);
+        const ticket = detail.ticket || {};
+        const messages = detail.messages || [];
+        $('#detailTitle').textContent = `#${ticket.ticketId || ticketId} ${ticket.title || '工单详情'}`;
+        $('#detailSub').textContent = `${statusText[ticket.status] || '未知状态'} · ${ticket.orderId ? '订单 #' + ticket.orderId + ' · ' : ''}${formatTime(ticket.updateTime)}`;
+        $('#closeTicketBtn').classList.toggle('hidden', Number(ticket.status) === 3);
+        $('#replyInput').disabled = Number(ticket.status) === 3;
+        $('#sendReplyBtn').disabled = Number(ticket.status) === 3;
+        $('#messageBox').innerHTML = messages.length ? messages.map(m => {
+          const mine = Number(m.senderRole) === 1;
+          return `<div class="message-row ${mine ? 'mine' : ''}"><div class="bubble"><div class="bubble-meta">${mine ? '我' : escapeHtml(m.senderName || '平台客服')} · ${formatTime(m.createTime)}</div>${escapeHtml(m.content)}</div></div>`;
+        }).join('') : '<div class="empty-tip">暂无消息</div>';
+        $('#messageBox').scrollTop = $('#messageBox').scrollHeight;
+      }
+
+      async function submitTicket() {
+        const orderIdRaw = $('#orderIdInput').value.trim();
+        const body = {
+          orderId: orderIdRaw ? Number(orderIdRaw) : null,
+          type: $('#typeInput').value,
+          title: $('#titleInput').value.trim(),
+          content: $('#contentInput').value.trim()
+        };
+        const ticket = await App.request('/api/user/customer-service/tickets', { method: 'POST', body });
+        App.toast('工单已提交', 'success');
+        $('#titleInput').value = '';
+        $('#contentInput').value = '';
+        $('#createCard').classList.add('hidden');
+        currentTicketId = ticket.ticketId;
+        await loadTickets();
+        await openTicket(currentTicketId);
+      }
+
+      async function sendReply() {
+        if (!currentTicketId) return App.toast('请先选择工单');
+        const content = $('#replyInput').value.trim();
+        if (!content) return App.toast('请输入回复内容');
+        await App.request(`/api/user/customer-service/tickets/${currentTicketId}/messages`, { method: 'POST', body: { content } });
+        $('#replyInput').value = '';
+        await openTicket(currentTicketId);
+        await loadTickets();
+      }
+
+      async function closeTicket() {
+        if (!currentTicketId) return;
+        if (!confirm('确定关闭这个工单吗？')) return;
+        await App.request(`/api/user/customer-service/tickets/${currentTicketId}/close`, { method: 'PUT' });
+        App.toast('工单已关闭', 'success');
+        await openTicket(currentTicketId);
+        await loadTickets();
+      }
+
+      $('#showCreateBtn').addEventListener('click', () => $('#createCard').classList.toggle('hidden'));
+      $('#closeCreateBtn').addEventListener('click', () => $('#createCard').classList.add('hidden'));
+      $('#submitTicketBtn').addEventListener('click', submitTicket);
+      $('#sendReplyBtn').addEventListener('click', sendReply);
+      $('#closeTicketBtn').addEventListener('click', closeTicket);
+      $('#refreshBtn').addEventListener('click', loadTickets);
+      $('#statusFilter').addEventListener('change', () => { currentTicketId = null; loadTickets(); });
+
+      const params = new URLSearchParams(location.search);
+      if (params.get('orderId')) {
+        $('#orderIdInput').value = params.get('orderId');
+        $('#createCard').classList.remove('hidden');
+      }
+      loadTickets().catch(e => App.toast(e.message || '加载失败'));
+    })();
+  </script>
+</body>
+</html>

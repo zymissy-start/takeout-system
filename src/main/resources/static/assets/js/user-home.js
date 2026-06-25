@@ -105,7 +105,8 @@
       const level = await App.request('/api/user/level');
       state.level = level;
       const levelName = App.getField(level, ['levelName', 'level_name'], 'Lv1 普通用户');
-      App.$('#levelBadge').textContent = levelName.replace('普通用户', '').trim();
+      const shortLevel = (levelName.match(/Lv\d+/i) || [levelName.split(/\s+/)[0]])[0];
+      App.$('#levelBadge').textContent = shortLevel;
       const rate = Number(App.getField(level, ['deliveryDiscountRate', 'delivery_discount_rate'], 1));
       const cooldown = App.getField(level, ['remindCooldownSeconds', 'remind_cooldown_seconds'], 180);
       App.$('#levelTip').textContent = rate < 1 ? `当前${levelName}：配送费${Math.round(rate * 100)}折，高等级用户会匹配高等级骑手。` : `当前${levelName}：完成订单可提升用户权益，10单后优先匹配闪电侠骑手，15单后优先匹配单王配送骑手。`;

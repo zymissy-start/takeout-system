@@ -374,7 +374,8 @@ a { color: inherit; text-decoration: none; }
   top: 0;
   z-index: 10;
   display: grid;
-  grid-template-columns: 48px 1fr 58px;
+  grid-template-columns: 48px 1fr auto;
+  gap: 8px;
   align-items: center;
   padding: 12px 14px;
   background: rgba(255,255,255,.9);
@@ -500,12 +501,29 @@ a { color: inherit; text-decoration: none; }
   font-weight: 900;
 }
 .level-chip.light { background: #fff7cf; color: #8a6000; }
+
+/* 个人中心 hero 等级徽章 */
+#profileLevelBadge {
+  margin-top: 8px;
+  padding: 5px 12px;
+  font-size: 13px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, .12);
+  gap: 5px;
+}
+#profileLevelBadge::before {
+  content: "👑";
+  font-size: 13px;
+}
 .level-chip.mini {
   position: absolute;
-  right: -8px;
-  top: -10px;
+  right: -6px;
+  top: -15px;
   z-index: 2;
-  box-shadow: 0 8px 18px rgba(0,0,0,.14);
+  margin-top: 0;
+  padding: 2px 6px;
+  font-size: 10px;
+  box-shadow: 0 4px 12px rgba(0,0,0,.14);
+  white-space: nowrap;
 }
 .level-card { overflow: hidden; }
 .level-progress {
@@ -997,6 +1015,9 @@ a { color: inherit; text-decoration: none; }
 }
 .cart-fab-icon {
   line-height: 1;
+}
+.cart-fab-icon::before {
+  content: "🛒";
 }
 .cart-fab-badge {
   position: absolute;
