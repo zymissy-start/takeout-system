@@ -1,0 +1,498 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>联系消息 - 管理员</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: #f5f6fa;
+      color: #1f2937;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", Arial, sans-serif;
+    }
+    a { color: inherit; text-decoration: none; }
+    button, input, select, textarea { font: inherit; }
+    .admin-layout { display: grid; grid-template-columns: 248px 1fr; min-height: 100vh; }
+    .sidebar {
+      position: sticky; top: 0; height: 100vh;
+      padding: 24px 18px; background: #111827; color: #fff;
+    }
+    .brand { display: flex; align-items: center; gap: 12px; margin-bottom: 26px; }
+    .brand-logo {
+      width: 42px; height: 42px; border-radius: 15px;
+      display: grid; place-items: center;
+      background: linear-gradient(135deg, #ffd100, #ffb300);
+      color: #111827; font-size: 22px; font-weight: 900;
+    }
+    .brand h1 { margin: 0; font-size: 20px; }
+    .brand p { margin: 3px 0 0; color: #9ca3af; font-size: 12px; }
+    .nav-title { margin: 18px 10px 8px; color: #6b7280; font-size: 12px; font-weight: 900; letter-spacing: .08em; }
+    .nav-link {
+      display: flex; align-items: center; gap: 10px;
+      min-height: 44px; padding: 0 12px; border-radius: 14px;
+      color: #d1d5db; font-weight: 800;
+    }
+    .nav-link.active { background: rgba(255, 209, 0, .14); color: #fff; }
+    .nav-link:hover { background: rgba(255, 255, 255, .08); }
+    .sidebar-footer { position: absolute; left: 18px; right: 18px; bottom: 20px; display: grid; gap: 10px; }
+    .admin-user {
+      padding: 14px; border-radius: 18px;
+      background: rgba(255, 255, 255, .08);
+      color: #e5e7eb; line-height: 1.55; font-size: 13px;
+    }
+    .main { min-width: 0; padding: 24px; }
+    .topbar { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 18px; }
+    .topbar h2 { margin: 0; font-size: 28px; }
+    .topbar p { margin: 6px 0 0; color: #6b7280; }
+    .top-actions { display: flex; gap: 10px; align-items: center; }
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      border: 1px solid #e5e7eb; background: #fff; color: #374151;
+      min-height: 38px; padding: 0 14px; border-radius: 12px;
+      cursor: pointer; font-weight: 800; text-decoration: none;
+    }
+    .btn:hover { border-color: #ffd100; box-shadow: 0 8px 20px rgba(15, 23, 42, .08); }
+    .btn.primary { border-color: #111827; background: #111827; color: #fff; }
+    .btn.warning { border-color: #ffd100; background: #fff7cc; color: #6b4d00; }
+    .btn.danger { border-color: #fee2e2; background: #fff1f2; color: #dc2626; }
+    .btn:disabled { opacity: .55; cursor: not-allowed; }
+
+    .workspace { display: grid; grid-template-columns: 390px minmax(0, 1fr); gap: 18px; align-items: stretch; }
+    .panel {
+      min-width: 0; background: #fff; border: 1px solid #edf0f5;
+      border-radius: 22px; box-shadow: 0 10px 26px rgba(15, 23, 42, .05);
+      overflow: hidden;
+    }
+    .panel-head { padding: 18px; border-bottom: 1px solid #edf0f5; }
+    .panel-head h3 { margin: 0 0 12px; font-size: 18px; }
+    .filters { display: grid; grid-template-columns: 128px 1fr; gap: 10px; }
+    .input, .select, .textarea {
+      width: 100%; border: 1px solid #e5e7eb; border-radius: 12px;
+      background: #fff; color: #111827; outline: none;
+    }
+    .input, .select { height: 40px; padding: 0 12px; }
+    .textarea { min-height: 60px; padding: 10px; resize: vertical; line-height: 1.65; }
+    .input:focus, .select:focus, .textarea:focus { border-color: #ffd100; box-shadow: 0 0 0 4px rgba(255, 209, 0, .15); }
+
+    .session-list { height: calc(100vh - 250px); min-height: 400px; overflow: auto; padding: 12px; display: grid; gap: 10px; align-content: start; background: #fbfcfe; }
+    .session-card {
+      width: 100%; display: block; text-align: left;
+      border: 1px solid #edf0f5; background: #fff;
+      border-radius: 16px; padding: 14px; cursor: pointer;
+      transition: border-color .16s ease, box-shadow .16s ease, transform .16s ease;
+    }
+    .session-card:hover { transform: translateY(-1px); border-color: #ffd100; box-shadow: 0 10px 22px rgba(15, 23, 42, .06); }
+    .session-card.active { border-color: #111827; box-shadow: 0 12px 28px rgba(15, 23, 42, .10); }
+    .session-card-title { display: flex; justify-content: space-between; gap: 10px; font-weight: 900; line-height: 1.45; }
+    .session-title-text { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .session-meta { margin-top: 8px; color: #6b7280; font-size: 13px; line-height: 1.7; }
+    .role-tag { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 800; white-space: nowrap; }
+    .role-1 { background: #dbeafe; color: #1d4ed8; }
+    .role-2 { background: #fef3c7; color: #92400e; }
+    .role-3 { background: #dcfce7; color: #15803d; }
+    .status-chip { display: inline-flex; align-items: center; padding: 4px 9px; border-radius: 999px; font-size: 12px; font-weight: 900; white-space: nowrap; }
+    .status-0 { background: #fff7cc; color: #765800; }
+    .status-1 { background: #dbeafe; color: #1d4ed8; }
+    .status-2 { background: #e5e7eb; color: #4b5563; }
+
+    .detail-head { padding: 18px; border-bottom: 1px solid #edf0f5; display: flex; justify-content: space-between; gap: 14px; align-items: flex-start; }
+    .detail-head h3 { margin: 0 0 8px; font-size: 20px; }
+    .detail-head p { margin: 0; color: #6b7280; line-height: 1.7; }
+    .detail-actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+
+    .message-box { height: calc(100vh - 380px); min-height: 360px; overflow: auto; padding: 18px; display: grid; gap: 12px; align-content: start; background: #f8fafc; }
+    .message-row { display: flex; }
+    .message-row.mine { justify-content: flex-end; }
+    .bubble { max-width: min(650px, 78%); padding: 11px 13px; border-radius: 16px 16px 16px 6px; background: #fff; box-shadow: 0 8px 18px rgba(15, 23, 42, .06); line-height: 1.65; word-break: break-word; }
+    .message-row.mine .bubble { border-radius: 16px 16px 6px 16px; background: #111827; color: #fff; }
+    .bubble-meta { font-size: 12px; color: #9ca3af; margin-bottom: 4px; }
+    .message-row.mine .bubble-meta { color: #d1d5db; }
+
+    .reply-panel { padding: 16px; border-top: 1px solid #edf0f5; background: #fff; }
+    .reply-actions { display: flex; justify-content: space-between; gap: 10px; margin-top: 10px; align-items: center; }
+    .reply-actions-left { color: #9ca3af; font-size: 13px; }
+
+    .create-overlay {
+      position: fixed; inset: 0; background: rgba(15, 23, 42, .45);
+      z-index: 15; display: flex; align-items: center; justify-content: center; padding: 20px;
+    }
+    .create-card {
+      width: min(460px, 100%); background: #fff; border-radius: 22px;
+      padding: 28px; box-shadow: 0 20px 50px rgba(15, 23, 42, .18);
+    }
+    .create-card h3 { margin: 0 0 20px; font-size: 22px; }
+    .form-group { margin-bottom: 16px; }
+    .form-group label { display: block; margin-bottom: 6px; font-weight: 700; color: #374151; font-size: 14px; }
+    .create-actions { display: flex; gap: 10px; margin-top: 20px; }
+
+    .empty-tip { padding: 34px 16px; text-align: center; color: #9ca3af; }
+    .toast { position: fixed; left: 50%; bottom: 26px; transform: translateX(-50%); padding: 10px 14px; border-radius: 999px; background: #111827; color: #fff; font-size: 14px; box-shadow: 0 12px 28px rgba(15, 23, 42, .20); z-index: 20; }
+    .hidden { display: none !important; }
+
+    @media (max-width: 1080px) {
+      .admin-layout { grid-template-columns: 1fr; }
+      .sidebar { position: static; height: auto; }
+      .sidebar-footer { position: static; margin-top: 18px; }
+      .workspace { grid-template-columns: 1fr; }
+      .session-list, .message-box { height: auto; max-height: 560px; }
+    }
+    @media (max-width: 680px) {
+      .main { padding: 16px; }
+      .topbar, .detail-head { flex-direction: column; }
+      .filters { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="admin-layout">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-logo">客</div>
+        <div>
+          <h1>饭点优选</h1>
+          <p>平台管理端</p>
+        </div>
+      </div>
+      <div class="nav-title">工作台</div>
+      <a class="nav-link" href="/admin/customer-service.html">💬 客服工单</a>
+      <a class="nav-link" href="/admin/manage.html">👥 用户管理</a>
+      <a class="nav-link active" href="/admin/contact.html">📨 联系消息</a>
+      <a class="nav-link" href="/index.html">🏠 返回首页</a>
+      <div class="sidebar-footer">
+        <div class="admin-user">
+          <b id="adminName">管理员</b><br />
+          <span>平台管理控制台</span>
+        </div>
+        <button id="logoutBtn" class="btn danger" type="button">退出登录</button>
+      </div>
+    </aside>
+
+    <main class="main">
+      <section class="topbar">
+        <div>
+          <h2>联系消息</h2>
+          <p>主动联系用户、商家、骑手，或回复他们的咨询。</p>
+        </div>
+        <div class="top-actions">
+          <button id="refreshTopBtn" class="btn" type="button">刷新</button>
+          <button id="createBtn" class="btn primary" type="button">+ 发起会话</button>
+        </div>
+      </section>
+
+      <section class="workspace">
+        <aside class="panel">
+          <div class="panel-head">
+            <h3>会话列表</h3>
+            <div class="filters">
+              <select id="roleFilter" class="select">
+                <option value="">全部对象</option>
+                <option value="1">用户</option>
+                <option value="2">商家</option>
+                <option value="3">骑手</option>
+              </select>
+              <input id="keywordInput" class="input" placeholder="搜索标题/姓名" />
+            </div>
+          </div>
+          <div id="sessionList" class="session-list"></div>
+        </aside>
+
+        <section class="panel">
+          <div class="detail-head">
+            <div>
+              <h3 id="detailTitle">消息对话</h3>
+              <p id="detailSub">选择左侧会话后查看消息。</p>
+            </div>
+            <div id="detailActions" class="detail-actions hidden">
+              <button id="closeSessionBtn" class="btn danger" type="button">关闭会话</button>
+            </div>
+          </div>
+          <div id="messageBox" class="message-box"><div class="empty-tip">请选择一个会话</div></div>
+          <div class="reply-panel">
+            <textarea id="replyInput" class="textarea" maxlength="2000" placeholder="输入回复内容"></textarea>
+            <div class="reply-actions">
+              <span class="reply-actions-left">发送后对方可查看并回复。</span>
+              <div>
+                <button id="refreshBtn" class="btn" type="button">刷新会话</button>
+                <button id="sendReplyBtn" class="btn primary" type="button">发送回复</button>
+              </div>
+            </div>
+          </div>
+        </section>
+      </section>
+    </main>
+  </div>
+
+  <div id="createOverlay" class="create-overlay hidden">
+    <div class="create-card">
+      <h3>发起新会话</h3>
+      <div class="form-group">
+        <label>目标角色</label>
+        <select id="createFormRole" class="select">
+          <option value="1">用户</option>
+          <option value="2">商家</option>
+          <option value="3">骑手</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>目标用户 ID</label>
+        <input id="createFormTargetId" class="input" type="number" placeholder="输入用户/商家/骑手的 ID" />
+      </div>
+      <div class="form-group">
+        <label>关联订单 ID（可选）</label>
+        <input id="createFormOrderId" class="input" type="number" placeholder="可选" />
+      </div>
+      <div class="form-group">
+        <label>标题</label>
+        <input id="createFormTitle" class="input" placeholder="如：订单售后咨询" />
+      </div>
+      <div class="form-group">
+        <label>首条消息</label>
+        <textarea id="createFormContent" class="textarea" placeholder="输入要发送的第一条消息"></textarea>
+      </div>
+      <div class="create-actions">
+        <button id="createCancelBtn" class="btn" type="button">取消</button>
+        <button id="createSubmitBtn" class="btn primary" type="button">发起会话</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast hidden"></div>
+
+  <script>
+    (function () {
+      const $ = selector => document.querySelector(selector);
+      let sessions = [];
+      let currentSessionId = null;
+      const roleNames = { 1: '用户', 2: '商家', 3: '骑手' };
+      const statusText = ['待回复', '对话中', '已关闭'];
+
+      function getAdminToken() {
+        return localStorage.getItem('adminToken') || '';
+      }
+
+      function initAdminName() {
+        try {
+          const admin = JSON.parse(localStorage.getItem('adminUser') || '{}');
+          $('#adminName').textContent = admin.realName || admin.real_name || admin.username || '管理员';
+        } catch (e) {
+          $('#adminName').textContent = '管理员';
+        }
+      }
+
+      function clearAdminStorage() {
+        localStorage.removeItem('adminToken');
+        localStorage.removeItem('adminUser');
+      }
+
+      function toast(message) {
+        const el = $('#toast');
+        el.textContent = message;
+        el.classList.remove('hidden');
+        clearTimeout(window.__adminToastTimer);
+        window.__adminToastTimer = setTimeout(() => el.classList.add('hidden'), 2200);
+      }
+
+      function escapeHtml(value) {
+        return String(value ?? '').replace(/[&<>'"]/g, s => ({
+          '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
+        }[s]));
+      }
+
+      function formatTime(value) {
+        if (!value) return '';
+        return String(value).replace('T', ' ').slice(0, 16);
+      }
+
+      async function request(url, options) {
+        const token = getAdminToken();
+        if (!token) {
+          window.location.href = '/admin/login.html';
+          throw new Error('请先登录管理员账号');
+        }
+        const opt = Object.assign({ method: 'GET' }, options || {});
+        opt.headers = Object.assign({ 'Content-Type': 'application/json' }, opt.headers || {});
+        opt.headers.Authorization = token.startsWith('Bearer ') ? token : `Bearer ${token}`;
+        if (opt.body && typeof opt.body !== 'string') opt.body = JSON.stringify(opt.body);
+        const resp = await fetch(url, opt);
+        const text = await resp.text();
+        let json = {};
+        try { json = text ? JSON.parse(text) : {}; } catch (e) { json = {}; }
+        if (resp.status === 401 || resp.status === 403) {
+          clearAdminStorage();
+          window.location.href = '/admin/login.html';
+          throw new Error('登录已失效');
+        }
+        if (!resp.ok || ![0, 200, '0', '200'].includes(json.code)) {
+          throw new Error(json.message || '请求失败');
+        }
+        return json.data;
+      }
+
+      function roleTag(role) {
+        const r = Number(role);
+        const name = roleNames[r] || '未知';
+        return `<span class="role-tag role-${r}">${name}</span>`;
+      }
+
+      function statusChip(status) {
+        const s = Number(status || 0);
+        return `<span class="status-chip status-${s}">${statusText[s] || '未知'}</span>`;
+      }
+
+      async function loadSessions() {
+        const targetRole = $('#roleFilter').value;
+        const keyword = $('#keywordInput').value.trim();
+        const params = new URLSearchParams();
+        if (targetRole) params.set('targetRole', targetRole);
+        if (keyword) params.set('keyword', keyword);
+        const qs = params.toString();
+        sessions = await request('/api/admin/contact/sessions' + (qs ? '?' + qs : ''));
+        sessions = Array.isArray(sessions) ? sessions : [];
+        renderSessions();
+      }
+
+      function renderSessions() {
+        const box = $('#sessionList');
+        if (!sessions.length) {
+          box.innerHTML = '<div class="empty-tip">暂无会话</div>';
+          return;
+        }
+        box.innerHTML = sessions.map(s => {
+          const targetRole = Number(s.targetRole);
+          const targetName = s.targetName || ('#' + s.targetId);
+          return `
+            <button class="session-card ${s.sessionId === currentSessionId ? 'active' : ''}" data-session-id="${s.sessionId}">
+              <div class="session-card-title">
+                <span class="session-title-text">${escapeHtml(s.title || '无标题')}</span>
+                ${statusChip(s.status)}
+              </div>
+              <div class="session-meta">
+                ${roleTag(targetRole)} ${escapeHtml(targetName)}<br>
+                ${formatTime(s.updateTime)} · ${escapeHtml(s.lastMessage || '暂无消息')}
+              </div>
+            </button>
+          `;
+        }).join('');
+        box.querySelectorAll('.session-card').forEach(btn => {
+          btn.addEventListener('click', () => openSession(Number(btn.dataset.sessionId)));
+        });
+      }
+
+      async function openSession(sessionId) {
+        currentSessionId = sessionId;
+        renderSessions();
+        const detail = await request(`/api/admin/contact/sessions/${sessionId}`);
+        const session = detail.session || {};
+        const messages = detail.messages || [];
+        const targetRole = Number(session.targetRole);
+        $('#detailTitle').textContent = session.title || '消息对话';
+        $('#detailSub').innerHTML = `${roleTag(targetRole)} ${escapeHtml(session.targetName || '')} · ${statusChip(session.status)}`;
+        $('#detailActions').classList.toggle('hidden', Number(session.status) === 2);
+        $('#replyInput').disabled = Number(session.status) === 2;
+        $('#sendReplyBtn').disabled = Number(session.status) === 2;
+        $('#messageBox').innerHTML = messages.length ? messages.map(m => {
+          const mine = Number(m.senderRole) === 4;
+          return `<div class="message-row ${mine ? 'mine' : ''}"><div class="bubble"><div class="bubble-meta">${mine ? '管理员' : escapeHtml(m.senderName || roleNames[targetRole] || '对方')} · ${formatTime(m.createTime)}</div>${escapeHtml(m.content)}</div></div>`;
+        }).join('') : '<div class="empty-tip">暂无消息</div>';
+        $('#messageBox').scrollTop = $('#messageBox').scrollHeight;
+      }
+
+      async function sendReply() {
+        if (!currentSessionId) return toast('请先选择会话');
+        const content = $('#replyInput').value.trim();
+        if (!content) return toast('请输入回复内容');
+        await request(`/api/admin/contact/sessions/${currentSessionId}/messages`, { method: 'POST', body: { content } });
+        $('#replyInput').value = '';
+        toast('发送成功');
+        await openSession(currentSessionId);
+        await loadSessions();
+      }
+
+      async function closeSession() {
+        if (!currentSessionId) return toast('请先选择会话');
+        if (!confirm('确认关闭此会话？')) return;
+        await request(`/api/admin/contact/sessions/${currentSessionId}/close`, { method: 'PUT' });
+        toast('会话已关闭');
+        await openSession(currentSessionId);
+        await loadSessions();
+      }
+
+      function openCreateForm() {
+        const params = new URLSearchParams(window.location.search);
+        const targetId = params.get('targetId');
+        const targetRole = params.get('targetRole');
+        const targetName = params.get('targetName');
+        if (targetId) {
+          $('#createFormTargetId').value = targetId;
+        }
+        if (targetRole) {
+          $('#createFormRole').value = targetRole;
+        }
+        if (targetName) {
+          $('#createFormTitle').value = `联系${roleNames[targetRole] || ''}：${targetName}`;
+        }
+        $('#createOverlay').classList.remove('hidden');
+      }
+
+      async function submitCreate() {
+        const targetId = $('#createFormTargetId').value.trim();
+        const targetRole = $('#createFormRole').value;
+        const orderId = $('#createFormOrderId').value.trim();
+        const title = $('#createFormTitle').value.trim();
+        const content = $('#createFormContent').value.trim();
+        if (!targetId) return toast('请输入目标用户ID');
+        if (!content) return toast('请输入首条消息');
+        const body = { targetId: Number(targetId), targetRole: Number(targetRole), content };
+        if (orderId) body.orderId = Number(orderId);
+        if (title) body.title = title;
+        try {
+          const session = await request('/api/admin/contact/sessions', { method: 'POST', body });
+          toast('会话已创建');
+          $('#createOverlay').classList.add('hidden');
+          ['createFormTargetId', 'createFormOrderId', 'createFormTitle', 'createFormContent'].forEach(id => $('#' + id).value = '');
+          if (window.location.search) {
+            window.history.replaceState({}, '', '/admin/contact.html');
+          }
+          await loadSessions();
+          if (session && session.sessionId) {
+            await openSession(session.sessionId);
+          }
+        } catch (e) {
+          toast(e.message || '创建失败');
+        }
+      }
+
+      async function logout() {
+        try {
+          await fetch('/api/admin/auth/logout', { method: 'POST' });
+        } catch (e) {}
+        clearAdminStorage();
+        window.location.href = '/index.html';
+      }
+
+      $('#sendReplyBtn').addEventListener('click', sendReply);
+      $('#refreshBtn').addEventListener('click', () => currentSessionId ? openSession(currentSessionId) : loadSessions());
+      $('#refreshTopBtn').addEventListener('click', () => loadSessions().catch(e => toast(e.message)));
+      $('#closeSessionBtn').addEventListener('click', closeSession);
+      $('#roleFilter').addEventListener('change', () => { currentSessionId = null; loadSessions().catch(e => toast(e.message)); });
+      $('#keywordInput').addEventListener('keydown', e => { if (e.key === 'Enter') { currentSessionId = null; loadSessions().catch(e => toast(e.message)); } });
+      $('#createBtn').addEventListener('click', openCreateForm);
+      $('#createCancelBtn').addEventListener('click', () => $('#createOverlay').classList.add('hidden'));
+      $('#createSubmitBtn').addEventListener('click', submitCreate);
+      $('#createOverlay').addEventListener('click', e => { if (e.target === $('#createOverlay')) $('#createOverlay').classList.add('hidden'); });
+      $('#logoutBtn').addEventListener('click', logout);
+
+      initAdminName();
+      loadSessions().catch(e => toast(e.message || '加载失败'));
+
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('targetId')) {
+        openCreateForm();
+      }
+    })();
+  </script>
+</body>
+</html>

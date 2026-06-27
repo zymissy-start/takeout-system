@@ -134,6 +134,11 @@
     const items = App.getField(order, ['items', 'orderItems'], []);
     const logs = App.getField(order, ['statusLogs', 'status_logs'], []);
     const reminders = App.getField(order, ['reminders'], []);
+    const merchantId = App.getField(order, ['merchantId', 'merchant_id'], 0);
+    const merchantName = App.getField(order, ['merchantName', 'merchant_name', 'storeName'], '商家');
+    const riderId = App.getField(order, ['riderId', 'rider_id'], 0);
+    const riderName = App.getField(order, ['riderName', 'rider_name'], '骑手');
+    const orderIdVal = App.getField(order, ['orderId', 'order_id', 'id'], '');
     const times = Array.isArray(logs) && logs.length
       ? logs.map(log => [App.getField(log, ['statusText','status_text'], '订单状态更新'), App.getField(log, ['createTime','create_time'], ''), App.getField(log, ['remark'], '')])
       : [
@@ -154,6 +159,10 @@
       ${Array.isArray(reminders) && reminders.length ? `<div class="reminder-list"><b>催单记录</b>${reminders.map(r => `<p>${App.escapeHtml(App.getField(r, ['content'], '已催单'))}<span>${App.escapeHtml(App.getField(r, ['status'], 'UNREAD'))}</span></p>`).join('')}</div>` : ''}
       <p class="muted small">骑手匹配：${App.escapeHtml(normalizeRiderTitle(App.getField(order, ['requiredRiderTitle','required_rider_title'], '普通骑手')))}；已打赏：${App.formatMoney(App.getField(order, ['tipAmount','tip_amount'], 0))}</p>
       ${[3, 4].includes(Number(status)) ? `<div class="order-actions detail-actions"><button class="main" data-detail-tip="${App.escapeHtml(App.getField(order, ['orderId','order_id'], ''))}">打赏骑手</button></div>` : ''}
+      <div class="order-actions detail-actions">
+        ${merchantId ? `<button data-contact="1" data-mid="${merchantId}" data-mname="${App.escapeHtml(merchantName)}">联系商家</button>` : ''}
+        ${riderId ? `<button data-contact="1" data-rid="${riderId}" data-rname="${App.escapeHtml(riderName)}" class="main">联系骑手</button>` : ''}
+      </div>
       <p class="muted small">收货地址：${App.escapeHtml(App.getField(order, ['receiverAddress','receiver_address','address'], ''))}</p>
       <p class="muted small">备注：${App.escapeHtml(App.getField(order, ['remark'], '无'))}</p>`;
 
@@ -161,6 +170,26 @@
     if (tipBtn) {
       tipBtn.addEventListener('click', () => openTipModal(tipBtn.dataset.detailTip));
     }
+    App.$all('#orderDetail button[data-contact]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const mid = btn.dataset.mid;
+        const mname = btn.dataset.mname;
+        const rid = btn.dataset.rid;
+        const rname = btn.dataset.rname;
+        const params = new URLSearchParams();
+        if (mid) {
+          params.set('targetId', mid);
+          params.set('targetRole', '2');
+          params.set('targetName', mname || '');
+        } else if (rid) {
+          params.set('targetId', rid);
+          params.set('targetRole', '3');
+          params.set('targetName', rname || '');
+        }
+        if (orderIdVal) params.set('orderId', orderIdVal);
+        window.location.href = '/user/contact.html?' + params.toString();
+      });
+    });
   }
 
   async function cancelOrder(orderId) {

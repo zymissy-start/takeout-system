@@ -14,7 +14,9 @@
     addresses: [],
     deliveryFee: 3.00,
     level: null,
-    favoriteMerchantIds: new Set()
+    favoriteMerchantIds: new Set(),
+    coupons: [],
+    selectedCouponId: null
   };
 
   const foodEmoji = ['🍔', '🍗', '🍜', '🥤', '🍱', '🍕', '🥟', '🧋'];
@@ -79,6 +81,11 @@
     App.$('#closeCheckoutBtn').addEventListener('click', closeCheckout);
     App.$('#submitOrderBtn').addEventListener('click', submitOrder);
     App.$('#cartToggleBtn').addEventListener('click', toggleCart);
+    const couponBtn = App.$('#couponPickerBtn');
+    if (couponBtn) couponBtn.addEventListener('click', () => {
+      const panel = App.$('#couponPanel');
+      if (panel) panel.classList.toggle('hidden');
+    });
     App.$all('.quick-item[data-category-name]').forEach(btn => btn.addEventListener('click', () => selectCategoryByName(btn.dataset.categoryName)));
   }
 
@@ -431,19 +438,88 @@
     const minOrderAmount = cartMinOrderAmount(items);
     const first = items[0];
     state.deliveryFee = Number(first.deliveryFee || first.delivery_fee || state.deliveryFee || 3);
+    state.selectedCouponId = null;
+    loadCoupons();
+    updateCheckoutTotal();
+    App.$('#checkoutMask').classList.remove('hidden');
+  }
+
+  async function loadCoupons() {
+    try {
+      const list = await App.request('/api/user/coupons/my');
+      state.coupons = (Array.isArray(list) ? list : []).filter(c => Number(App.getField(c, ['userCouponStatus', 'user_coupon_status'], -1)) === 0);
+    } catch (e) { state.coupons = []; }
+    renderCouponPicker();
+  }
+
+  function renderCouponPicker() {
+    const panel = App.$('#couponPanel');
+    const btn = App.$('#couponPickerBtn');
+    const text = App.$('#couponPickerText');
+    if (!panel || !btn) return;
+    const goods = Cart.goodsAmount();
+    const available = state.coupons.filter(c => {
+      const minAmt = Number(App.getField(c, ['minAmount', 'min_amount'], 0));
+      return goods >= minAmt;
+    });
+    if (!available.length) {
+      panel.innerHTML = '<div class="coupon-option-none">暂无可用优惠券</div>';
+      if (text) { text.textContent = '暂无可用'; text.parentElement.classList.remove('selected'); }
+      state.selectedCouponId = null;
+      updateCheckoutTotal();
+      return;
+    }
+    let html = '<div class="coupon-option' + (!state.selectedCouponId ? ' active' : '') + '" data-cid="">';
+    html += '<div class="cp-info"><b>不使用优惠券</b></div></div>';
+    available.forEach(c => {
+      const ucId = App.getField(c, ['userCouponId', 'user_coupon_id'], '');
+      const amount = App.getField(c, ['amount'], 0);
+      const title = App.getField(c, ['title'], '优惠券');
+      const minAmt = App.getField(c, ['minAmount', 'min_amount'], 0);
+      const active = String(state.selectedCouponId) === String(ucId) ? ' active' : '';
+      html += `<div class="coupon-option${active}" data-cid="${ucId}">`;
+      html += `<div class="cp-amount">¥${Number(amount).toFixed(0)}</div>`;
+      html += `<div class="cp-info"><b>${App.escapeHtml(title)}</b><span>满${Number(minAmt).toFixed(0)}可用</span></div></div>`;
+    });
+    panel.innerHTML = html;
+    panel.querySelectorAll('.coupon-option').forEach(opt => {
+      opt.addEventListener('click', () => {
+        const cid = opt.dataset.cid;
+        state.selectedCouponId = cid ? Number(cid) : null;
+        renderCouponPicker();
+        updateCheckoutTotal();
+      });
+    });
+    if (state.selectedCouponId) {
+      const sel = available.find(c => String(App.getField(c, ['userCouponId', 'user_coupon_id'], '')) === String(state.selectedCouponId));
+      if (sel && text) { text.textContent = `-¥${Number(App.getField(sel, ['amount'], 0)).toFixed(0)}`; text.parentElement.classList.add('selected'); }
+    } else if (text) { text.textContent = available.length + '张可用'; text.parentElement.classList.remove('selected'); }
+  }
+
+  function updateCheckoutTotal() {
+    const items = Cart.readCart();
+    const goods = Cart.goodsAmount();
     const rate = state.level ? Number(App.getField(state.level, ['deliveryDiscountRate', 'delivery_discount_rate'], 1)) : 1;
     const discount = Math.max(0, state.deliveryFee - state.deliveryFee * rate);
+    let couponDiscount = 0;
+    if (state.selectedCouponId) {
+      const sel = state.coupons.find(c => String(App.getField(c, ['userCouponId', 'user_coupon_id'], '')) === String(state.selectedCouponId));
+      if (sel) couponDiscount = Number(App.getField(sel, ['amount'], 0));
+    }
+    const minOrderAmount = cartMinOrderAmount(items);
     const shortfall = Math.max(0, minOrderAmount - goods);
     App.$('#modalGoodsAmount').textContent = App.formatMoney(goods);
     App.$('#modalDeliveryFee').textContent = App.formatMoney(state.deliveryFee);
     App.$('#modalDiscountAmount').textContent = '-' + App.formatMoney(discount);
-    App.$('#modalPayAmount').textContent = App.formatMoney(goods + state.deliveryFee - discount);
+    const couponEl = App.$('#modalCouponDiscount');
+    if (couponEl) couponEl.textContent = '-' + App.formatMoney(couponDiscount);
+    const total = Math.max(0, goods + state.deliveryFee - discount - couponDiscount);
+    App.$('#modalPayAmount').textContent = App.formatMoney(total);
     App.$('#submitOrderBtn').disabled = shortfall > 0;
     const levelTip = state.level ? `当前${App.getField(state.level, ['levelName','level_name'], '等级')}享受配送费权益，高等级用户会匹配高等级骑手。` : '最终金额以后端事务计算为准。';
     App.$('#checkoutLevelTip').textContent = shortfall > 0
       ? `未达到商家起送价 ${App.formatMoney(minOrderAmount)}，还差 ${App.formatMoney(shortfall)} 才能提交订单。`
       : `${levelTip} 已达到起送价，最终金额以后端计算为准。`;
-    App.$('#checkoutMask').classList.remove('hidden');
   }
 
   function closeCheckout() { App.$('#checkoutMask').classList.add('hidden'); }
@@ -464,7 +540,8 @@
     const payload = {
       addressId: addressId ? Number(addressId) : null,
       remark: App.$('#remarkInput').value.trim(),
-      items: items.map(item => ({ productId: Number(item.productId), quantity: Number(item.quantity) }))
+      items: items.map(item => ({ productId: Number(item.productId), quantity: Number(item.quantity) })),
+      userCouponId: state.selectedCouponId || null
     };
     try {
       App.$('#submitOrderBtn').disabled = true;

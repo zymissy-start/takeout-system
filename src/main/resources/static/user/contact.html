@@ -1,0 +1,287 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>联系商家/骑手</title>
+  <link rel="stylesheet" href="/user/css/user.css" />
+  <style>
+    .contact-layout { display: grid; grid-template-columns: 1fr; gap: 14px; }
+    .session-list { display: grid; gap: 10px; }
+    .session-card {
+      width: 100%; display: block; text-align: left;
+      border: 1px solid var(--line); background: var(--card);
+      border-radius: 16px; padding: 14px; cursor: pointer;
+      transition: border-color .16s ease, box-shadow .16s ease, transform .16s ease;
+    }
+    .session-card:hover { transform: translateY(-1px); border-color: var(--brand); box-shadow: 0 8px 20px rgba(15,23,42,.06); }
+    .session-card.active { border-color: var(--ink); box-shadow: 0 10px 24px rgba(15,23,42,.10); }
+    .session-card-title { display: flex; justify-content: space-between; gap: 10px; font-weight: 800; line-height: 1.45; }
+    .session-title-text { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .session-meta { margin-top: 8px; color: var(--sub); font-size: 13px; line-height: 1.7; }
+    .role-tag { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 800; white-space: nowrap; }
+    .role-2 { background: #fef3c7; color: #92400e; }
+    .role-3 { background: #dcfce7; color: #15803d; }
+    .status-chip { display: inline-flex; align-items: center; padding: 3px 8px; border-radius: 999px; font-size: 12px; font-weight: 800; white-space: nowrap; background: #f3f4f6; color: #374151; }
+    .status-0 { background: #fff7cc; color: #765800; }
+    .status-1 { background: #dbeafe; color: #1d4ed8; }
+    .status-2 { background: #e5e7eb; color: #4b5563; }
+    .message-box { min-height: 260px; max-height: 420px; overflow: auto; display: grid; gap: 12px; align-content: start; background: #f8fafc; border-radius: 14px; padding: 16px; }
+    .message-row { display: flex; }
+    .message-row.mine { justify-content: flex-end; }
+    .bubble { max-width: 78%; padding: 10px 13px; border-radius: 16px 16px 16px 6px; background: var(--card); box-shadow: 0 4px 12px rgba(15,23,42,.06); line-height: 1.65; word-break: break-word; }
+    .message-row.mine .bubble { border-radius: 16px 16px 6px 16px; background: #fff3a3; }
+    .bubble-meta { font-size: 12px; color: var(--muted); margin-bottom: 4px; }
+    .reply-row { display: grid; grid-template-columns: 1fr auto; gap: 10px; margin-top: 12px; }
+    .reply-row .input { min-height: 44px; }
+    .empty-tip { padding: 28px 16px; text-align: center; color: var(--muted); }
+  </style>
+</head>
+<body class="soft-bg">
+  <header class="sub-header">
+    <a href="/user/index.html" class="back-link">‹</a>
+    <h1>联系消息</h1>
+    <span class="sub-action"></span>
+  </header>
+
+  <main class="page-shell pb-90">
+    <section id="createCard" class="section-card hidden">
+      <div class="section-title">
+        <h2>发起新会话</h2>
+      </div>
+      <div class="form-group">
+        <label class="field-label">目标角色</label>
+        <select id="createFormRole" class="select">
+          <option value="2">商家</option>
+          <option value="3">骑手</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="field-label">目标 ID</label>
+        <input id="createFormTargetId" class="input" type="number" placeholder="商家或骑手的用户ID" />
+      </div>
+      <div class="form-group">
+        <label class="field-label">关联订单 ID（可选）</label>
+        <input id="createFormOrderId" class="input" type="number" placeholder="可选" />
+      </div>
+      <div class="form-group">
+        <label class="field-label">标题</label>
+        <input id="createFormTitle" class="input" placeholder="如：订单售后咨询" />
+      </div>
+      <div class="form-group">
+        <label class="field-label">首条消息</label>
+        <textarea id="createFormContent" class="input textarea" placeholder="输入要发送的第一条消息"></textarea>
+      </div>
+      <div class="submit-line">
+        <button id="createCancelBtn" class="ghost-btn" type="button">取消</button>
+        <button id="createSubmitBtn" class="primary-btn full" type="button">发起会话</button>
+      </div>
+    </section>
+
+    <section class="section-card">
+      <div class="section-title">
+        <h2>会话列表</h2>
+        <button id="showCreateBtn" class="ghost-btn" type="button">+ 新发起</button>
+      </div>
+      <div id="sessionList" class="session-list">
+        <div class="empty-tip">加载中...</div>
+      </div>
+    </section>
+
+    <section id="detailCard" class="section-card hidden">
+      <div class="section-title">
+        <h2 id="detailTitle">消息对话</h2>
+        <button id="closeSessionBtn" class="text-btn danger" type="button">关闭会话</button>
+      </div>
+      <p id="detailSub" class="muted small" style="margin: 0 0 12px;"></p>
+      <div id="messageBox" class="message-box">
+        <div class="empty-tip">请选择一个会话</div>
+      </div>
+      <div class="reply-row">
+        <input id="replyInput" class="input" placeholder="输入回复内容..." maxlength="2000" />
+        <button id="sendReplyBtn" class="primary-btn" type="button">发送</button>
+      </div>
+    </section>
+  </main>
+
+  <nav class="bottom-nav">
+    <a href="/user/index.html">🏠 首页</a>
+    <a href="/user/order.html" class="active">📋 订单</a>
+    <a href="/user/profile.html">👤 我的</a>
+  </nav>
+
+  <div id="toast" class="toast hidden"></div>
+
+  <script src="/user/js/request.js"></script>
+  <script>
+    (function () {
+      const $ = App.$;
+      let sessions = [];
+      let currentSessionId = null;
+      const roleNames = { 2: '商家', 3: '骑手' };
+      const statusText = ['待回复', '对话中', '已关闭'];
+
+      function escapeHtml(v) { return App.escapeHtml(v); }
+      function formatTime(v) { return v ? String(v).replace('T', ' ').slice(0, 16) : ''; }
+
+      function roleTag(role) {
+        const r = Number(role);
+        return `<span class="role-tag role-${r}">${roleNames[r] || '未知'}</span>`;
+      }
+
+      function statusChip(status) {
+        const s = Number(status || 0);
+        return `<span class="status-chip status-${s}">${statusText[s] || '未知'}</span>`;
+      }
+
+      async function loadSessions() {
+        try {
+          sessions = await App.request('/api/user/contact/sessions');
+          sessions = Array.isArray(sessions) ? sessions : [];
+          renderSessions();
+        } catch (e) {
+          $('#sessionList').innerHTML = `<div class="empty-tip">${escapeHtml(e.message || '加载失败')}</div>`;
+        }
+      }
+
+      function renderSessions() {
+        const box = $('#sessionList');
+        if (!sessions.length) {
+          box.innerHTML = '<div class="empty-tip">暂无会话，点击右上角发起新会话</div>';
+          return;
+        }
+        box.innerHTML = sessions.map(s => {
+          const targetRole = Number(s.targetRole);
+          const targetName = s.targetName || ('#' + s.targetId);
+          return `
+            <button class="session-card ${s.sessionId === currentSessionId ? 'active' : ''}" data-session-id="${s.sessionId}">
+              <div class="session-card-title">
+                <span class="session-title-text">${escapeHtml(s.title || '无标题')}</span>
+                ${statusChip(s.status)}
+              </div>
+              <div class="session-meta">
+                ${roleTag(targetRole)} ${escapeHtml(targetName)}<br>
+                ${formatTime(s.updateTime)} · ${escapeHtml(s.lastMessage || '暂无消息')}
+              </div>
+            </button>
+          `;
+        }).join('');
+        box.querySelectorAll('.session-card').forEach(btn => {
+          btn.addEventListener('click', () => openSession(Number(btn.dataset.sessionId)));
+        });
+      }
+
+      async function openSession(sessionId) {
+        currentSessionId = sessionId;
+        renderSessions();
+        try {
+          const detail = await App.request(`/api/user/contact/sessions/${sessionId}`);
+          const session = detail.session || {};
+          const messages = detail.messages || [];
+          const targetRole = Number(session.targetRole);
+          $('#detailCard').classList.remove('hidden');
+          $('#detailTitle').textContent = session.title || '消息对话';
+          $('#detailSub').innerHTML = `${roleTag(targetRole)} ${escapeHtml(session.targetName || '')} ${statusChip(session.status)}`;
+          $('#closeSessionBtn').classList.toggle('hidden', Number(session.status) === 2);
+          $('#replyInput').disabled = Number(session.status) === 2;
+          $('#sendReplyBtn').disabled = Number(session.status) === 2;
+          $('#messageBox').innerHTML = messages.length ? messages.map(m => {
+            const mine = Number(m.senderRole) === 1;
+            return `<div class="message-row ${mine ? 'mine' : ''}"><div class="bubble"><div class="bubble-meta">${mine ? '我' : escapeHtml(m.senderName || roleNames[targetRole] || '对方')} · ${formatTime(m.createTime)}</div>${escapeHtml(m.content)}</div></div>`;
+          }).join('') : '<div class="empty-tip">暂无消息</div>';
+          $('#messageBox').scrollTop = $('#messageBox').scrollHeight;
+        } catch (e) {
+          App.toast(e.message || '加载会话失败');
+        }
+      }
+
+      async function sendReply() {
+        if (!currentSessionId) return App.toast('请先选择会话');
+        const content = $('#replyInput').value.trim();
+        if (!content) return App.toast('请输入回复内容');
+        try {
+          await App.request(`/api/user/contact/sessions/${currentSessionId}/messages`, { method: 'POST', body: { content } });
+          $('#replyInput').value = '';
+          App.toast('发送成功', 'success');
+          await openSession(currentSessionId);
+          await loadSessions();
+        } catch (e) {
+          App.toast(e.message || '发送失败');
+        }
+      }
+
+      async function closeSession() {
+        if (!currentSessionId) return;
+        if (!confirm('确认关闭此会话？')) return;
+        try {
+          await App.request(`/api/user/contact/sessions/${currentSessionId}/close`, { method: 'PUT' });
+          App.toast('会话已关闭', 'success');
+          await openSession(currentSessionId);
+          await loadSessions();
+        } catch (e) {
+          App.toast(e.message || '关闭失败');
+        }
+      }
+
+      function showCreateForm() {
+        $('#createCard').classList.remove('hidden');
+      }
+
+      function hideCreateForm() {
+        $('#createCard').classList.add('hidden');
+        ['createFormTargetId', 'createFormOrderId', 'createFormTitle', 'createFormContent'].forEach(id => $('#' + id).value = '');
+      }
+
+      async function submitCreate() {
+        const targetId = $('#createFormTargetId').value.trim();
+        const targetRole = $('#createFormRole').value;
+        const orderId = $('#createFormOrderId').value.trim();
+        const title = $('#createFormTitle').value.trim();
+        const content = $('#createFormContent').value.trim();
+        if (!targetId) return App.toast('请输入目标ID');
+        if (!content) return App.toast('请输入首条消息');
+        const body = { targetId: Number(targetId), targetRole: Number(targetRole), content };
+        if (orderId) body.orderId = Number(orderId);
+        if (title) body.title = title;
+        try {
+          const session = await App.request('/api/user/contact/sessions', { method: 'POST', body });
+          App.toast('会话已创建', 'success');
+          hideCreateForm();
+          if (window.location.search) {
+            window.history.replaceState({}, '', '/user/contact.html');
+          }
+          await loadSessions();
+          if (session && session.sessionId) {
+            await openSession(session.sessionId);
+          }
+        } catch (e) {
+          App.toast(e.message || '创建失败');
+        }
+      }
+
+      $('#showCreateBtn').addEventListener('click', showCreateForm);
+      $('#createCancelBtn').addEventListener('click', hideCreateForm);
+      $('#createSubmitBtn').addEventListener('click', submitCreate);
+      $('#sendReplyBtn').addEventListener('click', sendReply);
+      $('#closeSessionBtn').addEventListener('click', closeSession);
+      $('#replyInput').addEventListener('keydown', e => { if (e.key === 'Enter') sendReply(); });
+
+      // Check URL params from order.html
+      const params = new URLSearchParams(location.search);
+      const targetId = params.get('targetId');
+      const targetRole = params.get('targetRole');
+      const orderId = params.get('orderId');
+      const targetName = params.get('targetName');
+      if (targetId) {
+        showCreateForm();
+        $('#createFormTargetId').value = targetId;
+        if (targetRole) $('#createFormRole').value = targetRole;
+        if (orderId) $('#createFormOrderId').value = orderId;
+        if (targetName) $('#createFormTitle').value = `联系${roleNames[targetRole] || ''}：${targetName}`;
+      }
+
+      loadSessions();
+    })();
+  </script>
+</body>
+</html>

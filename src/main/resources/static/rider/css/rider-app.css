@@ -413,6 +413,45 @@ body.mt-body {
     font-size: 22px;
 }
 
+/* 消息提醒角标 */
+.mt-badge {
+    display: none;
+    position: absolute;
+    top: -4px;
+    right: -6px;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    border-radius: 99px;
+    background: #ef4444;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 900;
+    line-height: 18px;
+    text-align: center;
+    box-shadow: 0 2px 6px rgba(239,68,68,.4);
+}
+.mt-badge.show { display: inline-flex; align-items: center; justify-content: center; }
+.mt-bottom a { position: relative; }
+.mt-grid-item { position: relative; }
+.mt-grid-item .mt-badge {
+    top: 6px;
+    right: calc(50% - 26px);
+    min-width: 20px;
+    height: 20px;
+    line-height: 20px;
+    font-size: 12px;
+}
+.mt-badge.dot-only {
+    min-width: 10px;
+    width: 10px;
+    height: 10px;
+    padding: 0;
+    font-size: 0;
+    top: 0;
+    right: 0;
+}
+
 /* 独立模块页 */
 .mt-module-header {
     padding: 26px 26px 92px;

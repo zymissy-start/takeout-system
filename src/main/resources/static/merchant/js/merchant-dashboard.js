@@ -7,6 +7,8 @@
             waitRiderCount: 0,
             finishedCount: 0
         },
+        prevWaitAcceptCount: -1,
+        unreadMsgCount: 0,
         orders: [],
         products: []
     };
@@ -21,6 +23,51 @@
 
         renderMerchantInfo();
         await loadDashboard();
+        startPolling();
+    }
+
+    function startPolling() {
+        // 订单统计每15秒刷新
+        setInterval(async () => {
+            await loadStatistics();
+            await loadOrderPreview();
+            checkNewOrders();
+        }, 15000);
+        // 消息未读数每30秒刷新
+        loadUnreadCount();
+        setInterval(loadUnreadCount, 30000);
+    }
+
+    function checkNewOrders() {
+        const current = Number(state.statistics.waitAcceptCount || 0);
+        if (state.prevWaitAcceptCount >= 0 && current > state.prevWaitAcceptCount) {
+            const diff = current - state.prevWaitAcceptCount;
+            MerchantApp.toast(`🔔 收到 ${diff} 个新订单！`, 'success');
+        }
+        state.prevWaitAcceptCount = current;
+    }
+
+    async function loadUnreadCount() {
+        try {
+            const data = await MerchantApp.request('/merchant/contact/unread-count');
+            const count = Number(MerchantApp.getField(data, ['unreadCount'], 0));
+            state.unreadMsgCount = count;
+            renderMsgBadge(count);
+        } catch (e) {
+            // 静默
+        }
+    }
+
+    function renderMsgBadge(count) {
+        const badge = MerchantApp.$('#msgBadge');
+        if (!badge) return;
+        if (count > 0) {
+            badge.textContent = count > 99 ? '99+' : String(count);
+            badge.classList.remove('hidden');
+        } else {
+            badge.textContent = '';
+            badge.classList.add('hidden');
+        }
     }
 
     function bindEvents() {
@@ -258,6 +305,11 @@
 
         if (action === 'print') {
             location.href = '/merchant/order-print.html';
+            return;
+        }
+
+        if (action === 'contact') {
+            location.href = '/merchant/contact.html';
             return;
         }
 

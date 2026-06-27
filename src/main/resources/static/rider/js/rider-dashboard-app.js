@@ -13,6 +13,8 @@
 
         renderRiderInfo();
         await loadStatistics();
+        loadUnreadCount();
+        setInterval(loadUnreadCount, 30000);
     }
 
     function bindEvents() {
@@ -121,6 +123,53 @@
         icon.textContent = '🟢';
         title.textContent = '空闲待命';
         desc.textContent = '当前暂无可接订单，可等待商家出餐或进入催促出餐模块查看制作中订单。';
+    }
+
+    async function loadUnreadCount() {
+        try {
+            const data = await RiderApp.request('/rider/contact/unread-count');
+            const count = Number(RiderApp.getField(data, ['unreadCount'], 0));
+            renderBadge(count);
+        } catch (e) {
+            // 静默失败，不影响主流程
+        }
+    }
+
+    function renderBadge(count) {
+        const gridBadge = RiderApp.$('#gridMsgBadge');
+        const navBadge = RiderApp.$('#navMsgBadge');
+        const banner = RiderApp.$('#unreadBanner');
+        const bannerText = RiderApp.$('#unreadBannerText');
+
+        if (count > 0) {
+            const label = count > 99 ? '99+' : String(count);
+            if (gridBadge) {
+                gridBadge.textContent = label;
+                gridBadge.classList.add('show');
+            }
+            if (navBadge) {
+                navBadge.textContent = label;
+                navBadge.classList.add('show');
+            }
+            if (banner) {
+                banner.style.display = '';
+                if (bannerText) {
+                    bannerText.textContent = `您有 ${count} 条未读消息，点击查看详情`;
+                }
+            }
+        } else {
+            if (gridBadge) {
+                gridBadge.textContent = '';
+                gridBadge.classList.remove('show');
+            }
+            if (navBadge) {
+                navBadge.textContent = '';
+                navBadge.classList.remove('show');
+            }
+            if (banner) {
+                banner.style.display = 'none';
+            }
+        }
     }
 
     async function logout() {

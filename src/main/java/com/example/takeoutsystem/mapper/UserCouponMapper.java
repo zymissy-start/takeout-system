@@ -24,4 +24,10 @@ public interface UserCouponMapper {
 
     int insertUserCoupon(@Param("userId") Integer userId,
                          @Param("couponId") Integer couponId);
+
+    UserCouponVO selectByIdAndUserId(@Param("userCouponId") Integer userCouponId,
+                                    @Param("userId") Integer userId);
+
+    int markCouponUsed(@Param("userCouponId") Integer userCouponId,
+                       @Param("orderId") Integer orderId);
 }

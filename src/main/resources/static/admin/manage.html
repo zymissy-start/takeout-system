@@ -1,0 +1,471 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>用户管理 - 管理员</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: #f5f6fa;
+      color: #1f2937;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", Arial, sans-serif;
+    }
+    a { color: inherit; text-decoration: none; }
+    button, input, select, textarea { font: inherit; }
+    .admin-layout { display: grid; grid-template-columns: 248px 1fr; min-height: 100vh; }
+    .sidebar {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      padding: 24px 18px;
+      background: #111827;
+      color: #fff;
+    }
+    .brand { display: flex; align-items: center; gap: 12px; margin-bottom: 26px; }
+    .brand-logo {
+      width: 42px; height: 42px; border-radius: 15px;
+      display: grid; place-items: center;
+      background: linear-gradient(135deg, #ffd100, #ffb300);
+      color: #111827; font-size: 22px; font-weight: 900;
+    }
+    .brand h1 { margin: 0; font-size: 20px; }
+    .brand p { margin: 3px 0 0; color: #9ca3af; font-size: 12px; }
+    .nav-title { margin: 18px 10px 8px; color: #6b7280; font-size: 12px; font-weight: 900; letter-spacing: .08em; }
+    .nav-link {
+      display: flex; align-items: center; gap: 10px;
+      min-height: 44px; padding: 0 12px; border-radius: 14px;
+      color: #d1d5db; font-weight: 800;
+    }
+    .nav-link.active { background: rgba(255, 209, 0, .14); color: #fff; }
+    .nav-link:hover { background: rgba(255, 255, 255, .08); }
+    .sidebar-footer { position: absolute; left: 18px; right: 18px; bottom: 20px; display: grid; gap: 10px; }
+    .admin-user {
+      padding: 14px; border-radius: 18px;
+      background: rgba(255, 255, 255, .08);
+      color: #e5e7eb; line-height: 1.55; font-size: 13px;
+    }
+    .main { min-width: 0; padding: 24px; }
+    .topbar { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 18px; }
+    .topbar h2 { margin: 0; font-size: 28px; }
+    .topbar p { margin: 6px 0 0; color: #6b7280; }
+    .top-actions { display: flex; gap: 10px; align-items: center; }
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      border: 1px solid #e5e7eb; background: #fff; color: #374151;
+      min-height: 38px; padding: 0 14px; border-radius: 12px;
+      cursor: pointer; font-weight: 800; text-decoration: none;
+    }
+    .btn:hover { border-color: #ffd100; box-shadow: 0 8px 20px rgba(15, 23, 42, .08); }
+    .btn.primary { border-color: #111827; background: #111827; color: #fff; }
+    .btn.warning { border-color: #ffd100; background: #fff7cc; color: #6b4d00; }
+    .btn.danger { border-color: #fee2e2; background: #fff1f2; color: #dc2626; }
+    .btn.small { min-height: 32px; padding: 0 10px; font-size: 13px; border-radius: 10px; }
+    .btn:disabled { opacity: .55; cursor: not-allowed; }
+
+    .role-tabs { display: flex; gap: 8px; margin-bottom: 18px; }
+    .role-tab {
+      padding: 10px 20px; border-radius: 14px; border: 1px solid #e5e7eb;
+      background: #fff; color: #6b7280; font-weight: 800; cursor: pointer;
+      transition: all .16s ease;
+    }
+    .role-tab.active { border-color: #111827; background: #111827; color: #fff; }
+    .role-tab:hover:not(.active) { border-color: #ffd100; }
+
+    .panel {
+      min-width: 0; background: #fff; border: 1px solid #edf0f5;
+      border-radius: 22px; box-shadow: 0 10px 26px rgba(15, 23, 42, .05);
+      overflow: hidden;
+    }
+    .panel-head { padding: 18px; border-bottom: 1px solid #edf0f5; display: flex; justify-content: space-between; gap: 12px; align-items: center; flex-wrap: wrap; }
+    .panel-head h3 { margin: 0; font-size: 18px; }
+    .search-bar { display: flex; gap: 10px; align-items: center; }
+    .input, .select {
+      width: 100%; border: 1px solid #e5e7eb; border-radius: 12px;
+      background: #fff; color: #111827; outline: none;
+      height: 40px; padding: 0 12px;
+    }
+    .input:focus, .select:focus { border-color: #ffd100; box-shadow: 0 0 0 4px rgba(255, 209, 0, .15); }
+    .search-bar .input { width: 280px; }
+
+    .user-table { width: 100%; border-collapse: collapse; }
+    .user-table th {
+      text-align: left; padding: 12px 16px; background: #f9fafb;
+      color: #6b7280; font-size: 13px; font-weight: 800;
+      border-bottom: 1px solid #edf0f5; white-space: nowrap;
+    }
+    .user-table td {
+      padding: 12px 16px; border-bottom: 1px solid #f3f4f6;
+      font-size: 14px; vertical-align: middle;
+    }
+    .user-table tr:hover td { background: #fbfcfe; }
+    .status-chip { display: inline-flex; align-items: center; padding: 4px 9px; border-radius: 999px; font-size: 12px; font-weight: 900; white-space: nowrap; }
+    .status-normal { background: #dcfce7; color: #15803d; }
+    .status-disabled { background: #fee2e2; color: #dc2626; }
+    .row-actions { display: flex; gap: 6px; flex-wrap: nowrap; }
+
+    .pagination { display: flex; gap: 8px; align-items: center; justify-content: center; padding: 16px; border-top: 1px solid #edf0f5; }
+    .page-info { color: #6b7280; font-size: 13px; margin-right: 10px; }
+
+    .detail-overlay {
+      position: fixed; inset: 0; background: rgba(15, 23, 42, .45);
+      z-index: 15; display: flex; justify-content: flex-end;
+    }
+    .detail-drawer {
+      width: min(480px, 100%); background: #fff; padding: 24px;
+      overflow: auto; box-shadow: -10px 0 30px rgba(15, 23, 42, .12);
+    }
+    .detail-drawer h3 { margin: 0 0 18px; font-size: 22px; }
+    .detail-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #f3f4f6; }
+    .detail-row .label { color: #6b7280; font-weight: 700; }
+    .detail-row .value { color: #111827; font-weight: 600; text-align: right; }
+    .detail-section { margin: 18px 0; }
+    .detail-section h4 { margin: 0 0 10px; font-size: 15px; color: #6b7280; }
+    .detail-actions { display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap; }
+    .detail-close { position: absolute; top: 16px; right: 16px; background: none; border: none; font-size: 24px; cursor: pointer; color: #9ca3af; }
+    .detail-drawer { position: relative; }
+
+    .empty-tip { padding: 34px 16px; text-align: center; color: #9ca3af; }
+    .toast { position: fixed; left: 50%; bottom: 26px; transform: translateX(-50%); padding: 10px 14px; border-radius: 999px; background: #111827; color: #fff; font-size: 14px; box-shadow: 0 12px 28px rgba(15, 23, 42, .20); z-index: 20; }
+    .hidden { display: none !important; }
+
+    @media (max-width: 1080px) {
+      .admin-layout { grid-template-columns: 1fr; }
+      .sidebar { position: static; height: auto; }
+      .sidebar-footer { position: static; margin-top: 18px; }
+    }
+    @media (max-width: 680px) {
+      .main { padding: 16px; }
+      .search-bar .input { width: 100%; }
+      .user-table { font-size: 12px; }
+      .user-table th, .user-table td { padding: 8px 10px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="admin-layout">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-logo">客</div>
+        <div>
+          <h1>饭点优选</h1>
+          <p>平台管理端</p>
+        </div>
+      </div>
+      <div class="nav-title">工作台</div>
+      <a class="nav-link" href="/admin/customer-service.html">💬 客服工单</a>
+      <a class="nav-link active" href="/admin/manage.html">👥 用户管理</a>
+      <a class="nav-link" href="/admin/contact.html">📨 联系消息</a>
+      <a class="nav-link" href="/index.html">🏠 返回首页</a>
+      <div class="sidebar-footer">
+        <div class="admin-user">
+          <b id="adminName">管理员</b><br />
+          <span>平台管理控制台</span>
+        </div>
+        <button id="logoutBtn" class="btn danger" type="button">退出登录</button>
+      </div>
+    </aside>
+
+    <main class="main">
+      <section class="topbar">
+        <div>
+          <h2>用户管理</h2>
+          <p>查看和管理平台用户、商家、骑手账号，可禁用或启用。</p>
+        </div>
+        <div class="top-actions">
+          <button id="refreshTopBtn" class="btn" type="button">刷新</button>
+          <a class="btn" href="/index.html">身份入口</a>
+        </div>
+      </section>
+
+      <div class="role-tabs">
+        <button class="role-tab active" data-role="1" type="button">👥 用户</button>
+        <button class="role-tab" data-role="2" type="button">🏪 商家</button>
+        <button class="role-tab" data-role="3" type="button">🚴 骑手</button>
+      </div>
+
+      <section class="panel">
+        <div class="panel-head">
+          <h3 id="panelTitle">用户列表</h3>
+          <div class="search-bar">
+            <input id="keywordInput" class="input" placeholder="搜索用户名/姓名/手机号/ID" />
+            <button id="searchBtn" class="btn primary" type="button">搜索</button>
+          </div>
+        </div>
+        <div style="overflow-x: auto;">
+          <table class="user-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>用户名</th>
+                <th>真实姓名</th>
+                <th>手机号</th>
+                <th>注册时间</th>
+                <th>状态</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody id="userTbody">
+              <tr><td colspan="7" class="empty-tip">加载中...</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="pagination">
+          <span class="page-info" id="pageInfo">第 1 页 / 共 0 条</span>
+          <button id="prevPageBtn" class="btn small" type="button" disabled>上一页</button>
+          <button id="nextPageBtn" class="btn small" type="button" disabled>下一页</button>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div id="detailOverlay" class="detail-overlay hidden">
+    <div class="detail-drawer">
+      <button class="detail-close" id="detailCloseBtn" type="button">&times;</button>
+      <h3>用户详情</h3>
+      <div id="detailBody"></div>
+      <div class="detail-actions" id="detailActions"></div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast hidden"></div>
+
+  <script>
+    (function () {
+      const $ = selector => document.querySelector(selector);
+      let currentRole = 1;
+      let currentPage = 1;
+      const pageSize = 20;
+      let total = 0;
+      let currentUser = null;
+
+      const roleNames = { 1: '用户', 2: '商家', 3: '骑手' };
+
+      function getAdminToken() {
+        return localStorage.getItem('adminToken') || '';
+      }
+
+      function initAdminName() {
+        try {
+          const admin = JSON.parse(localStorage.getItem('adminUser') || '{}');
+          $('#adminName').textContent = admin.realName || admin.real_name || admin.username || '管理员';
+        } catch (e) {
+          $('#adminName').textContent = '管理员';
+        }
+      }
+
+      function clearAdminStorage() {
+        localStorage.removeItem('adminToken');
+        localStorage.removeItem('adminUser');
+      }
+
+      function toast(message) {
+        const el = $('#toast');
+        el.textContent = message;
+        el.classList.remove('hidden');
+        clearTimeout(window.__adminToastTimer);
+        window.__adminToastTimer = setTimeout(() => el.classList.add('hidden'), 2200);
+      }
+
+      function escapeHtml(value) {
+        return String(value ?? '').replace(/[&<>'"]/g, s => ({
+          '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
+        }[s]));
+      }
+
+      function formatTime(value) {
+        if (!value) return '';
+        return String(value).replace('T', ' ').slice(0, 19);
+      }
+
+      async function request(url, options) {
+        const token = getAdminToken();
+        if (!token) {
+          window.location.href = '/admin/login.html';
+          throw new Error('请先登录管理员账号');
+        }
+        const opt = Object.assign({ method: 'GET' }, options || {});
+        opt.headers = Object.assign({ 'Content-Type': 'application/json' }, opt.headers || {});
+        opt.headers.Authorization = token.startsWith('Bearer ') ? token : `Bearer ${token}`;
+        if (opt.body && typeof opt.body !== 'string') opt.body = JSON.stringify(opt.body);
+        const resp = await fetch(url, opt);
+        const text = await resp.text();
+        let json = {};
+        try { json = text ? JSON.parse(text) : {}; } catch (e) { json = {}; }
+        if (resp.status === 401 || resp.status === 403) {
+          clearAdminStorage();
+          window.location.href = '/admin/login.html';
+          throw new Error('登录已失效');
+        }
+        if (!resp.ok || ![0, 200, '0', '200'].includes(json.code)) {
+          throw new Error(json.message || '请求失败');
+        }
+        return json.data;
+      }
+
+      async function loadUsers() {
+        const keyword = $('#keywordInput').value.trim();
+        const params = new URLSearchParams();
+        params.set('role', currentRole);
+        if (keyword) params.set('keyword', keyword);
+        params.set('page', currentPage);
+        params.set('size', pageSize);
+        const data = await request('/api/admin/manage/users?' + params.toString());
+        const list = data.list || [];
+        total = data.total || 0;
+        renderTable(list);
+        renderPagination();
+      }
+
+      function renderTable(list) {
+        const tbody = $('#userTbody');
+        if (!list.length) {
+          tbody.innerHTML = `<tr><td colspan="7" class="empty-tip">暂无${roleNames[currentRole]}数据</td></tr>`;
+          return;
+        }
+        tbody.innerHTML = list.map(u => {
+          const statusChip = u.status === 1
+            ? '<span class="status-chip status-normal">正常</span>'
+            : '<span class="status-chip status-disabled">已禁用</span>';
+          return `
+            <tr>
+              <td>${u.userId}</td>
+              <td>${escapeHtml(u.username || '')}</td>
+              <td>${escapeHtml(u.realName || '-')}</td>
+              <td>${escapeHtml(u.phone || '-')}</td>
+              <td>${formatTime(u.createTime)}</td>
+              <td>${statusChip}</td>
+              <td>
+                <div class="row-actions">
+                  <button class="btn small" data-action="detail" data-user-id="${u.userId}" type="button">详情</button>
+                  <button class="btn small ${u.status === 1 ? 'danger' : 'warning'}" data-action="toggle" data-user-id="${u.userId}" data-status="${u.status === 1 ? 0 : 1}" type="button">${u.status === 1 ? '禁用' : '启用'}</button>
+                  <button class="btn small primary" data-action="contact" data-user-id="${u.userId}" data-user-name="${escapeHtml(u.realName || u.username || '')}" type="button">联系</button>
+                </div>
+              </td>
+            </tr>
+          `;
+        }).join('');
+        tbody.querySelectorAll('[data-action]').forEach(btn => {
+          const action = btn.dataset.action;
+          const userId = Number(btn.dataset.userId);
+          btn.addEventListener('click', () => {
+            if (action === 'detail') showDetail(userId);
+            else if (action === 'toggle') toggleStatus(userId, Number(btn.dataset.status));
+            else if (action === 'contact') goContact(userId, btn.dataset.userName);
+          });
+        });
+      }
+
+      function renderPagination() {
+        const totalPages = Math.ceil(total / pageSize) || 1;
+        $('#pageInfo').textContent = `第 ${currentPage}/${totalPages} 页 · 共 ${total} 条`;
+        $('#prevPageBtn').disabled = currentPage <= 1;
+        $('#nextPageBtn').disabled = currentPage >= totalPages;
+      }
+
+      async function showDetail(userId) {
+        try {
+          const data = await request(`/api/admin/manage/users/${userId}`);
+          currentUser = data.user || {};
+          const user = currentUser;
+          let html = `
+            <div class="detail-row"><span class="label">用户ID</span><span class="value">${user.userId}</span></div>
+            <div class="detail-row"><span class="label">用户名</span><span class="value">${escapeHtml(user.username || '')}</span></div>
+            <div class="detail-row"><span class="label">真实姓名</span><span class="value">${escapeHtml(user.realName || '-')}</span></div>
+            <div class="detail-row"><span class="label">手机号</span><span class="value">${escapeHtml(user.phone || '-')}</span></div>
+            <div class="detail-row"><span class="label">角色</span><span class="value">${roleNames[user.roleType] || '未知'}</span></div>
+            <div class="detail-row"><span class="label">信用分</span><span class="value">${user.creditScore ?? '-'}</span></div>
+            <div class="detail-row"><span class="label">状态</span><span class="value">${user.status === 1 ? '<span class="status-chip status-normal">正常</span>' : '<span class="status-chip status-disabled">已禁用</span>'}</span></div>
+            <div class="detail-row"><span class="label">注册时间</span><span class="value">${formatTime(user.createTime)}</span></div>
+            <div class="detail-row"><span class="label">等级ID</span><span class="value">${user.levelId ?? '-'}</span></div>
+            <div class="detail-row"><span class="label">成长值</span><span class="value">${user.growthValue ?? '-'}</span></div>
+          `;
+          if (data.merchantInfo) {
+            const m = data.merchantInfo;
+            html += `
+              <div class="detail-section">
+                <h4>商家信息</h4>
+                <div class="detail-row"><span class="label">店铺名称</span><span class="value">${escapeHtml(m.storeName || m.store_name || '-')}</span></div>
+                <div class="detail-row"><span class="label">评分</span><span class="value">${m.rating ?? '-'}</span></div>
+                <div class="detail-row"><span class="label">月销量</span><span class="value">${m.monthlySales ?? m.monthly_sales ?? '-'}</span></div>
+                <div class="detail-row"><span class="label">营业状态</span><span class="value">${m.businessStatus != null ? (m.businessStatus == 1 ? '营业中' : '休息中') : '-'}</span></div>
+              </div>
+            `;
+          }
+          $('#detailBody').innerHTML = html;
+          const actions = $('#detailActions');
+          actions.innerHTML = `
+            <button class="btn ${user.status === 1 ? 'danger' : 'warning'}" id="detailToggleBtn" type="button">${user.status === 1 ? '禁用账号' : '启用账号'}</button>
+            <button class="btn primary" id="detailContactBtn" type="button">联系此${roleNames[user.roleType] || '用户'}</button>
+          `;
+          $('#detailToggleBtn').addEventListener('click', () => toggleStatus(user.userId, user.status === 1 ? 0 : 1));
+          $('#detailContactBtn').addEventListener('click', () => goContact(user.userId, user.realName || user.username || ''));
+          $('#detailOverlay').classList.remove('hidden');
+        } catch (e) {
+          toast(e.message || '加载详情失败');
+        }
+      }
+
+      async function toggleStatus(userId, newStatus) {
+        const action = newStatus === 1 ? '启用' : '禁用';
+        if (!confirm(`确认${action}该账号？`)) return;
+        try {
+          await request(`/api/admin/manage/users/${userId}/status`, { method: 'PUT', body: { status: newStatus } });
+          toast(`账号已${action}`);
+          if (currentUser && currentUser.userId === userId) {
+            currentUser.status = newStatus;
+            showDetail(userId);
+          }
+          await loadUsers();
+        } catch (e) {
+          toast(e.message || `${action}失败`);
+        }
+      }
+
+      function goContact(targetId, targetName) {
+        const params = new URLSearchParams();
+        params.set('targetId', targetId);
+        params.set('targetRole', currentRole);
+        params.set('targetName', targetName);
+        window.location.href = '/admin/contact.html?' + params.toString();
+      }
+
+      function switchRole(role) {
+        currentRole = role;
+        currentPage = 1;
+        $('#keywordInput').value = '';
+        $('#panelTitle').textContent = roleNames[role] + '列表';
+        document.querySelectorAll('.role-tab').forEach(t => {
+          t.classList.toggle('active', Number(t.dataset.role) === role);
+        });
+        loadUsers().catch(e => toast(e.message || '加载失败'));
+      }
+
+      async function logout() {
+        try {
+          await fetch('/api/admin/auth/logout', { method: 'POST' });
+        } catch (e) {}
+        clearAdminStorage();
+        window.location.href = '/index.html';
+      }
+
+      document.querySelectorAll('.role-tab').forEach(t => {
+        t.addEventListener('click', () => switchRole(Number(t.dataset.role)));
+      });
+      $('#searchBtn').addEventListener('click', () => { currentPage = 1; loadUsers().catch(e => toast(e.message)); });
+      $('#keywordInput').addEventListener('keydown', e => { if (e.key === 'Enter') { currentPage = 1; loadUsers().catch(e => toast(e.message)); } });
+      $('#refreshTopBtn').addEventListener('click', () => loadUsers().catch(e => toast(e.message)));
+      $('#prevPageBtn').addEventListener('click', () => { if (currentPage > 1) { currentPage--; loadUsers().catch(e => toast(e.message)); } });
+      $('#nextPageBtn').addEventListener('click', () => { currentPage++; loadUsers().catch(e => toast(e.message)); });
+      $('#detailCloseBtn').addEventListener('click', () => $('#detailOverlay').classList.add('hidden'));
+      $('#detailOverlay').addEventListener('click', e => { if (e.target === $('#detailOverlay')) $('#detailOverlay').classList.add('hidden'); });
+      $('#logoutBtn').addEventListener('click', logout);
+
+      initAdminName();
+      loadUsers().catch(e => toast(e.message || '加载失败'));
+    })();
+  </script>
+</body>
+</html>

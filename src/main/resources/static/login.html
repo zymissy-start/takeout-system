@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>饭点优选 - 登录</title>
-  <link rel="stylesheet" href="/assets/css/user.css" />
+  <link rel="stylesheet" href="/user/css/user.css" />
 </head>
 <body class="soft-bg auth-page">
   <main class="auth-shell">
@@ -28,11 +28,11 @@
 
       <form id="loginForm" class="auth-form">
         <label for="usernameInput" class="field-label">账号</label>
-        <input id="usernameInput" class="input" type="text" autocomplete="username" placeholder="请输入账号" />
+        <input id="usernameInput" class="input" type="text" value="zhangsan" autocomplete="username" placeholder="请输入账号" />
 
         <label for="passwordInput" class="field-label">密码</label>
         <div class="password-field">
-          <input id="passwordInput" class="input" type="password" autocomplete="current-password" placeholder="请输入密码" />
+          <input id="passwordInput" class="input" type="password" value="123456" autocomplete="current-password" placeholder="请输入密码" />
           <button type="button" data-toggle-password="passwordInput">显示</button>
         </div>
 
@@ -49,7 +49,7 @@
   </main>
 
   <div id="toast" class="toast hidden"></div>
-  <script src="/assets/js/request.js"></script>
-  <script src="/assets/js/auth.js"></script>
+  <script src="/user/js/request.js"></script>
+  <script src="/user/js/auth.js"></script>
 </body>
 </html>

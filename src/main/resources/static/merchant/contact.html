@@ -1,0 +1,268 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>联系消息 - 商家工作台</title>
+  <link rel="stylesheet" href="/merchant/css/merchant.css" />
+  <style>
+    .contact-workspace { display: grid; grid-template-columns: 340px minmax(0, 1fr); gap: 16px; }
+    .session-list { max-height: calc(100vh - 320px); min-height: 400px; overflow: auto; display: grid; gap: 10px; padding: 12px; }
+    .session-card {
+      width: 100%; display: block; text-align: left; border: 1px solid var(--line);
+      background: var(--card); border-radius: 16px; padding: 14px; cursor: pointer;
+      transition: border-color .16s, box-shadow .16s, transform .16s;
+    }
+    .session-card:hover { transform: translateY(-1px); border-color: var(--brand); box-shadow: 0 8px 20px rgba(15,23,42,.06); }
+    .session-card.active { border-color: var(--ink); box-shadow: 0 10px 24px rgba(15,23,42,.10); }
+    .session-card-title { display: flex; justify-content: space-between; gap: 10px; font-weight: 800; line-height: 1.45; }
+    .session-title-text { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .session-meta { margin-top: 8px; color: var(--sub); font-size: 13px; line-height: 1.7; }
+    .role-tag { display: inline-flex; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 800; }
+    .role-1 { background: #dbeafe; color: #1d4ed8; }
+    .role-2 { background: #fef3c7; color: #92400e; }
+    .role-3 { background: #dcfce7; color: #15803d; }
+    .status-chip { display: inline-flex; padding: 3px 8px; border-radius: 999px; font-size: 12px; font-weight: 800; }
+    .status-0 { background: #fff7cc; color: #765800; }
+    .status-1 { background: #dbeafe; color: #1d4ed8; }
+    .status-2 { background: #e5e7eb; color: #4b5563; }
+    .message-box { min-height: 340px; max-height: calc(100vh - 400px); overflow: auto; display: grid; gap: 12px; align-content: start; background: #f8fafc; border-radius: 14px; padding: 16px; }
+    .message-row { display: flex; }
+    .message-row.mine { justify-content: flex-end; }
+    .bubble { max-width: 78%; padding: 10px 13px; border-radius: 16px 16px 16px 6px; background: var(--card); box-shadow: 0 4px 12px rgba(15,23,42,.06); line-height: 1.65; word-break: break-word; }
+    .message-row.mine .bubble { border-radius: 16px 16px 6px 16px; background: var(--brand-soft); }
+    .bubble-meta { font-size: 12px; color: var(--muted); margin-bottom: 4px; }
+    .reply-row { display: flex; gap: 10px; margin-top: 12px; }
+    .reply-row .input { flex: 1; }
+    .empty-tip { padding: 28px 16px; text-align: center; color: var(--muted); }
+    .create-overlay { position: fixed; inset: 0; background: rgba(15,23,42,.45); z-index: 15; display: flex; align-items: center; justify-content: center; padding: 20px; }
+    .create-card { width: min(460px, 100%); background: var(--card); border-radius: var(--radius); padding: 28px; box-shadow: 0 20px 50px rgba(15,23,42,.18); }
+    .create-card h3 { margin: 0 0 20px; font-size: 20px; }
+    .form-group { margin-bottom: 16px; }
+    .create-actions { display: flex; gap: 10px; margin-top: 20px; }
+    @media (max-width: 860px) {
+      .contact-workspace { grid-template-columns: 1fr; }
+      .session-list, .message-box { max-height: 500px; }
+    }
+  </style>
+</head>
+<body class="soft-bg">
+  <header class="merchant-header">
+    <div class="header-inner">
+      <div class="header-top">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <a href="/merchant/dashboard.html" style="color:#fff;font-size:24px;text-decoration:none;">‹</a>
+          <div>
+            <h1 style="margin:0;font-size:22px;">联系消息</h1>
+            <p style="margin:4px 0 0;opacity:.7;font-size:13px;">查看并回复用户/骑手/管理员的消息</p>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button id="createBtn" class="ghost-btn main" type="button">+ 发起会话</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="merchant-shell">
+    <div class="contact-workspace">
+      <section class="section-card">
+        <div class="section-title"><h2>会话列表</h2></div>
+        <div id="sessionList" class="session-list">
+          <div class="empty-tip">加载中...</div>
+        </div>
+      </section>
+
+      <section class="section-card">
+        <div class="section-title">
+          <h2 id="detailTitle">消息对话</h2>
+          <button id="closeSessionBtn" class="ghost-btn" type="button" style="display:none;">关闭会话</button>
+        </div>
+        <p id="detailSub" class="muted small" style="margin:0 0 12px;">选择左侧会话后查看消息</p>
+        <div id="messageBox" class="message-box">
+          <div class="empty-tip">请选择一个会话</div>
+        </div>
+        <div class="reply-row">
+          <input id="replyInput" class="input" placeholder="输入回复内容..." maxlength="2000" />
+          <button id="sendReplyBtn" class="primary-btn" type="button">发送</button>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <div id="createOverlay" class="create-overlay" style="display:none;">
+    <div class="create-card">
+      <h3>发起新会话</h3>
+      <div class="form-group">
+        <label class="field-label">目标角色</label>
+        <select id="createFormRole" class="input">
+          <option value="1">用户</option>
+          <option value="3">骑手</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="field-label">目标用户 ID</label>
+        <input id="createFormTargetId" class="input" type="number" placeholder="输入对方的用户ID" />
+      </div>
+      <div class="form-group">
+        <label class="field-label">关联订单 ID（可选）</label>
+        <input id="createFormOrderId" class="input" type="number" placeholder="可选" />
+      </div>
+      <div class="form-group">
+        <label class="field-label">标题</label>
+        <input id="createFormTitle" class="input" placeholder="如：订单售后咨询" />
+      </div>
+      <div class="form-group">
+        <label class="field-label">首条消息</label>
+        <textarea id="createFormContent" class="input textarea" placeholder="输入要发送的第一条消息"></textarea>
+      </div>
+      <div class="create-actions">
+        <button id="createCancelBtn" class="ghost-btn" type="button">取消</button>
+        <button id="createSubmitBtn" class="primary-btn" type="button" style="flex:1;">发起会话</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="merchantToast" class="merchant-toast hidden"></div>
+
+  <script src="/merchant/js/merchant-common.js"></script>
+  <script>
+    (function () {
+      const $ = MerchantApp.$;
+      let sessions = [];
+      let currentSessionId = null;
+      const roleNames = { 1: '用户', 2: '商家', 3: '骑手', 4: '管理员' };
+      const statusText = ['待回复', '对话中', '已关闭'];
+
+      function esc(v) { return MerchantApp.escapeHtml(v); }
+      function fmtTime(v) { return v ? String(v).replace('T', ' ').slice(0, 16) : ''; }
+
+      function roleTag(role) {
+        const r = Number(role);
+        return `<span class="role-tag role-${r}">${roleNames[r] || '未知'}</span>`;
+      }
+      function statusChip(status) {
+        const s = Number(status || 0);
+        return `<span class="status-chip status-${s}">${statusText[s] || '未知'}</span>`;
+      }
+
+      async function loadSessions() {
+        try {
+          sessions = await MerchantApp.request('/merchant/contact/sessions');
+          sessions = Array.isArray(sessions) ? sessions : [];
+          renderSessions();
+        } catch (e) {
+          $('#sessionList').innerHTML = `<div class="empty-tip">${esc(e.message || '加载失败')}</div>`;
+        }
+      }
+
+      function renderSessions() {
+        const box = $('#sessionList');
+        if (!sessions.length) { box.innerHTML = '<div class="empty-tip">暂无会话</div>'; return; }
+        box.innerHTML = sessions.map(s => {
+          const tr = Number(s.targetRole);
+          const tn = s.targetName || ('#' + s.targetId);
+          const ir = Number(s.initiatorRole);
+          const partnerRole = ir === 2 ? tr : ir;
+          const partnerName = ir === 2 ? tn : (s.initiatorName || ('#' + s.initiatorId));
+          return `
+            <button class="session-card ${s.sessionId === currentSessionId ? 'active' : ''}" data-sid="${s.sessionId}">
+              <div class="session-card-title">
+                <span class="session-title-text">${esc(s.title || '无标题')}</span>
+                ${statusChip(s.status)}
+              </div>
+              <div class="session-meta">
+                ${roleTag(partnerRole)} ${esc(partnerName)}<br>
+                ${fmtTime(s.updateTime)} · ${esc(s.lastMessage || '暂无消息')}
+              </div>
+            </button>`;
+        }).join('');
+        box.querySelectorAll('.session-card').forEach(btn => {
+          btn.addEventListener('click', () => openSession(Number(btn.dataset.sid)));
+        });
+      }
+
+      async function openSession(sid) {
+        currentSessionId = sid;
+        renderSessions();
+        try {
+          const detail = await MerchantApp.request(`/merchant/contact/sessions/${sid}`);
+          const session = detail.session || {};
+          const messages = detail.messages || [];
+          const ir = Number(session.initiatorRole);
+          const partnerRole = ir === 2 ? Number(session.targetRole) : ir;
+          const partnerName = ir === 2 ? (session.targetName || '') : (session.initiatorName || '');
+          $('#detailTitle').textContent = session.title || '消息对话';
+          $('#detailSub').innerHTML = `${roleTag(partnerRole)} ${esc(partnerName)} ${statusChip(session.status)}`;
+          $('#closeSessionBtn').style.display = Number(session.status) === 2 ? 'none' : '';
+          $('#replyInput').disabled = Number(session.status) === 2;
+          $('#sendReplyBtn').disabled = Number(session.status) === 2;
+          $('#messageBox').innerHTML = messages.length ? messages.map(m => {
+            const mine = Number(m.senderRole) === 2;
+            return `<div class="message-row ${mine ? 'mine' : ''}"><div class="bubble"><div class="bubble-meta">${mine ? '我（商家）' : esc(m.senderName || roleNames[partnerRole] || '对方')} · ${fmtTime(m.createTime)}</div>${esc(m.content)}</div></div>`;
+          }).join('') : '<div class="empty-tip">暂无消息</div>';
+          $('#messageBox').scrollTop = $('#messageBox').scrollHeight;
+        } catch (e) { MerchantApp.toast(e.message || '加载失败'); }
+      }
+
+      async function sendReply() {
+        if (!currentSessionId) return MerchantApp.toast('请先选择会话');
+        const content = $('#replyInput').value.trim();
+        if (!content) return MerchantApp.toast('请输入回复内容');
+        try {
+          await MerchantApp.request(`/merchant/contact/sessions/${currentSessionId}/messages`, { method: 'POST', body: { content } });
+          $('#replyInput').value = '';
+          MerchantApp.toast('发送成功', 'success');
+          await openSession(currentSessionId);
+          await loadSessions();
+        } catch (e) { MerchantApp.toast(e.message || '发送失败'); }
+      }
+
+      async function closeSession() {
+        if (!currentSessionId) return;
+        if (!confirm('确认关闭此会话？')) return;
+        try {
+          await MerchantApp.request(`/merchant/contact/sessions/${currentSessionId}/close`, { method: 'PUT' });
+          MerchantApp.toast('会话已关闭', 'success');
+          await openSession(currentSessionId);
+          await loadSessions();
+        } catch (e) { MerchantApp.toast(e.message || '关闭失败'); }
+      }
+
+      async function submitCreate() {
+        const targetId = $('#createFormTargetId').value.trim();
+        const targetRole = $('#createFormRole').value;
+        const orderId = $('#createFormOrderId').value.trim();
+        const title = $('#createFormTitle').value.trim();
+        const content = $('#createFormContent').value.trim();
+        if (!targetId) return MerchantApp.toast('请输入目标用户ID');
+        if (!content) return MerchantApp.toast('请输入首条消息');
+        const body = { targetId: Number(targetId), targetRole: Number(targetRole), content };
+        if (orderId) body.orderId = Number(orderId);
+        if (title) body.title = title;
+        try {
+          const session = await MerchantApp.request('/merchant/contact/sessions', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body)
+          });
+          MerchantApp.toast('会话已创建', 'success');
+          $('#createOverlay').style.display = 'none';
+          await loadSessions();
+          if (session && session.sessionId) await openSession(session.sessionId);
+        } catch (e) { MerchantApp.toast(e.message || '创建失败'); }
+      }
+
+      $('#sendReplyBtn').addEventListener('click', sendReply);
+      $('#closeSessionBtn').addEventListener('click', closeSession);
+      $('#replyInput').addEventListener('keydown', e => { if (e.key === 'Enter') sendReply(); });
+      $('#createBtn').addEventListener('click', () => { $('#createOverlay').style.display = 'flex'; });
+      $('#createCancelBtn').addEventListener('click', () => { $('#createOverlay').style.display = 'none'; });
+      $('#createSubmitBtn').addEventListener('click', submitCreate);
+      $('#createOverlay').addEventListener('click', e => { if (e.target === $('#createOverlay')) $('#createOverlay').style.display = 'none'; });
+
+      MerchantApp.requireMerchantLogin().then(loadSessions);
+    })();
+  </script>
+</body>
+</html>

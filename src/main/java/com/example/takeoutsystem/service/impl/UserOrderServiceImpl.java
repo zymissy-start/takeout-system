@@ -2,6 +2,7 @@ package com.example.takeoutsystem.service.impl;
 
 import com.example.takeoutsystem.entity.*;
 import com.example.takeoutsystem.mapper.UserAddressMapper;
+import com.example.takeoutsystem.mapper.UserCouponMapper;
 import com.example.takeoutsystem.mapper.UserOrderMapper;
 import com.example.takeoutsystem.mapper.UserProductMapper;
 import com.example.takeoutsystem.mapper.UserReminderMapper;
@@ -22,17 +23,20 @@ public class UserOrderServiceImpl implements UserOrderService {
     private final UserProductMapper userProductMapper;
     private final UserAddressMapper userAddressMapper;
     private final UserReminderMapper userReminderMapper;
+    private final UserCouponMapper userCouponMapper;
     private final UserLevelService userLevelService;
 
     public UserOrderServiceImpl(UserOrderMapper userOrderMapper,
                                 UserProductMapper userProductMapper,
                                 UserAddressMapper userAddressMapper,
                                 UserReminderMapper userReminderMapper,
+                                UserCouponMapper userCouponMapper,
                                 UserLevelService userLevelService) {
         this.userOrderMapper = userOrderMapper;
         this.userProductMapper = userProductMapper;
         this.userAddressMapper = userAddressMapper;
         this.userReminderMapper = userReminderMapper;
+        this.userCouponMapper = userCouponMapper;
         this.userLevelService = userLevelService;
     }
 
@@ -75,6 +79,34 @@ public class UserOrderServiceImpl implements UserOrderService {
         BigDecimal discountAmount = deliveryFee.subtract(discountedDeliveryFee).max(BigDecimal.ZERO).setScale(2, RoundingMode.HALF_UP);
         BigDecimal actualAmount = productAmount.add(discountedDeliveryFee).setScale(2, RoundingMode.HALF_UP);
 
+        // 优惠券抵扣
+        UserCouponVO appliedCoupon = null;
+        BigDecimal couponDiscount = BigDecimal.ZERO;
+        if (form.getUserCouponId() != null) {
+            userCouponMapper.expireUserCoupons(userId);
+            appliedCoupon = userCouponMapper.selectByIdAndUserId(form.getUserCouponId(), userId);
+            if (appliedCoupon == null) throw new IllegalArgumentException("优惠券不存在");
+            if (appliedCoupon.getUserCouponStatus() != null && appliedCoupon.getUserCouponStatus() != 0) {
+                throw new IllegalArgumentException("该优惠券不可用");
+            }
+            if (appliedCoupon.getStatus() == null || appliedCoupon.getStatus() != 1) {
+                throw new IllegalArgumentException("优惠券已失效");
+            }
+            java.util.Date now = new java.util.Date();
+            if (appliedCoupon.getStartTime() != null && now.before(appliedCoupon.getStartTime())) {
+                throw new IllegalArgumentException("优惠券还未到使用时间");
+            }
+            if (appliedCoupon.getEndTime() != null && now.after(appliedCoupon.getEndTime())) {
+                throw new IllegalArgumentException("优惠券已过期");
+            }
+            if (appliedCoupon.getMinAmount() != null && productAmount.compareTo(appliedCoupon.getMinAmount()) < 0) {
+                throw new IllegalArgumentException("订单金额未达到优惠券使用门槛：" + appliedCoupon.getMinAmount() + "元");
+            }
+            couponDiscount = nvl(appliedCoupon.getAmount()).setScale(2, RoundingMode.HALF_UP);
+            actualAmount = actualAmount.subtract(couponDiscount).max(BigDecimal.ZERO).setScale(2, RoundingMode.HALF_UP);
+            discountAmount = discountAmount.add(couponDiscount).setScale(2, RoundingMode.HALF_UP);
+        }
+
         int orderCountAfterThisOrder = userOrderMapper.countUserOrders(userId) + 1;
         int requiredRiderLevel = resolveRequiredRiderLevel(orderCountAfterThisOrder);
         String requiredRiderTitle = resolveRequiredRiderTitle(requiredRiderLevel);
@@ -103,6 +135,10 @@ public class UserOrderServiceImpl implements UserOrderService {
         order.setRemark(form.getRemark());
         order.setIsUrged(0);
         userOrderMapper.insertOrder(order);
+
+        if (appliedCoupon != null && appliedCoupon.getUserCouponId() != null) {
+            userCouponMapper.markCouponUsed(appliedCoupon.getUserCouponId(), order.getOrderId());
+        }
 
         Map<Integer, UserProductVO> productMap = products.stream().collect(Collectors.toMap(UserProductVO::getProductId, p -> p));
         for (Map.Entry<Integer, Integer> entry : quantityMap.entrySet()) {

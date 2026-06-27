@@ -63,6 +63,17 @@
             </article>
         </section>
 
+        <section id="unreadBanner" class="mt-card" style="display:none;background:#fff7cc;border:1px solid var(--mt-yellow);cursor:pointer;" onclick="location.href='/rider/contact.html'">
+            <div style="display:flex;align-items:center;gap:12px;padding:4px 0;">
+                <span style="font-size:28px;">💬</span>
+                <div>
+                    <h3 style="margin:0;font-size:15px;">您有新的联系消息</h3>
+                    <p id="unreadBannerText" style="margin:4px 0 0;color:var(--mt-sub);font-size:13px;">有未读消息等待查看</p>
+                </div>
+                <span style="margin-left:auto;font-size:20px;color:var(--mt-sub);">›</span>
+            </div>
+        </section>
+
         <section class="mt-card">
             <div class="mt-card-title">
                 <div>
@@ -106,6 +117,12 @@
                 <a class="mt-grid-item" href="/rider/orders.html">
                     <span class="mt-icon orders">📋</span>
                     <strong>订单大厅</strong>
+                </a>
+
+                <a class="mt-grid-item" href="/rider/contact.html">
+                    <span class="mt-icon contact">💬</span>
+                    <strong>联系消息</strong>
+                    <span id="gridMsgBadge" class="mt-badge"></span>
                 </a>
 
                 <a class="mt-grid-item" href="#statusPanel">
@@ -175,9 +192,10 @@
             配送
         </a>
 
-        <a href="/rider/growth.html">
-            <span>⚡</span>
-            成长
+        <a href="/rider/contact.html">
+            <span>💬</span>
+            消息
+            <span id="navMsgBadge" class="mt-badge"></span>
         </a>
     </nav>
 </div>

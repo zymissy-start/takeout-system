@@ -113,4 +113,33 @@
         VALUES(#{userId}, #{couponId}, 0, CURRENT_TIMESTAMP)
     </insert>
 
+    <select id="selectByIdAndUserId" resultType="com.example.takeoutsystem.entity.UserCouponVO">
+        SELECT
+            uc.user_coupon_id AS userCouponId,
+            uc.user_id,
+            uc.coupon_id AS couponId,
+            uc.status AS userCouponStatus,
+            uc.order_id AS orderId,
+            c.title,
+            c.amount,
+            c.min_amount AS minAmount,
+            c.start_time AS startTime,
+            c.end_time AS endTime,
+            c.status
+        FROM user_coupon uc
+        INNER JOIN coupon c ON uc.coupon_id = c.coupon_id
+        WHERE uc.user_coupon_id = #{userCouponId}
+          AND uc.user_id = #{userId}
+        LIMIT 1
+    </select>
+
+    <update id="markCouponUsed">
+        UPDATE user_coupon
+        SET status = 1,
+            order_id = #{orderId},
+            use_time = CURRENT_TIMESTAMP
+        WHERE user_coupon_id = #{userCouponId}
+          AND status = 0
+    </update>
+
 </mapper>

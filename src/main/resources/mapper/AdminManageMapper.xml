@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.takeoutsystem.mapper.AdminManageMapper">
+
+    <resultMap id="userMap" type="com.example.takeoutsystem.entity.SysUser">
+        <id property="userId" column="user_id"/>
+        <result property="username" column="username"/>
+        <result property="password" column="password"/>
+        <result property="realName" column="real_name"/>
+        <result property="phone" column="phone"/>
+        <result property="roleType" column="role_type"/>
+        <result property="creditScore" column="credit_score"/>
+        <result property="status" column="status"/>
+        <result property="createTime" column="create_time"/>
+        <result property="levelId" column="level_id"/>
+        <result property="growthValue" column="growth_value"/>
+    </resultMap>
+
+    <sql id="userColumns">
+        user_id, username, password, real_name, phone, role_type,
+        credit_score, status, create_time, level_id, growth_value
+    </sql>
+
+    <select id="listUsersByRole" resultMap="userMap">
+        SELECT <include refid="userColumns" />
+        FROM sys_user
+        WHERE role_type = #{roleType}
+        <if test="keyword != null and keyword != ''">
+            AND (
+                username LIKE CONCAT('%', #{keyword}, '%')
+                OR real_name LIKE CONCAT('%', #{keyword}, '%')
+                OR phone LIKE CONCAT('%', #{keyword}, '%')
+                OR CAST(user_id AS CHAR) = #{keyword}
+            )
+        </if>
+        ORDER BY create_time DESC, user_id DESC
+        LIMIT #{offset}, #{size}
+    </select>
+
+    <select id="countByRole" resultType="int">
+        SELECT COUNT(1)
+        FROM sys_user
+        WHERE role_type = #{roleType}
+        <if test="keyword != null and keyword != ''">
+            AND (
+                username LIKE CONCAT('%', #{keyword}, '%')
+                OR real_name LIKE CONCAT('%', #{keyword}, '%')
+                OR phone LIKE CONCAT('%', #{keyword}, '%')
+                OR CAST(user_id AS CHAR) = #{keyword}
+            )
+        </if>
+    </select>
+
+    <select id="selectUserDetail" resultMap="userMap">
+        SELECT <include refid="userColumns" />
+        FROM sys_user
+        WHERE user_id = #{userId}
+        LIMIT 1
+    </select>
+
+    <update id="updateUserStatus">
+        UPDATE sys_user
+        SET status = #{status}
+        WHERE user_id = #{userId}
+    </update>
+
+    <select id="selectMerchantDetail" resultType="java.util.Map">
+        SELECT
+            u.user_id AS userId,
+            u.username,
+            u.real_name AS realName,
+            u.phone,
+            u.role_type AS roleType,
+            u.credit_score AS creditScore,
+            u.status,
+            u.create_time AS createTime,
+            mi.store_name AS storeName,
+            mi.store_logo AS storeLogo,
+            mi.store_notice AS storeNotice,
+            mi.rating,
+            mi.monthly_sales AS monthlySales,
+            mi.delivery_fee AS deliveryFee,
+            mi.delivery_time AS deliveryTime,
+            mi.min_order_amount AS minOrderAmount,
+            mi.business_status AS businessStatus
+        FROM sys_user u
+        LEFT JOIN merchant_info mi ON mi.merchant_id = u.user_id
+        WHERE u.user_id = #{userId}
+        LIMIT 1
+    </select>
+
+</mapper>

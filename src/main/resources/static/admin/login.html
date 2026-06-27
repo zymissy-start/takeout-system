@@ -66,6 +66,17 @@
     .back { display: inline-flex; margin-top: 16px; color: #64748b; text-decoration: none; font-size: 14px; }
     .tip { margin-top: 14px; color: #94a3b8; font-size: 13px; }
     .error { min-height: 22px; margin-top: 12px; color: #dc2626; font-size: 14px; }
+    .demo-account {
+      margin-top: 18px;
+      padding: 16px;
+      border-radius: 20px;
+      background:
+        linear-gradient(#fff, #fff) padding-box,
+        linear-gradient(135deg, #ffd100, #111827) border-box;
+      border: 1px solid transparent;
+    }
+    .demo-account p { margin: 0; color: #64748b; font-size: 14px; }
+    .demo-account b { color: #111827; font-size: 18px; }
   </style>
 </head>
 <body>
@@ -74,12 +85,15 @@
     <h1>管理员登录</h1>
     <p>登录后进入平台客服中心，统一处理用户工单。</p>
     <label for="username">账号</label>
-    <input id="username" autocomplete="username" placeholder="请输入管理员账号" />
+    <input id="username" value="admin" autocomplete="username" placeholder="请输入管理员账号" />
     <label for="password">密码</label>
-    <input id="password" type="password" autocomplete="current-password" placeholder="请输入密码" />
+    <input id="password" type="password" value="123456" autocomplete="current-password" placeholder="请输入密码" />
     <button id="loginBtn" class="primary-btn" type="button">登录</button>
     <div id="error" class="error"></div>
-    <div class="tip">测试账号：admin / 123456</div>
+    <div class="demo-account">
+      <p>演示账号：</p>
+      <b>admin / 123456</b>
+    </div>
     <a class="back" href="/index.html">返回身份选择</a>
   </main>
 
