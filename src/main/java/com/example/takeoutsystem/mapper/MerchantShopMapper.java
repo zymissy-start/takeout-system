@@ -1,9 +1,11 @@
 package com.example.takeoutsystem.mapper;
 
 import com.example.takeoutsystem.entity.MerchantShopInfo;
+import com.example.takeoutsystem.entity.MerchantReviewVO;
 import org.apache.ibatis.annotations.*;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 /**
  * 商家店铺信息 Mapper。
@@ -18,6 +20,7 @@ public interface MerchantShopMapper {
                 mi.store_name AS storeName,
                 mi.store_logo AS storeLogo,
                 mi.store_notice AS storeNotice,
+                mi.store_address AS storeAddress,
                 mi.rating AS rating,
                 mi.monthly_sales AS monthlySales,
                 mi.min_order_amount AS minOrderAmount,
@@ -71,10 +74,8 @@ public interface MerchantShopMapper {
             SET store_name = #{storeName},
                 store_logo = #{storeLogo},
                 store_notice = #{storeNotice},
+                store_address = #{storeAddress},
                 min_order_amount = #{minOrderAmount},
-                delivery_fee = #{deliveryFee},
-                delivery_time = #{deliveryTime},
-                distance_km = #{distanceKm},
                 status = #{businessStatus}
             WHERE merchant_id = #{merchantId}
             """)
@@ -82,10 +83,8 @@ public interface MerchantShopMapper {
                    @Param("storeName") String storeName,
                    @Param("storeLogo") String storeLogo,
                    @Param("storeNotice") String storeNotice,
+                   @Param("storeAddress") String storeAddress,
                    @Param("minOrderAmount") BigDecimal minOrderAmount,
-                   @Param("deliveryFee") BigDecimal deliveryFee,
-                   @Param("deliveryTime") Integer deliveryTime,
-                   @Param("distanceKm") BigDecimal distanceKm,
                    @Param("businessStatus") Integer businessStatus);
 
     @Update("""
@@ -98,4 +97,20 @@ public interface MerchantShopMapper {
     int updateSysUserMerchantInfo(@Param("merchantId") Integer merchantId,
                                   @Param("storeName") String storeName,
                                   @Param("contactPhone") String contactPhone);
+
+    @Select("""
+            SELECT
+                r.review_id AS reviewId,
+                r.order_id AS orderId,
+                u.real_name AS userName,
+                r.score AS score,
+                r.content AS content,
+                DATE_FORMAT(r.create_time, '%Y-%m-%d %H:%i:%s') AS createTime
+            FROM product_review r
+            LEFT JOIN sys_user u ON r.user_id = u.user_id
+            WHERE r.merchant_id = #{merchantId}
+            ORDER BY r.create_time DESC
+            LIMIT 50
+            """)
+    List<MerchantReviewVO> listReviews(@Param("merchantId") Integer merchantId);
 }

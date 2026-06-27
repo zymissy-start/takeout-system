@@ -47,12 +47,10 @@ public class MerchantShopServiceImpl implements MerchantShopService {
         String storeName = trim(form.getStoreName());
         String storeLogo = trim(form.getStoreLogo());
         String storeNotice = trim(form.getStoreNotice());
+        String storeAddress = trim(form.getStoreAddress());
         String contactPhone = trim(form.getContactPhone());
 
         BigDecimal minOrderAmount = form.getMinOrderAmount();
-        BigDecimal deliveryFee = form.getDeliveryFee();
-        Integer deliveryTime = form.getDeliveryTime();
-        BigDecimal distanceKm = form.getDistanceKm();
         Integer businessStatus = form.getBusinessStatus();
 
         if (storeName == null || storeName.isEmpty()) {
@@ -65,18 +63,6 @@ public class MerchantShopServiceImpl implements MerchantShopService {
 
         if (minOrderAmount == null || minOrderAmount.compareTo(BigDecimal.ZERO) < 0) {
             minOrderAmount = BigDecimal.ZERO;
-        }
-
-        if (deliveryFee == null || deliveryFee.compareTo(BigDecimal.ZERO) < 0) {
-            deliveryFee = new BigDecimal("3.00");
-        }
-
-        if (deliveryTime == null || deliveryTime <= 0) {
-            deliveryTime = 30;
-        }
-
-        if (distanceKm == null || distanceKm.compareTo(BigDecimal.ZERO) < 0) {
-            distanceKm = new BigDecimal("1.00");
         }
 
         if (businessStatus == null || (businessStatus != 0 && businessStatus != 1)) {
@@ -94,10 +80,8 @@ public class MerchantShopServiceImpl implements MerchantShopService {
                 storeName,
                 storeLogo == null ? "" : storeLogo,
                 storeNotice == null || storeNotice.isEmpty() ? "欢迎光临本店" : storeNotice,
+                storeAddress == null ? "" : storeAddress,
                 minOrderAmount,
-                deliveryFee,
-                deliveryTime,
-                distanceKm,
                 businessStatus
         );
 

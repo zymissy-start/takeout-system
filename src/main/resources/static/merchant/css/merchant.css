@@ -618,6 +618,8 @@ a {
 
 .action-card {
     cursor: pointer;
+    min-height: 86px;
+    padding: 22px 20px;
 }
 
 .action-card:hover {
@@ -627,23 +629,66 @@ a {
 
 .action-card strong {
     display: block;
+    font-size: 17px;
 }
 
 .action-card span {
     color: var(--sub);
-    font-size: 13px;
+    font-size: 14px;
 }
 
 .action-icon {
-    font-size: 24px;
+    font-size: 32px;
     line-height: 1;
     flex-shrink: 0;
 }
 
 .action-arrow {
     color: var(--muted);
-    font-size: 18px;
+    font-size: 20px;
     flex-shrink: 0;
+}
+
+.review-list {
+    display: grid;
+    gap: 12px;
+    margin-top: 14px;
+}
+
+.review-card {
+    padding: 14px 16px;
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    background: #fff;
+}
+
+.review-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.review-head b {
+    font-size: 15px;
+}
+
+.review-stars {
+    color: #f59e0b;
+    font-size: 14px;
+    letter-spacing: 1px;
+    flex-shrink: 0;
+}
+
+.review-content {
+    margin: 8px 0 6px;
+    color: var(--ink);
+    font-size: 14px;
+    line-height: 1.65;
+}
+
+.review-time {
+    display: block;
 }
 
 .msg-badge {

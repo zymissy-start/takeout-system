@@ -132,6 +132,15 @@
                         <span id="msgBadge" class="msg-badge hidden">0</span>
                         <span class="action-arrow">›</span>
                     </button>
+
+                    <button class="action-card" data-action="reviews">
+                        <span class="action-icon">⭐</span>
+                        <div>
+                            <strong>用户评价</strong>
+                            <span>查看用户对订单的评价</span>
+                        </div>
+                        <span class="action-arrow">›</span>
+                    </button>
                 </div>
             </article>
 
@@ -145,6 +154,19 @@
 
                 <div id="productPreviewList" class="product-list">
                     <div class="empty-state">暂无商品数据</div>
+                </div>
+            </article>
+
+            <article class="section-card" style="margin-top:14px;">
+                <div class="section-title">
+                    <div>
+                        <h2>最新评价</h2>
+                        <p>用户对订单的评价反馈</p>
+                    </div>
+                    <button class="ghost-btn" id="refreshReviewsBtn">刷新</button>
+                </div>
+                <div id="reviewList" class="review-list">
+                    <div class="empty-state">正在加载评价...</div>
                 </div>
             </article>
         </aside>

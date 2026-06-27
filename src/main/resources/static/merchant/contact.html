@@ -76,7 +76,6 @@
       <section class="section-card">
         <div class="section-title">
           <h2 id="detailTitle">消息对话</h2>
-          <button id="closeSessionBtn" class="ghost-btn" type="button" style="display:none;">关闭会话</button>
         </div>
         <p id="detailSub" class="muted small" style="margin:0 0 12px;">选择左侧会话后查看消息</p>
         <div id="messageBox" class="message-box">
@@ -98,6 +97,7 @@
         <select id="createFormRole" class="input">
           <option value="1">用户</option>
           <option value="3">骑手</option>
+          <option value="4">管理员</option>
         </select>
       </div>
       <div class="form-group">
@@ -194,7 +194,6 @@
           const partnerName = ir === 2 ? (session.targetName || '') : (session.initiatorName || '');
           $('#detailTitle').textContent = session.title || '消息对话';
           $('#detailSub').innerHTML = `${roleTag(partnerRole)} ${esc(partnerName)} ${statusChip(session.status)}`;
-          $('#closeSessionBtn').style.display = Number(session.status) === 2 ? 'none' : '';
           $('#replyInput').disabled = Number(session.status) === 2;
           $('#sendReplyBtn').disabled = Number(session.status) === 2;
           $('#messageBox').innerHTML = messages.length ? messages.map(m => {
@@ -254,14 +253,30 @@
       }
 
       $('#sendReplyBtn').addEventListener('click', sendReply);
-      $('#closeSessionBtn').addEventListener('click', closeSession);
       $('#replyInput').addEventListener('keydown', e => { if (e.key === 'Enter') sendReply(); });
       $('#createBtn').addEventListener('click', () => { $('#createOverlay').style.display = 'flex'; });
       $('#createCancelBtn').addEventListener('click', () => { $('#createOverlay').style.display = 'none'; });
       $('#createSubmitBtn').addEventListener('click', submitCreate);
       $('#createOverlay').addEventListener('click', e => { if (e.target === $('#createOverlay')) $('#createOverlay').style.display = 'none'; });
 
-      MerchantApp.requireMerchantLogin().then(loadSessions);
+      MerchantApp.requireMerchantLogin().then(() => {
+        loadSessions();
+        autoFillFromUrl();
+      });
+
+      function autoFillFromUrl() {
+        const params = new URLSearchParams(location.search);
+        const targetId = params.get('targetId');
+        const targetRole = params.get('targetRole');
+        const orderId = params.get('orderId');
+        if (targetId && targetRole) {
+          $('#createFormRole').value = targetRole;
+          $('#createFormTargetId').value = targetId;
+          if (orderId) $('#createFormOrderId').value = orderId;
+          $('#createOverlay').style.display = 'flex';
+          history.replaceState(null, '', location.pathname);
+        }
+      }
     })();
   </script>
 </body>

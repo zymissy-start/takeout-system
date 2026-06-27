@@ -12,6 +12,7 @@ public class MerchantShopInfo {
     private String storeName;
     private String storeLogo;
     private String storeNotice;
+    private String storeAddress;
     private BigDecimal rating;
     private Integer monthlySales;
     private BigDecimal minOrderAmount;
@@ -68,6 +69,14 @@ public class MerchantShopInfo {
 
     public void setStoreNotice(String storeNotice) {
         this.storeNotice = storeNotice;
+    }
+
+    public String getStoreAddress() {
+        return storeAddress;
+    }
+
+    public void setStoreAddress(String storeAddress) {
+        this.storeAddress = storeAddress;
     }
 
     public BigDecimal getRating() {

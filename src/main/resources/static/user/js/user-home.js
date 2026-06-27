@@ -16,7 +16,9 @@
     level: null,
     favoriteMerchantIds: new Set(),
     coupons: [],
-    selectedCouponId: null
+    selectedCouponId: null,
+    reviews: [],
+    showReviews: false
   };
 
   const foodEmoji = ['🍔', '🍗', '🍜', '🥤', '🍱', '🍕', '🥟', '🧋'];
@@ -299,8 +301,45 @@
   function enterMerchant(merchant) {
     state.selectedMerchant = merchant;
     state.mode = 'products';
+    state.showReviews = false;
+    state.reviews = [];
     state.keyword = App.$('#keywordInput').value.trim();
     loadProducts(true);
+    loadMerchantReviews();
+  }
+
+  async function loadMerchantReviews() {
+    if (!state.selectedMerchant) return;
+    const merchantId = App.getField(state.selectedMerchant, ['merchantId', 'merchant_id', 'id'], '');
+    if (!merchantId) return;
+    try {
+      const data = await App.request(`/api/user/merchants/${encodeURIComponent(merchantId)}/reviews`);
+      state.reviews = Array.isArray(data) ? data : [];
+    } catch (e) {
+      state.reviews = [];
+    }
+    if (state.showReviews) renderReviewsSection();
+  }
+
+  function renderReviewsSection() {
+    const el = App.$('#merchantReviewsSection');
+    if (!el) return;
+    const reviews = state.reviews;
+    if (!reviews.length) {
+      el.innerHTML = '<div class="reviews-header" id="reviewsToggle" style="cursor:pointer;padding:10px 0;"><b>📝 商家评价</b> <span class="muted small">(暂无评价，点击展开)</span></div>';
+    } else {
+      el.innerHTML = '<div class="reviews-header" id="reviewsToggle" style="cursor:pointer;padding:10px 0;"><b>📝 商家评价 (' + reviews.length + ')</b> <span class="muted small">' + (state.showReviews ? '点击收起' : '点击展开') + '</span></div>'
+        + (state.showReviews ? '<div class="reviews-list">' + reviews.map(function(r) {
+            var stars = '';
+            for (var i = 0; i < 5; i++) stars += i < Number(r.score || 0) ? '★' : '☆';
+            return '<div class="review-item"><div class="review-item-head"><b>' + App.escapeHtml(r.userName || '用户') + '</b><span class="review-stars">' + stars + '</span></div><p class="review-item-content">' + App.escapeHtml(r.content || '该用户未留下文字评价') + '</p><span class="muted small">' + App.escapeHtml(r.createTime || '') + '</span></div>';
+          }).join('') + '</div>' : '');
+    }
+    var toggle = App.$('#reviewsToggle');
+    if (toggle) toggle.addEventListener('click', function() {
+      state.showReviews = !state.showReviews;
+      renderReviewsSection();
+    });
   }
 
   async function loadProducts(reset) {
@@ -334,13 +373,15 @@
     const box = App.$('#productList');
     const merchantName = state.selectedMerchant ? App.getField(state.selectedMerchant, ['storeName', 'store_name', 'merchantName'], '商店') : '商店';
     const backBar = `<div class="store-back-bar"><button id="backStoreBtn" class="ghost-btn">← 返回商店列表</button><b>${App.escapeHtml(merchantName)}</b></div>`;
+    const reviewsSection = '<div id="merchantReviewsSection" style="padding:0 4px;border-bottom:1px solid var(--line);margin-bottom:10px;"></div>';
     if (!state.products.length) {
-      box.innerHTML = `${backBar}<div class="empty-state">这个商店暂时没有符合条件的商品</div>`;
+      box.innerHTML = `${backBar}${reviewsSection}<div class="empty-state">这个商店暂时没有符合条件的商品</div>`;
       App.$('#backStoreBtn').addEventListener('click', () => { state.selectedMerchant = null; loadMerchants(true); });
       App.$('#loadMoreBtn').classList.add('hidden');
+      renderReviewsSection();
       return;
     }
-    box.innerHTML = backBar + state.products.map((p, index) => {
+    box.innerHTML = backBar + reviewsSection + state.products.map((p, index) => {
       const productId = App.getField(p, ['productId', 'product_id', 'id'], '');
       const name = App.getField(p, ['name', 'productName'], '未命名商品');
       const desc = App.getField(p, ['description', 'desc'], '商家暂未填写介绍');
@@ -367,6 +408,7 @@
       try { Cart.add(product, 1); App.toast('已加入购物车'); } catch (err) { App.toast(err.message); }
     }));
     App.$('#loadMoreBtn').classList.toggle('hidden', !state.hasMore);
+    renderReviewsSection();
   }
 
   async function loadAddresses() {

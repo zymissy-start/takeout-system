@@ -15,12 +15,10 @@
             MerchantApp.$('#usernameInput').value = MerchantApp.getField(shop, ['username'], '');
             MerchantApp.$('#storeNameInput').value = MerchantApp.getField(shop, ['storeName', 'store_name'], '');
             MerchantApp.$('#contactPhoneInput').value = MerchantApp.getField(shop, ['contactPhone', 'contact_phone'], '');
+            MerchantApp.$('#storeAddressInput').value = MerchantApp.getField(shop, ['storeAddress', 'store_address'], '');
             MerchantApp.$('#storeLogoInput').value = MerchantApp.getField(shop, ['storeLogo', 'store_logo'], '');
             MerchantApp.$('#businessStatusInput').value = String(MerchantApp.getField(shop, ['businessStatus', 'status'], 1));
             MerchantApp.$('#minOrderAmountInput').value = MerchantApp.getField(shop, ['minOrderAmount', 'min_order_amount'], 0);
-            MerchantApp.$('#deliveryFeeInput').value = MerchantApp.getField(shop, ['deliveryFee', 'delivery_fee'], 3);
-            MerchantApp.$('#deliveryTimeInput').value = MerchantApp.getField(shop, ['deliveryTime', 'delivery_time'], 30);
-            MerchantApp.$('#distanceKmInput').value = MerchantApp.getField(shop, ['distanceKm', 'distance_km'], 1);
             MerchantApp.$('#storeNoticeInput').value = MerchantApp.getField(shop, ['storeNotice', 'store_notice'], '');
 
             MerchantApp.$('#ratingText').textContent = MerchantApp.getField(shop, ['rating'], '5.0');
@@ -35,12 +33,10 @@
 
         const storeName = value('#storeNameInput');
         const contactPhone = value('#contactPhoneInput');
+        const storeAddress = value('#storeAddressInput');
         const storeLogo = value('#storeLogoInput');
         const businessStatus = value('#businessStatusInput');
         const minOrderAmount = value('#minOrderAmountInput') || '0';
-        const deliveryFee = value('#deliveryFeeInput') || '3';
-        const deliveryTime = value('#deliveryTimeInput') || '30';
-        const distanceKm = value('#distanceKmInput') || '1';
         const storeNotice = value('#storeNoticeInput');
 
         if (!storeName) {
@@ -58,33 +54,16 @@
             return;
         }
 
-        if (Number(deliveryFee) < 0) {
-            MerchantApp.toast('配送费不能小于0', 'error');
-            return;
-        }
-
-        if (Number(deliveryTime) <= 0) {
-            MerchantApp.toast('预计配送时间必须大于0', 'error');
-            return;
-        }
-
-        if (Number(distanceKm) < 0) {
-            MerchantApp.toast('距离不能小于0', 'error');
-            return;
-        }
-
         try {
             await MerchantApp.request('/merchant/shop/update', {
                 method: 'POST',
                 body: {
                     storeName,
                     contactPhone,
+                    storeAddress,
                     storeLogo,
                     businessStatus,
                     minOrderAmount,
-                    deliveryFee,
-                    deliveryTime,
-                    distanceKm,
                     storeNotice
                 }
             });

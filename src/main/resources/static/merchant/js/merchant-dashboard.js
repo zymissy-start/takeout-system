@@ -10,7 +10,8 @@
         prevWaitAcceptCount: -1,
         unreadMsgCount: 0,
         orders: [],
-        products: []
+        products: [],
+        reviews: []
     };
 
     document.addEventListener('DOMContentLoaded', init);
@@ -85,6 +86,11 @@
         MerchantApp.$all('.action-card[data-action]').forEach(btn => {
             btn.addEventListener('click', handleQuickAction);
         });
+
+        const refreshReviewsBtn = MerchantApp.$('#refreshReviewsBtn');
+        if (refreshReviewsBtn) {
+            refreshReviewsBtn.addEventListener('click', loadReviews);
+        }
     }
 
     function renderMerchantInfo() {
@@ -101,7 +107,8 @@
         await Promise.all([
             loadStatistics(),
             loadOrderPreview(),
-            loadProductPreview()
+            loadProductPreview(),
+            loadReviews()
         ]);
     }
 
@@ -249,6 +256,50 @@
         }).join('');
     }
 
+    async function loadReviews() {
+        const box = MerchantApp.$('#reviewList');
+        if (!box) return;
+        box.innerHTML = '<div class="empty-state">正在加载评价...</div>';
+
+        try {
+            const data = await MerchantApp.request('/merchant/shop/reviews');
+            state.reviews = Array.isArray(data) ? data : [];
+        } catch (e) {
+            state.reviews = [];
+        }
+
+        renderReviews();
+    }
+
+    function renderReviews() {
+        const box = MerchantApp.$('#reviewList');
+        if (!box) return;
+
+        if (!state.reviews.length) {
+            box.innerHTML = '<div class="empty-state">暂无用户评价</div>';
+            return;
+        }
+
+        box.innerHTML = state.reviews.map(review => {
+            const userName = MerchantApp.getField(review, ['userName', 'user_name'], '用户');
+            const score = Number(MerchantApp.getField(review, ['score'], 5));
+            const content = MerchantApp.getField(review, ['content'], '');
+            const time = MerchantApp.getField(review, ['createTime', 'create_time'], '');
+            const stars = '★'.repeat(score) + '☆'.repeat(5 - score);
+
+            return `
+        <div class="review-card">
+          <div class="review-head">
+            <b>${MerchantApp.escapeHtml(userName)}</b>
+            <span class="review-stars">${stars}</span>
+          </div>
+          <p class="review-content">${MerchantApp.escapeHtml(content || '该用户未留下文字评价')}</p>
+          <span class="review-time muted small">${MerchantApp.escapeHtml(time || '刚刚')}</span>
+        </div>
+      `;
+        }).join('');
+    }
+
     async function handleOrderAction(event) {
         const action = event.currentTarget.dataset.action;
         const id = event.currentTarget.dataset.id;
@@ -310,6 +361,14 @@
 
         if (action === 'contact') {
             location.href = '/merchant/contact.html';
+            return;
+        }
+
+        if (action === 'reviews') {
+            const reviewSection = MerchantApp.$('#reviewList');
+            if (reviewSection) {
+                reviewSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
             return;
         }
 

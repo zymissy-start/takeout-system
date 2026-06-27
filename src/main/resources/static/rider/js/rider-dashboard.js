@@ -120,7 +120,7 @@
 
         icon.textContent = '🟢';
         title.textContent = '空闲待命';
-        desc.textContent = '当前暂无可接订单，可等待商家出餐或进入催促出餐模块查看制作中订单。';
+        desc.textContent = '当前暂无可接订单，可等待商家出餐或进入催促配送模块查看制作中订单。';
     }
 
     async function logout() {

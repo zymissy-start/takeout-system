@@ -313,7 +313,7 @@
 
     async function initWaitCooking() {
         const box = RiderApp.$('#moduleContent');
-        box.innerHTML = '<div class="mt-empty">正在加载待出餐订单...</div>';
+        box.innerHTML = '<div class="mt-empty">正在加载待配送订单...</div>';
 
         try {
             const orders = await RiderApp.request('/rider/orders/wait-cooking');
@@ -530,7 +530,7 @@
         const box = RiderApp.$('#moduleContent');
 
         if (!orders.length) {
-            box.innerHTML = '<div class="mt-empty">暂无待出餐订单</div>';
+            box.innerHTML = '<div class="mt-empty">暂无待配送订单</div>';
             return;
         }
 
@@ -557,7 +557,7 @@
           </p>
 
           <div class="mt-actions">
-            <button data-id="${RiderApp.escapeHtml(id)}">催促商家出餐</button>
+            <button data-id="${RiderApp.escapeHtml(id)}">催促配送</button>
           </div>
         </article>
       `;
@@ -641,7 +641,7 @@
                 body: { orderId }
             });
 
-            RiderApp.toast('已提醒商家尽快出餐', 'success');
+            RiderApp.toast('已催促配送', 'success');
             await initWaitCooking();
         } catch (e) {
             RiderApp.toast(e.message || '催促失败', 'error');

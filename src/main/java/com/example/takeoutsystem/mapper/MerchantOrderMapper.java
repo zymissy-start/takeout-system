@@ -88,6 +88,9 @@ public interface MerchantOrderMapper {
             SELECT
                 o.order_id AS orderId,
                 u.real_name AS userName,
+                o.user_id AS userId,
+                o.rider_id AS riderId,
+                u.phone AS userPhone,
                 o.status AS status,
                 o.total_price AS totalPrice,
                 DATE_FORMAT(o.order_time, '%Y-%m-%d %H:%i:%s') AS orderTime,

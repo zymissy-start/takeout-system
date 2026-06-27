@@ -1,6 +1,8 @@
 package com.example.takeoutsystem.controller;
 
 import com.example.takeoutsystem.common.UserApiResult;
+import com.example.takeoutsystem.entity.MerchantReviewVO;
+import com.example.takeoutsystem.mapper.MerchantShopMapper;
 import com.example.takeoutsystem.service.UserProductService;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -8,17 +10,26 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
+
 @RestController
 public class UserProductController {
     private final UserProductService userProductService;
+    private final MerchantShopMapper merchantShopMapper;
 
-    public UserProductController(UserProductService userProductService) {
+    public UserProductController(UserProductService userProductService, MerchantShopMapper merchantShopMapper) {
         this.userProductService = userProductService;
+        this.merchantShopMapper = merchantShopMapper;
     }
 
     @GetMapping("/api/categories")
     public UserApiResult<?> categories() {
         return UserApiResult.success(userProductService.listCategories());
+    }
+
+    @GetMapping("/api/user/merchants/{merchantId}/reviews")
+    public UserApiResult<List<MerchantReviewVO>> merchantReviews(@PathVariable Integer merchantId) {
+        return UserApiResult.success(merchantShopMapper.listReviews(merchantId));
     }
 
     @GetMapping("/api/user/merchants")

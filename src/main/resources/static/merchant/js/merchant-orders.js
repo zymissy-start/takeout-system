@@ -238,8 +238,16 @@
 
       <p class="muted">收货地址：${MerchantApp.escapeHtml(MerchantApp.getField(order, ['address'], ''))}</p>
       <p class="muted">订单备注：${MerchantApp.escapeHtml(MerchantApp.getField(order, ['remark'], '无'))}</p>
+      <p class="muted">用户电话：${MerchantApp.escapeHtml(MerchantApp.getField(order, ['userPhone', 'user_phone'], '暂无'))}</p>
       <p class="muted">骑手姓名：${MerchantApp.escapeHtml(MerchantApp.getField(order, ['riderName', 'rider_name'], '暂未分配'))}</p>
       <p class="muted">骑手电话：${MerchantApp.escapeHtml(MerchantApp.getField(order, ['riderPhone', 'rider_phone'], '暂未分配'))}</p>
+
+      ${(MerchantApp.getField(order, ['userPhone', 'user_phone'], '') || MerchantApp.getField(order, ['riderPhone', 'rider_phone'], '')) ? `
+      <div class="detail-section-title">快捷联系</div>
+      <div class="order-actions" style="margin-top:8px;">
+        <button class="main" onclick="location.href='/merchant/contact.html?targetId=${MerchantApp.escapeHtml(MerchantApp.getField(order, ['userId', 'user_id'], ''))}&targetRole=1&orderId=${MerchantApp.escapeHtml(MerchantApp.getField(order, ['orderId', 'order_id'], ''))}'">💬 联系用户</button>
+        ${(MerchantApp.getField(order, ['riderId', 'rider_id'], '') || MerchantApp.getField(order, ['riderPhone', 'rider_phone'], '')) ? `<button class="main" onclick="location.href='/merchant/contact.html?targetId=${MerchantApp.escapeHtml(MerchantApp.getField(order, ['riderId', 'rider_id'], ''))}&targetRole=3&orderId=${MerchantApp.escapeHtml(MerchantApp.getField(order, ['orderId', 'order_id'], ''))}'">💬 联系骑手</button>` : ''}
+      </div>` : ''}
 
       <div class="detail-section-title">流程时间</div>
       <p class="muted">商家接单：${MerchantApp.escapeHtml(MerchantApp.getField(order, ['merchantConfirmTime', 'merchant_confirm_time'], '未接单'))}</p>

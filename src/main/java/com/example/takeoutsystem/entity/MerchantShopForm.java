@@ -10,6 +10,7 @@ public class MerchantShopForm {
     private String storeName;
     private String storeLogo;
     private String storeNotice;
+    private String storeAddress;
     private BigDecimal minOrderAmount;
     private BigDecimal deliveryFee;
     private Integer deliveryTime;
@@ -43,6 +44,14 @@ public class MerchantShopForm {
 
     public void setStoreNotice(String storeNotice) {
         this.storeNotice = storeNotice;
+    }
+
+    public String getStoreAddress() {
+        return storeAddress;
+    }
+
+    public void setStoreAddress(String storeAddress) {
+        this.storeAddress = storeAddress;
     }
 
     public BigDecimal getMinOrderAmount() {

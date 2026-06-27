@@ -1,12 +1,16 @@
 package com.example.takeoutsystem.controller.merchant;
 
 import com.example.takeoutsystem.common.Result;
+import com.example.takeoutsystem.entity.MerchantReviewVO;
 import com.example.takeoutsystem.entity.MerchantShopForm;
 import com.example.takeoutsystem.entity.MerchantShopInfo;
 import com.example.takeoutsystem.entity.SysUser;
+import com.example.takeoutsystem.mapper.MerchantShopMapper;
 import com.example.takeoutsystem.service.MerchantShopService;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 /**
  * 商家店铺信息 Controller。
@@ -16,9 +20,11 @@ import org.springframework.web.bind.annotation.*;
 public class MerchantShopController {
 
     private final MerchantShopService merchantShopService;
+    private final MerchantShopMapper merchantShopMapper;
 
-    public MerchantShopController(MerchantShopService merchantShopService) {
+    public MerchantShopController(MerchantShopService merchantShopService, MerchantShopMapper merchantShopMapper) {
         this.merchantShopService = merchantShopService;
+        this.merchantShopMapper = merchantShopMapper;
     }
 
     @GetMapping("/current")
@@ -57,6 +63,18 @@ public class MerchantShopController {
         session.setAttribute("loginMerchant", merchant);
 
         return Result.success("店铺信息保存成功", shopInfo);
+    }
+
+    @GetMapping("/reviews")
+    public Result<List<MerchantReviewVO>> reviews(HttpSession session) {
+        SysUser merchant = getLoginMerchant(session);
+
+        if (merchant == null) {
+            return Result.fail("商家未登录");
+        }
+
+        List<MerchantReviewVO> reviews = merchantShopMapper.listReviews(merchant.getUserId());
+        return Result.success("获取评价列表成功", reviews);
     }
 
     private SysUser getLoginMerchant(HttpSession session) {

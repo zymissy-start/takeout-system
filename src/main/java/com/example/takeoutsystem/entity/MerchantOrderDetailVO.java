@@ -7,6 +7,9 @@ public class MerchantOrderDetailVO {
 
     private Integer orderId;
     private String userName;
+    private String userPhone;
+    private Integer userId;
+    private Integer riderId;
     private Integer status;
     private BigDecimal totalPrice;
     private String orderTime;
@@ -35,6 +38,30 @@ public class MerchantOrderDetailVO {
 
     public void setUserName(String userName) {
         this.userName = userName;
+    }
+
+    public String getUserPhone() {
+        return userPhone;
+    }
+
+    public void setUserPhone(String userPhone) {
+        this.userPhone = userPhone;
+    }
+
+    public Integer getUserId() {
+        return userId;
+    }
+
+    public void setUserId(Integer userId) {
+        this.userId = userId;
+    }
+
+    public Integer getRiderId() {
+        return riderId;
+    }
+
+    public void setRiderId(Integer riderId) {
+        this.riderId = riderId;
     }
 
     public Integer getStatus() {
