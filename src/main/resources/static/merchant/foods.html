@@ -75,8 +75,18 @@
         <label class="field-label" for="foodPriceInput">价格</label>
         <input id="foodPriceInput" class="input" type="number" min="0" step="0.01" placeholder="例如：25.00">
 
-        <label class="field-label" for="foodImageInput">图片路径</label>
-        <input id="foodImageInput" class="input" type="text" placeholder="/images/burger1.jpg">
+        <label class="field-label">商品图片</label>
+        <div class="image-upload-box">
+            <div id="foodImagePreview" class="image-preview">
+                <span class="image-placeholder-text">暂无图片</span>
+            </div>
+            <div class="image-upload-actions">
+                <input type="file" id="foodFileInput" accept="image/jpeg,image/png,image/gif,image/webp" style="display:none">
+                <button type="button" class="ghost-btn" id="foodUploadBtn">选择图片</button>
+                <span id="foodUploadStatus" class="muted" style="font-size:13px;"></span>
+            </div>
+        </div>
+        <input id="foodImageInput" type="hidden">
 
         <label class="field-label" for="foodDescInput">描述</label>
         <textarea id="foodDescInput" class="input textarea" placeholder="请输入菜品描述"></textarea>
