@@ -6,6 +6,63 @@
         await loadShopInfo();
 
         MerchantApp.$('#shopForm').addEventListener('submit', saveShopInfo);
+
+        // 图片上传
+        MerchantApp.$('#logoUploadBtn').addEventListener('click', () => {
+            MerchantApp.$('#logoFileInput').click();
+        });
+        MerchantApp.$('#logoFileInput').addEventListener('change', handleLogoUpload);
+    }
+
+    function updateLogoPreview(url) {
+        const preview = MerchantApp.$('#logoPreview');
+        if (url) {
+            preview.innerHTML = `<img src="${MerchantApp.escapeHtml(url)}" alt="店铺Logo" onerror="this.parentElement.innerHTML='<span class=\\'image-placeholder-text\\'>加载失败</span>'">`;
+        } else {
+            preview.innerHTML = '<span class="image-placeholder-text">暂无图片</span>';
+        }
+    }
+
+    async function handleLogoUpload(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        if (file.size > 5 * 1024 * 1024) {
+            MerchantApp.toast('图片大小不能超过5MB', 'error');
+            event.target.value = '';
+            return;
+        }
+
+        const statusEl = MerchantApp.$('#logoUploadStatus');
+        statusEl.textContent = '正在上传...';
+
+        const formData = new FormData();
+        formData.append('file', file);
+
+        try {
+            const resp = await fetch('/api/upload/image', {
+                method: 'POST',
+                credentials: 'same-origin',
+                body: formData
+            });
+            const json = await resp.json();
+
+            if (json.code === 0 && json.data && json.data.url) {
+                const url = json.data.url;
+                MerchantApp.$('#storeLogoInput').value = url;
+                updateLogoPreview(url);
+                statusEl.textContent = '上传成功';
+                MerchantApp.toast('图片上传成功', 'success');
+            } else {
+                statusEl.textContent = '上传失败';
+                MerchantApp.toast(json.message || '上传失败', 'error');
+            }
+        } catch (e) {
+            statusEl.textContent = '上传失败';
+            MerchantApp.toast('上传失败：' + e.message, 'error');
+        }
+
+        event.target.value = '';
     }
 
     async function loadShopInfo() {
@@ -16,7 +73,11 @@
             MerchantApp.$('#storeNameInput').value = MerchantApp.getField(shop, ['storeName', 'store_name'], '');
             MerchantApp.$('#contactPhoneInput').value = MerchantApp.getField(shop, ['contactPhone', 'contact_phone'], '');
             MerchantApp.$('#storeAddressInput').value = MerchantApp.getField(shop, ['storeAddress', 'store_address'], '');
-            MerchantApp.$('#storeLogoInput').value = MerchantApp.getField(shop, ['storeLogo', 'store_logo'], '');
+
+            const logoUrl = MerchantApp.getField(shop, ['storeLogo', 'store_logo'], '');
+            MerchantApp.$('#storeLogoInput').value = logoUrl;
+            updateLogoPreview(logoUrl);
+
             MerchantApp.$('#businessStatusInput').value = String(MerchantApp.getField(shop, ['businessStatus', 'status'], 1));
             MerchantApp.$('#minOrderAmountInput').value = MerchantApp.getField(shop, ['minOrderAmount', 'min_order_amount'], 0);
             MerchantApp.$('#storeNoticeInput').value = MerchantApp.getField(shop, ['storeNotice', 'store_notice'], '');
