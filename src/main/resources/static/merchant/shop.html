@@ -54,8 +54,18 @@
             <label>店铺地址</label>
             <input id="storeAddressInput" name="storeAddress" placeholder="请输入店铺地址">
 
-            <label>店铺Logo地址</label>
-            <input id="storeLogoInput" name="storeLogo" placeholder="请输入Logo图片地址，可为空">
+            <label>店铺Logo</label>
+            <div class="image-upload-box">
+                <div id="logoPreview" class="image-preview">
+                    <span class="image-placeholder-text">暂无图片</span>
+                </div>
+                <div class="image-upload-actions">
+                    <input type="file" id="logoFileInput" accept="image/jpeg,image/png,image/gif,image/webp" style="display:none">
+                    <button type="button" class="ghost-btn" id="logoUploadBtn">选择图片</button>
+                    <span id="logoUploadStatus" class="muted" style="font-size:13px;"></span>
+                </div>
+            </div>
+            <input id="storeLogoInput" name="storeLogo" type="hidden">
 
             <label>营业状态</label>
             <select id="businessStatusInput" name="businessStatus">

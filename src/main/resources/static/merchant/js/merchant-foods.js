@@ -24,6 +24,12 @@
         MerchantApp.$('#saveFoodBtn').addEventListener('click', saveFood);
         MerchantApp.$('#searchBtn').addEventListener('click', loadFoods);
 
+        // 商品图片上传
+        MerchantApp.$('#foodUploadBtn').addEventListener('click', () => {
+            MerchantApp.$('#foodFileInput').click();
+        });
+        MerchantApp.$('#foodFileInput').addEventListener('change', handleFoodImageUpload);
+
         MerchantApp.$('#keywordInput').addEventListener('keydown', event => {
             if (event.key === 'Enter') {
                 loadFoods();
@@ -167,6 +173,57 @@
         }
     }
 
+    function updateFoodImagePreview(url) {
+        const preview = MerchantApp.$('#foodImagePreview');
+        if (url) {
+            preview.innerHTML = `<img src="${MerchantApp.escapeHtml(url)}" alt="商品图片" onerror="this.parentElement.innerHTML='<span class=\\'image-placeholder-text\\'>加载失败</span>'">`;
+        } else {
+            preview.innerHTML = '<span class="image-placeholder-text">暂无图片</span>';
+        }
+    }
+
+    async function handleFoodImageUpload(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        if (file.size > 5 * 1024 * 1024) {
+            MerchantApp.toast('图片大小不能超过5MB', 'error');
+            event.target.value = '';
+            return;
+        }
+
+        const statusEl = MerchantApp.$('#foodUploadStatus');
+        statusEl.textContent = '正在上传...';
+
+        const formData = new FormData();
+        formData.append('file', file);
+
+        try {
+            const resp = await fetch('/api/upload/image', {
+                method: 'POST',
+                credentials: 'same-origin',
+                body: formData
+            });
+            const json = await resp.json();
+
+            if (json.code === 0 && json.data && json.data.url) {
+                const url = json.data.url;
+                MerchantApp.$('#foodImageInput').value = url;
+                updateFoodImagePreview(url);
+                statusEl.textContent = '上传成功';
+                MerchantApp.toast('图片上传成功', 'success');
+            } else {
+                statusEl.textContent = '上传失败';
+                MerchantApp.toast(json.message || '上传失败', 'error');
+            }
+        } catch (e) {
+            statusEl.textContent = '上传失败';
+            MerchantApp.toast('上传失败：' + e.message, 'error');
+        }
+
+        event.target.value = '';
+    }
+
     function openFoodModal(food) {
         state.editingFood = food || null;
 
@@ -188,13 +245,17 @@
             ? MerchantApp.getField(food, ['price'], '')
             : '';
 
-        MerchantApp.$('#foodImageInput').value = food
+        const imageUrl = food
             ? MerchantApp.getField(food, ['imageUrl', 'image_url'], '')
             : '';
+        MerchantApp.$('#foodImageInput').value = imageUrl;
+        updateFoodImagePreview(imageUrl);
 
         MerchantApp.$('#foodDescInput').value = food
             ? MerchantApp.getField(food, ['description', 'desc'], '')
             : '';
+
+        MerchantApp.$('#foodUploadStatus').textContent = '';
 
         MerchantApp.$('#foodModalMask').classList.remove('hidden');
     }

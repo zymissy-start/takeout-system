@@ -1,0 +1,218 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.takeoutsystem.mapper.AiAgentMapper">
+
+    <sql id="ProductColumns">
+        p.product_id AS productId,
+        p.merchant_id AS merchantId,
+        COALESCE(mi.store_name, su.real_name, su.username) AS merchantName,
+        p.category_id AS categoryId,
+        c.category_name AS categoryName,
+        p.name AS name,
+        p.description AS description,
+        p.price AS price,
+        p.stock AS stock,
+        p.image_url AS imageUrl,
+        p.order_count AS orderCount,
+        COALESCE(p.monthly_sales, p.order_count, 0) AS monthlySales,
+        p.rating AS rating,
+        p.tag AS tag,
+        COALESCE(mi.delivery_fee, 3.00) AS deliveryFee,
+        COALESCE(mi.min_order_amount, 0.00) AS minOrderAmount,
+        COALESCE(mi.delivery_time, 30) AS avgDeliveryMinutes
+    </sql>
+
+    <select id="selectHotProducts" resultType="com.example.takeoutsystem.entity.AiProductVO">
+        SELECT
+        <include refid="ProductColumns" />
+        FROM product p
+        LEFT JOIN product_category c ON p.category_id = c.category_id
+        LEFT JOIN sys_user su ON p.merchant_id = su.user_id
+        LEFT JOIN merchant_info mi ON p.merchant_id = mi.merchant_id
+        WHERE p.status = 1
+        <if test="keyword != null and keyword != ''">
+            AND (
+            p.name LIKE CONCAT('%', #{keyword}, '%')
+            OR p.description LIKE CONCAT('%', #{keyword}, '%')
+            OR c.category_name LIKE CONCAT('%', #{keyword}, '%')
+            OR mi.store_name LIKE CONCAT('%', #{keyword}, '%')
+            )
+        </if>
+        ORDER BY COALESCE(p.monthly_sales, p.order_count, 0) DESC, COALESCE(p.rating, 5.0) DESC, p.product_id DESC
+        LIMIT #{limit}
+    </select>
+
+    <select id="selectProductsByIds" resultType="com.example.takeoutsystem.entity.AiProductVO">
+        SELECT
+        <include refid="ProductColumns" />
+        FROM product p
+        LEFT JOIN product_category c ON p.category_id = c.category_id
+        LEFT JOIN sys_user su ON p.merchant_id = su.user_id
+        LEFT JOIN merchant_info mi ON p.merchant_id = mi.merchant_id
+        WHERE p.status = 1
+        AND p.product_id IN
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </select>
+
+    <select id="selectHistoryProducts" resultType="com.example.takeoutsystem.entity.AiProductVO">
+        SELECT
+        <include refid="ProductColumns" />,
+        SUM(oi.quantity) AS quantity
+        FROM delivery_order o
+        INNER JOIN order_item oi ON o.order_id = oi.order_id
+        INNER JOIN product p ON oi.product_id = p.product_id
+        LEFT JOIN product_category c ON p.category_id = c.category_id
+        LEFT JOIN sys_user su ON p.merchant_id = su.user_id
+        LEFT JOIN merchant_info mi ON p.merchant_id = mi.merchant_id
+        WHERE o.user_id = #{userId}
+        AND o.status &lt;&gt; -1
+        AND p.status = 1
+        GROUP BY p.product_id, p.merchant_id, mi.store_name, su.real_name, su.username,
+        p.category_id, c.category_name, p.name, p.description, p.price,
+        p.stock, p.image_url, p.order_count, p.monthly_sales, p.rating,
+        p.tag, mi.delivery_fee, mi.min_order_amount, mi.delivery_time
+        ORDER BY SUM(oi.quantity) DESC, MAX(o.order_time) DESC
+        LIMIT #{limit}
+    </select>
+
+    <select id="selectAvailableCoupons" resultType="com.example.takeoutsystem.entity.AiCouponVO">
+        SELECT
+            uc.user_coupon_id AS userCouponId,
+            c.coupon_id AS couponId,
+            c.title AS title,
+            c.amount AS amount,
+            c.min_amount AS minAmount,
+            uc.status AS userCouponStatus,
+            c.end_time AS endTime,
+            CASE WHEN uc.status = 0 AND c.status = 1 AND NOW() BETWEEN c.start_time AND c.end_time THEN 1 ELSE 0 END AS available
+        FROM user_coupon uc
+                 INNER JOIN coupon c ON uc.coupon_id = c.coupon_id
+        WHERE uc.user_id = #{userId}
+          AND uc.status = 0
+          AND c.status = 1
+          AND NOW() BETWEEN c.start_time AND c.end_time
+        ORDER BY c.amount DESC, c.min_amount ASC, c.end_time ASC
+    </select>
+
+    <sql id="OrderColumns">
+        o.order_id AS orderId,
+        o.order_no AS orderNo,
+        o.user_id AS userId,
+        o.merchant_id AS merchantId,
+        COALESCE(mi.store_name, mu.real_name, mu.username) AS merchantName,
+        o.rider_id AS riderId,
+        COALESCE(o.rider_name, ru.real_name, ru.username) AS riderName,
+        COALESCE(o.rider_phone, ru.phone) AS riderPhone,
+        o.total_price AS totalPrice,
+        o.product_amount AS productAmount,
+        o.delivery_fee AS deliveryFee,
+        o.discount_amount AS discountAmount,
+        o.actual_amount AS actualAmount,
+        o.status AS status,
+        CASE o.status
+            WHEN -1 THEN '已取消'
+            WHEN 0 THEN '待商家接单'
+            WHEN 1 THEN '商家已接单'
+            WHEN 2 THEN '已出餐，待骑手接单'
+            WHEN 3 THEN '骑手配送中'
+            WHEN 4 THEN '已完成'
+            ELSE '未知状态'
+        END AS statusText,
+        o.order_time AS orderTime,
+        o.merchant_confirm_time AS merchantConfirmTime,
+        o.kitchen_finish_time AS kitchenFinishTime,
+        o.estimated_arrival_time AS estimatedArrivalTime,
+        o.finish_time AS finishTime,
+        o.address AS address,
+        COALESCE(o.required_rider_level, 0) AS requiredRiderLevel,
+        COALESCE(o.required_rider_title, '普通骑手') AS requiredRiderTitle
+    </sql>
+
+    <select id="selectLatestActiveOrder" resultType="com.example.takeoutsystem.entity.AiOrderVO">
+        SELECT
+        <include refid="OrderColumns" />
+        FROM delivery_order o
+        LEFT JOIN merchant_info mi ON o.merchant_id = mi.merchant_id
+        LEFT JOIN sys_user mu ON o.merchant_id = mu.user_id
+        LEFT JOIN sys_user ru ON o.rider_id = ru.user_id
+        WHERE o.user_id = #{userId}
+        AND o.status IN (0, 1, 2, 3)
+        ORDER BY o.order_time DESC, o.order_id DESC
+        LIMIT 1
+    </select>
+
+    <select id="selectOrderById" resultType="com.example.takeoutsystem.entity.AiOrderVO">
+        SELECT
+        <include refid="OrderColumns" />
+        FROM delivery_order o
+        LEFT JOIN merchant_info mi ON o.merchant_id = mi.merchant_id
+        LEFT JOIN sys_user mu ON o.merchant_id = mu.user_id
+        LEFT JOIN sys_user ru ON o.rider_id = ru.user_id
+        WHERE o.user_id = #{userId}
+        AND o.order_id = #{orderId}
+        LIMIT 1
+    </select>
+
+    <select id="selectRecentOrders" resultType="com.example.takeoutsystem.entity.AiOrderVO">
+        SELECT
+        <include refid="OrderColumns" />
+        FROM delivery_order o
+        LEFT JOIN merchant_info mi ON o.merchant_id = mi.merchant_id
+        LEFT JOIN sys_user mu ON o.merchant_id = mu.user_id
+        LEFT JOIN sys_user ru ON o.rider_id = ru.user_id
+        WHERE o.user_id = #{userId}
+        ORDER BY o.order_time DESC, o.order_id DESC
+        LIMIT #{limit}
+    </select>
+
+    <select id="selectOrderItems" resultType="com.example.takeoutsystem.entity.AiProductVO">
+        SELECT
+            oi.product_id AS productId,
+            p.merchant_id AS merchantId,
+            COALESCE(mi.store_name, su.real_name, su.username) AS merchantName,
+            p.category_id AS categoryId,
+            c.category_name AS categoryName,
+            COALESCE(oi.product_name, p.name) AS name,
+            p.description AS description,
+            oi.price AS price,
+            p.stock AS stock,
+            COALESCE(oi.product_image, p.image_url) AS imageUrl,
+            oi.quantity AS quantity,
+            COALESCE(oi.amount, oi.price * oi.quantity) AS subtotalAmount,
+            COALESCE(mi.delivery_fee, 3.00) AS deliveryFee,
+            COALESCE(mi.min_order_amount, 0.00) AS minOrderAmount,
+            COALESCE(mi.delivery_time, 30) AS avgDeliveryMinutes
+        FROM order_item oi
+                 LEFT JOIN product p ON oi.product_id = p.product_id
+                 LEFT JOIN product_category c ON p.category_id = c.category_id
+                 LEFT JOIN sys_user su ON p.merchant_id = su.user_id
+                 LEFT JOIN merchant_info mi ON p.merchant_id = mi.merchant_id
+        WHERE oi.order_id = #{orderId}
+        ORDER BY oi.item_id ASC
+    </select>
+
+    <select id="selectAvailableRiders" resultType="com.example.takeoutsystem.entity.AiRiderVO">
+        SELECT
+            ri.rider_id AS riderInfoId,
+            ri.user_id AS userId,
+            COALESCE(su.real_name, su.username) AS riderName,
+            su.phone AS phone,
+            ri.status AS status,
+            ri.avg_speed AS avgSpeed,
+            ri.total_finished_count AS totalFinishedCount,
+            ri.rider_level AS riderLevel,
+            ri.rider_title AS riderTitle
+        FROM rider_info ri
+                 INNER JOIN sys_user su ON ri.user_id = su.user_id
+        WHERE su.role_type = 3
+          AND su.status = 1
+          AND COALESCE(ri.status, 0) = 0
+          AND COALESCE(ri.rider_level, 0) &gt;= COALESCE(#{requiredLevel}, 0)
+        ORDER BY COALESCE(ri.rider_level, 0) DESC, COALESCE(ri.total_finished_count, 0) DESC, ri.rider_id ASC
+            LIMIT #{limit}
+    </select>
+</mapper>
